@@ -4,7 +4,7 @@ ApplyProof is a Chrome extension that helps people complete job applications wit
 
 Traditional autofill handles contact details. Generic AI can write polished answers, but may exaggerate or invent experience. ApplyProof combines the speed of autofill with visible evidence, conservative answer generation, and a final accuracy audit.
 
-> **Project status:** Phase 1 foundation implemented. The local extension shell, mock application, shared contracts, and API are ready for the scanning milestone.
+> **Project status:** Phase 2 page scanning implemented. The extension detects the controlled demo form, excludes sensitive fields, shows normalized metadata, and can highlight a selected field on the page.
 
 ## The idea
 
@@ -224,6 +224,11 @@ For Chrome, build the extension with `npm run build --workspace @applyproof/exte
 `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select
 `apps/extension/dist`. Click the ApplyProof toolbar action to open its side panel.
 
+With the Northstar Labs application active, click **Scan application** in the side panel. ApplyProof
+shows an inventory of 18 safe normalized fields; the password fixture is excluded. Click any field
+card to scroll to and briefly highlight that field on the application page. After rebuilding an
+already loaded unpacked extension, use the reload button on `chrome://extensions` before retesting.
+
 ### Verify
 
 ```bash
@@ -235,7 +240,10 @@ npm run build
 ```
 
 The API scripts expect the project-local `.venv` created by the install steps. The extension and
-mock application contain no model dependency or secrets in Phase 1.
+mock application contain no model dependency or secrets. Scanning runs only after a user action and
+passes normalized field metadata through the extension; it does not send full-page HTML or page copy
+to the API. Phase 2 host access is limited to the local demo origins (`localhost` and `127.0.0.1`);
+broad website access is intentionally deferred.
 
 Before submitting, use the [hackathon submission checklist](docs/SUBMISSION_CHECKLIST.md).
 

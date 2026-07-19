@@ -14,8 +14,8 @@ This roadmap turns the product plan into a demo-first build sequence. Every mile
 
 | Phase                             | Status      |
 | --------------------------------- | ----------- |
-| 1. Demo foundation                | In progress |
-| 2. Page scanning                  | Not started |
+| 1. Demo foundation                | Complete    |
+| 2. Page scanning                  | Complete    |
 | 3. Demo profile and safe autofill | Not started |
 | 4. Grounded answer review         | Not started |
 | 5. Claim verification and audit   | Not started |
@@ -44,8 +44,8 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ### Acceptance criteria
 
-- [ ] The extension can be loaded unpacked in Chrome.
-- [ ] Clicking the extension opens the side panel.
+- [x] The extension can be loaded unpacked in Chrome.
+- [x] Clicking the extension opens the side panel.
 - [x] The mock application runs locally and displays the complete demo form.
 - [x] The API health endpoint returns successfully.
 - [x] Linting, type checking, and baseline tests pass.
@@ -56,20 +56,20 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ### Deliverables
 
-- [ ] Detection for `input`, `textarea`, `select`, radio groups, and practical custom controls
-- [ ] Label extraction using associated labels, parent labels, ARIA attributes, nearby text, then placeholders
-- [ ] Normalized field metadata
-- [ ] Sensitive-field denylist
-- [ ] Side-panel field inventory
-- [ ] Page highlighting and jump-to-field behavior
+- [x] Detection for `input`, `textarea`, `select`, radio groups, and practical custom controls
+- [x] Label extraction using associated labels, parent labels, ARIA attributes, nearby text, then placeholders
+- [x] Normalized field metadata
+- [x] Sensitive-field denylist
+- [x] Side-panel field inventory
+- [x] Page highlighting and jump-to-field behavior
 
 ### Acceptance criteria
 
-- [ ] At least 90% of intended mock fields are detected.
-- [ ] Every detected field has a useful label.
-- [ ] Password and other blocked fields are excluded.
-- [ ] Scanning sends normalized metadata rather than the full page.
-- [ ] Label extraction and normalization have unit tests.
+- [x] At least 90% of intended mock fields are detected.
+- [x] Every detected field has a useful label.
+- [x] Password and other blocked fields are excluded.
+- [x] Scanning sends normalized metadata rather than the full page.
+- [x] Label extraction and normalization have unit tests.
 
 ## Phase 3 — Demo profile and safe autofill
 

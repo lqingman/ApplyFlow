@@ -45,6 +45,20 @@ For every meaningful milestone, record:
 
 **Artifacts:** root workspace configuration, `apps/extension`, `apps/web-demo`, `apps/api`, `packages/shared-types`, `.env.example`, `README.md`, and `docs/ROADMAP.md`.
 
+### 2026-07-18 — Phase 2 page scanning
+
+**Goal:** understand the controlled Northstar Labs application accurately while excluding sensitive fields and unrelated page content.
+
+**Human decision:** make scanning explicitly user-initiated, limit persistent host access to the two local demo origins, inject the scanner only into the active tab, keep the returned payload limited to normalized field metadata, and group radio buttons into one application question rather than exposing implementation-level controls.
+
+**Codex contribution:** implemented native and practical ARIA control detection, prioritized accessible-label extraction, field normalization, a conservative sensitive-field denylist, on-demand Chrome messaging, the side-panel inventory, page highlighting and jump behavior, error and empty states, and unit plus controlled-form integration coverage.
+
+**Why GPT-5.6 helped:** the milestone required reconciling accessibility semantics, browser permission boundaries, sensitive-data filtering, radio-group normalization, extension packaging, and a compact demo UI without expanding into Phase 3 autofill behavior.
+
+**Verification:** `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` pass. Thirteen TypeScript tests plus one API test pass overall; the scanner integration test detects 18 of 18 intended safe mock fields, confirms every field has a useful label, groups both radio fixtures, retains character limits and select options, and excludes the password fixture. A browser-bridge regression test confirms scanning still proceeds when Chrome provides an active tab ID but withholds its URL. Chrome inspection confirmed the live Northstar form exposes the expected accessible controls. Reloading the unpacked extension and manually repeating scan plus jump-to-field remains the final human UI recheck after this build.
+
+**Artifacts:** `apps/extension/src/scanner.ts`, `apps/extension/src/content.ts`, `apps/extension/src/browser.ts`, the Phase 2 side-panel UI and tests, `packages/shared-types`, `README.md`, and `docs/ROADMAP.md`.
+
 ## Entry template
 
 Copy this section for the next milestone:
