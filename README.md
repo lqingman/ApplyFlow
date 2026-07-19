@@ -265,7 +265,12 @@ returns no draft until the user explicitly confirms reusable AI-usage evidence. 
 provider, set `ANSWER_GENERATION_MODE=openrouter` and provide `OPENROUTER_API_KEY` only in the API
 server environment; the extension never reads or receives that key. The model defaults to
 `openai/gpt-4o-mini` and can be changed with `OPENROUTER_MODEL`. `npm run dev:api` loads these values
-from the ignored root `.env` file created during setup.
+from the ignored root `.env` file created during setup. Alternatively, set
+`ANSWER_GENERATION_MODE=gemini` and provide a server-only `GEMINI_API_KEY`. Gemini mode uses Google's
+OpenAI-compatible Chat Completions endpoint with Structured Outputs and defaults to the stable
+`gemini-2.5-flash` model; override it with `GEMINI_MODEL`. Google may use free-tier request and
+response content to improve its products, so use fixture mode or a suitable paid data-processing
+arrangement for sensitive real applicant data.
 
 ### Verify
 

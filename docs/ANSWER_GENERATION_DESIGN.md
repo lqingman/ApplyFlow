@@ -177,6 +177,18 @@ The Chrome extension never calls OpenRouter directly. The API key exists only in
 
 OpenRouter documents its Responses API as Beta and stateless. Its Structured Outputs support can constrain compatible models to a supplied JSON Schema. ApplyProof keeps the key in server-side environment configuration and preserves fixture mode as the reliable demo default.
 
+### Gemini mode
+
+`ANSWER_GENERATION_MODE=gemini`
+
+- requires `GEMINI_API_KEY` on the FastAPI server;
+- uses Google's OpenAI-compatible Chat Completions endpoint with Structured Outputs;
+- defaults to the stable `gemini-2.5-flash` model and reads overrides from `GEMINI_MODEL`;
+- sends the same minimized request contract and validates the structured response with Pydantic;
+- keeps the API key out of the extension, responses, repository, and logs.
+
+Google states that free-tier Gemini API content may be used to improve its products. Fixture mode remains the safe default for judging, and free-tier Gemini mode should use demo data rather than sensitive real applicant data.
+
 ## ApplyProof API contract
 
 The following is ApplyProof's own backend contract, not the raw OpenRouter request shape.

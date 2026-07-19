@@ -6,7 +6,7 @@ from httpx import ASGITransport, AsyncClient, Response
 
 from app.contracts import AnswerDraftRequest, ProviderDraft
 from app.main import app
-from app.providers import FixtureProvider, OpenRouterProvider
+from app.providers import FixtureProvider, GeminiProvider, OpenRouterProvider, configured_provider
 from app.validation import validate_draft
 
 
@@ -166,15 +166,35 @@ class FakeResponse:
         }
 
 
+class FakeGeminiResponse(FakeResponse):
+    def json(self) -> dict[str, object]:
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": ProviderDraft(
+                            field_id="project",
+                            draft="Grounded Gemini draft",
+                            evidence_ids=["project-campus-map"],
+                            notes=[],
+                            follow_up_question=None,
+                        ).model_dump_json()
+                    }
+                }
+            ]
+        }
+
+
 class FakeClient:
-    def __init__(self) -> None:
+    def __init__(self, response: FakeResponse | None = None) -> None:
         self.kwargs: dict[str, object] = {}
         self.url = ""
+        self.response = response or FakeResponse()
 
     def post(self, url: str, **kwargs: object) -> FakeResponse:
         self.url = url
         self.kwargs = kwargs
-        return FakeResponse()
+        return self.response
 
 
 def test_openrouter_provider_uses_responses_with_structured_outputs() -> None:
@@ -201,3 +221,36 @@ def test_openrouter_provider_uses_responses_with_structured_outputs() -> None:
     assert body["text"]["format"]["type"] == "json_schema"  # type: ignore[index]
     assert body["text"]["format"]["strict"] is True  # type: ignore[index]
     assert body["store"] is False
+
+
+def test_gemini_provider_uses_chat_completions_with_structured_outputs() -> None:
+    client = FakeClient(FakeGeminiResponse())
+    provider = GeminiProvider(
+        client=client,
+        api_key="test-key",
+        model="gemini-test-model",
+        base_url="https://gemini.test/v1beta/openai/",
+    )
+    result = provider.generate(AnswerDraftRequest.model_validate(request_body()))
+
+    assert result.draft == "Grounded Gemini draft"
+    assert client.url == "https://gemini.test/v1beta/openai/chat/completions"
+    assert client.kwargs["headers"] == {
+        "Authorization": "Bearer test-key",
+        "Content-Type": "application/json",
+    }
+    body = client.kwargs["json"]
+    assert isinstance(body, dict)
+    assert body["model"] == "gemini-test-model"
+    assert body["response_format"]["type"] == "json_schema"  # type: ignore[index]
+    assert body["response_format"]["json_schema"]["strict"] is True  # type: ignore[index]
+    assert body["reasoning_effort"] == "none"
+
+
+def test_configured_provider_supports_gemini(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANSWER_GENERATION_MODE", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+
+    provider = configured_provider()
+
+    assert isinstance(provider, GeminiProvider)

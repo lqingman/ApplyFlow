@@ -6,6 +6,15 @@ import httpx
 
 from .contracts import AnswerDraftRequest, ProviderDraft
 
+GROUNDING_INSTRUCTIONS = (
+    "Write a concise job-application draft using only supplied evidence for candidate "
+    "claims. Job context supports only company and role statements. Never invent "
+    "leadership, quantities, outcomes, technologies, legal conclusions, or personality "
+    "traits. Respect the character limit. Return only supplied evidence IDs. If evidence "
+    "is insufficient, return an empty draft, a plain note, and one focused follow-up "
+    "question. Do not mention models, prompts, evidence systems, or review processes."
+)
+
 
 class AnswerDraftProvider(Protocol):
     def generate(self, request: AnswerDraftRequest) -> ProviderDraft: ...
@@ -101,14 +110,6 @@ class OpenRouterProvider:
         ).rstrip("/")
 
     def generate(self, request: AnswerDraftRequest) -> ProviderDraft:
-        instructions = (
-            "Write a concise job-application draft using only supplied evidence for candidate "
-            "claims. Job context supports only company and role statements. Never invent "
-            "leadership, quantities, outcomes, technologies, legal conclusions, or personality "
-            "traits. Respect the character limit. Return only supplied evidence IDs. If evidence "
-            "is insufficient, return an empty draft, a plain note, and one focused follow-up "
-            "question. Do not mention models, prompts, evidence systems, or review processes."
-        )
         response = self.client.post(
             f"{self.base_url}/responses",
             headers={
@@ -119,7 +120,7 @@ class OpenRouterProvider:
             },
             json={
                 "model": self.model,
-                "instructions": instructions,
+                "instructions": GROUNDING_INSTRUCTIONS,
                 "input": json.dumps(request.model_dump(by_alias=True)),
                 "text": {
                     "format": {
@@ -148,6 +149,67 @@ class OpenRouterProvider:
         raise ValueError("OpenRouter did not return a usable structured draft")
 
 
+class GeminiProvider:
+    def __init__(
+        self,
+        client: Any | None = None,
+        api_key: str | None = None,
+        model: str | None = None,
+        base_url: str | None = None,
+    ) -> None:
+        self.client = client or httpx.Client()
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY") or ""
+        self.model = model or os.getenv("GEMINI_MODEL") or "gemini-2.5-flash"
+        self.base_url = (
+            base_url
+            or os.getenv("GEMINI_BASE_URL")
+            or "https://generativelanguage.googleapis.com/v1beta/openai"
+        ).rstrip("/")
+
+    def generate(self, request: AnswerDraftRequest) -> ProviderDraft:
+        response = self.client.post(
+            f"{self.base_url}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": GROUNDING_INSTRUCTIONS},
+                    {
+                        "role": "user",
+                        "content": json.dumps(request.model_dump(by_alias=True)),
+                    },
+                ],
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "applyproof_answer_draft",
+                        "strict": True,
+                        "schema": ProviderDraft.model_json_schema(),
+                    },
+                },
+                "reasoning_effort": "none",
+            },
+            timeout=30.0,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise ValueError("Gemini returned an invalid response")
+        choices = payload.get("choices")
+        if isinstance(choices, list) and choices:
+            choice = choices[0]
+            if isinstance(choice, dict):
+                message = choice.get("message")
+                if isinstance(message, dict):
+                    content = message.get("content")
+                    if isinstance(content, str):
+                        return ProviderDraft.model_validate_json(content)
+        raise ValueError("Gemini did not return a usable structured draft")
+
+
 def configured_provider() -> AnswerDraftProvider:
     mode = os.getenv("ANSWER_GENERATION_MODE", "fixture").lower()
     if mode == "fixture":
@@ -156,4 +218,8 @@ def configured_provider() -> AnswerDraftProvider:
         if not os.getenv("OPENROUTER_API_KEY"):
             raise RuntimeError("OpenRouter drafting requires OPENROUTER_API_KEY on the server")
         return OpenRouterProvider()
-    raise RuntimeError("ANSWER_GENERATION_MODE must be fixture or openrouter")
+    if mode == "gemini":
+        if not os.getenv("GEMINI_API_KEY"):
+            raise RuntimeError("Gemini drafting requires GEMINI_API_KEY on the server")
+        return GeminiProvider()
+    raise RuntimeError("ANSWER_GENERATION_MODE must be fixture, openrouter, or gemini")
