@@ -1,25 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { mayaProfile } from "@applyproof/sample-data";
-import type {
-  AnswerDraftResponse,
-  CandidateProfile,
-  FillResult,
-  NormalizedField,
-} from "@applyproof/shared-types";
+import type { FillResult, NormalizedField } from "@applyproof/shared-types";
 
-import { generateAnswerDraft } from "./answerApi";
 import { planAutofill, type FieldDecision } from "./autofill";
-import { fillActivePage, focusField, scanActivePage } from "./browser";
+import {
+  enableInlineAssistants,
+  fillActivePage,
+  focusField,
+  scanActivePage,
+} from "./browser";
+import { generateAnswerDraft } from "./answerApi";
 import { buildDraftRequest } from "./evidence";
 
 type WorkflowStatus = "idle" | "working" | "complete" | "error";
-type DraftState = {
-  response?: AnswerDraftResponse;
-  text: string;
-  loading: boolean;
-  error?: string;
-};
-
 function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
@@ -45,15 +38,11 @@ function applyFillResults(decisions: FieldDecision[], results: FillResult[]) {
 
 export function App() {
   const [profileSelected, setProfileSelected] = useState(false);
-  const [profile, setProfile] = useState<CandidateProfile>(mayaProfile);
+  const profile = mayaProfile;
   const [fields, setFields] = useState<NormalizedField[]>([]);
   const [decisions, setDecisions] = useState<FieldDecision[]>([]);
   const [blockedCount, setBlockedCount] = useState(0);
   const [status, setStatus] = useState<WorkflowStatus>("idle");
-  const [drafts, setDrafts] = useState<Record<string, DraftState>>({});
-  const [followUpAnswers, setFollowUpAnswers] = useState<
-    Record<string, string>
-  >({});
   const [message, setMessage] = useState(
     "Choose a trusted profile before scanning this application.",
   );
@@ -75,8 +64,6 @@ export function App() {
     setDecisions([]);
     setBlockedCount(0);
     setStatus("idle");
-    setDrafts({});
-    setFollowUpAnswers({});
     setMessage("Choose a trusted profile before scanning this application.");
   }
 
@@ -89,6 +76,7 @@ export function App() {
       const plan = planAutofill(profile, scan.fields);
       const results = await fillActivePage(plan.fills);
       const completed = applyFillResults(plan.decisions, results);
+      const mountedCount = await enableInlineAssistants(scan.fields);
       setFields(scan.fields);
       setBlockedCount(scan.blockedCount);
       setDecisions(completed);
@@ -98,7 +86,7 @@ export function App() {
         (item) => item.action === "review",
       ).length;
       setMessage(
-        `Filled ${filled} verified fields. ${review} ${review === 1 ? "item needs" : "items need"} your attention.`,
+        `Filled ${filled} verified fields. ${review} ${review === 1 ? "item needs" : "items need"} your attention. ${mountedCount ? `Writing tools are ready on ${mountedCount} open ${mountedCount === 1 ? "question" : "questions"}.` : ""}`,
       );
     } catch (error) {
       setStatus("error");
@@ -115,129 +103,59 @@ export function App() {
     }
   }
 
-  async function handleGenerate(field: NormalizedField) {
-    setDrafts((current) => ({
-      ...current,
-      [field.id]: {
-        ...current[field.id],
-        text: current[field.id]?.text ?? "",
-        loading: true,
-      },
-    }));
-    try {
-      const response = await generateAnswerDraft(
-        buildDraftRequest(profile, field),
-      );
-      setDrafts((current) => ({
-        ...current,
-        [field.id]: { response, text: response.draft, loading: false },
-      }));
-    } catch (error) {
-      setDrafts((current) => ({
-        ...current,
-        [field.id]: {
-          ...current[field.id],
-          text: current[field.id]?.text ?? "",
-          loading: false,
-          error: errorMessage(error),
-        },
-      }));
-    }
-  }
-
-  async function handleFillAnswer(field: NormalizedField) {
-    const text = drafts[field.id]?.text ?? "";
-    if (!text.trim()) return;
-    if (field.maxLength && text.length > field.maxLength) {
-      setDrafts((current) => ({
-        ...current,
-        [field.id]: {
-          ...current[field.id],
-          error: "Shorten this answer before filling it.",
-        },
-      }));
-      return;
-    }
-    let result: FillResult | undefined;
-    try {
-      [result] = await fillActivePage([{ fieldId: field.id, value: text }]);
-    } catch (error) {
-      setDrafts((current) => ({
-        ...current,
-        [field.id]: {
-          ...current[field.id],
-          error: errorMessage(error),
-        },
-      }));
-      return;
-    }
-    if (result?.status !== "filled") {
-      setDrafts((current) => ({
-        ...current,
-        [field.id]: {
-          ...current[field.id],
-          error:
-            result?.status === "skipped_existing"
-              ? "The page answer changed, so ApplyProof preserved it."
-              : "This field is no longer available. Your reviewed text is preserved here.",
-        },
-      }));
-      return;
-    }
-    setDecisions((current) =>
-      current.map((decision) =>
-        decision.field.id === field.id
-          ? {
-              ...decision,
-              action: "fill",
-              reason: "Inserted after your review.",
-              value: text,
-            }
-          : decision,
-      ),
-    );
-    setMessage(
-      "Inserted the exact answer you reviewed. ApplyProof did not submit the form.",
-    );
-  }
-
-  async function confirmFollowUp(field: NormalizedField) {
-    const answer = followUpAnswers[field.id]?.trim();
-    if (!answer) return;
-    const updatedProfile: CandidateProfile = {
-      ...profile,
-      evidence: [
-        ...profile.evidence.filter(
-          (record) => record.id !== `confirmed-${field.id}`,
+  useEffect(() => {
+    if (typeof chrome === "undefined" || !chrome.runtime?.onMessage) return;
+    const listener = (
+      message: unknown,
+      _sender: chrome.runtime.MessageSender,
+      sendResponse: (response: unknown) => void,
+    ) => {
+      const update = message as {
+        type?: string;
+        fieldId?: string;
+        value?: string;
+        field?: NormalizedField;
+        additionalPrompt?: string;
+      };
+      if (update.type === "APPLYPROOF_GENERATE_INLINE_DRAFT" && update.field) {
+        void generateAnswerDraft(
+          buildDraftRequest(profile, update.field, update.additionalPrompt),
+        )
+          .then((response) => {
+            const sources = response.evidenceIds
+              .map(
+                (id) =>
+                  profile.evidence.find((record) => record.id === id)?.source,
+              )
+              .filter((source): source is string => Boolean(source));
+            sendResponse({ ok: true, response, sources });
+          })
+          .catch((error) =>
+            sendResponse({ ok: false, error: errorMessage(error) }),
+          );
+        return true;
+      }
+      if (update.type !== "APPLYPROOF_INLINE_DRAFT_FILLED" || !update.fieldId)
+        return;
+      setDecisions((current) =>
+        current.map((decision) =>
+          decision.field.id === update.fieldId
+            ? {
+                ...decision,
+                action: "fill",
+                reason: "Generated on the page and ready for your review.",
+                value: update.value,
+              }
+            : decision,
         ),
-        {
-          id: `confirmed-${field.id}`,
-          category: "profile",
-          text: answer,
-          source: "My Profile · Confirmed answer",
-        },
-      ],
-    };
-    setProfile(updatedProfile);
-    setDrafts((current) => ({
-      ...current,
-      [field.id]: { text: "", loading: true },
-    }));
-    try {
-      const response = await generateAnswerDraft(
-        buildDraftRequest(updatedProfile, field),
       );
-      setDrafts((current) => ({
-        ...current,
-        [field.id]: { response, text: response.draft, loading: false },
-      }));
-    } catch (error) {
-      setDrafts((current) => ({
-        ...current,
-        [field.id]: { text: "", loading: false, error: errorMessage(error) },
-      }));
-    }
-  }
+      setMessage(
+        "The generated answer is now in the application. Review it before submitting.",
+      );
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    return () => chrome.runtime.onMessage.removeListener(listener);
+  }, [profile]);
 
   return (
     <main className="panel-shell">
@@ -375,12 +293,6 @@ export function App() {
             {reviewItems.length ? (
               <ol className="review-list">
                 {reviewItems.map((item) => {
-                  const draft = drafts[item.field.id];
-                  const evidence = draft?.response?.evidenceIds
-                    .map((id) =>
-                      profile.evidence.find((record) => record.id === id),
-                    )
-                    .filter((record) => record !== undefined);
                   if (item.field.kind !== "textarea") {
                     return (
                       <li key={item.field.id}>
@@ -398,10 +310,6 @@ export function App() {
                       </li>
                     );
                   }
-                  const overLimit = Boolean(
-                    item.field.maxLength &&
-                    (draft?.text.length ?? 0) > item.field.maxLength,
-                  );
                   return (
                     <li className="answer-card" key={item.field.id}>
                       <div className="answer-heading">
@@ -413,115 +321,15 @@ export function App() {
                           type="button"
                           onClick={() => handleFocus(item.field)}
                         >
-                          View field ↗
+                          Open writing assistant ↗
                         </button>
                       </div>
-                      {!draft?.response && !draft?.loading && (
-                        <>
-                          <small>{item.reason}</small>
-                          <button
-                            className="draft-button"
-                            type="button"
-                            onClick={() => handleGenerate(item.field)}
-                          >
-                            Generate grounded draft
-                          </button>
-                        </>
-                      )}
-                      {draft?.loading && (
-                        <p className="draft-loading">Selecting evidence…</p>
-                      )}
-                      {draft?.response && (
-                        <>
-                          <label className="draft-editor">
-                            Reviewed answer
-                            <textarea
-                              aria-label={`Reviewed answer for ${item.field.label}`}
-                              value={draft.text}
-                              onChange={(event) =>
-                                setDrafts((current) => ({
-                                  ...current,
-                                  [item.field.id]: {
-                                    ...current[item.field.id],
-                                    text: event.target.value,
-                                    error: undefined,
-                                  },
-                                }))
-                              }
-                            />
-                          </label>
-                          <p
-                            className={`character-count ${overLimit ? "is-over" : ""}`}
-                          >
-                            {draft.text.length}
-                            {item.field.maxLength
-                              ? ` / ${item.field.maxLength}`
-                              : " characters"}
-                          </p>
-                          {evidence?.length ? (
-                            <details className="answer-evidence" open>
-                              <summary>
-                                Evidence used ({evidence.length})
-                              </summary>
-                              <ul>
-                                {evidence.map((record) => (
-                                  <li key={record.id}>
-                                    {record.text} <span>{record.source}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </details>
-                          ) : null}
-                          {draft.response.notes.map((note) => (
-                            <p className="answer-note" key={note}>
-                              {note}
-                            </p>
-                          ))}
-                          {draft.response.followUpQuestion && (
-                            <div className="follow-up">
-                              <label>
-                                {draft.response.followUpQuestion}
-                                <textarea
-                                  value={followUpAnswers[item.field.id] ?? ""}
-                                  onChange={(event) =>
-                                    setFollowUpAnswers((current) => ({
-                                      ...current,
-                                      [item.field.id]: event.target.value,
-                                    }))
-                                  }
-                                />
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => confirmFollowUp(item.field)}
-                              >
-                                Confirm, save to My Profile &amp; regenerate
-                              </button>
-                            </div>
-                          )}
-                          <div className="answer-actions">
-                            <button
-                              type="button"
-                              onClick={() => handleGenerate(item.field)}
-                            >
-                              Regenerate
-                            </button>
-                            <button
-                              className="fill-answer"
-                              type="button"
-                              disabled={!draft.text.trim() || overLimit}
-                              onClick={() => handleFillAnswer(item.field)}
-                            >
-                              Fill answer
-                            </button>
-                          </div>
-                        </>
-                      )}
-                      {draft?.error && (
-                        <p className="draft-error" role="alert">
-                          {draft.error}
-                        </p>
-                      )}
+                      <small>{item.reason}</small>
+                      <p className="inline-writing-status">
+                        Hover or focus this question on the application page to
+                        generate an answer. Before regenerating, add an optional
+                        instruction such as which resume project to use.
+                      </p>
                     </li>
                   );
                 })}

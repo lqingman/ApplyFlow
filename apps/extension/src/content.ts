@@ -1,5 +1,7 @@
 import { countBlockedFields, findField, scanDocument } from "./scanner";
 import { fillDocument } from "./pageFill";
+import { mountInlineAssistants } from "./inlineAssistant";
+import type { NormalizedField } from "@applyproof/shared-types";
 
 declare global {
   interface Window {
@@ -63,6 +65,16 @@ if (!window.__applyProofScannerReady) {
           document,
           Array.isArray(message.fills) ? message.fills : [],
         ),
+      });
+      return;
+    }
+    if (message?.type === "APPLYPROOF_ENABLE_INLINE_ASSISTANTS") {
+      const fields = Array.isArray(message.fields)
+        ? (message.fields as NormalizedField[])
+        : [];
+      sendResponse({
+        ok: true,
+        mountedCount: mountInlineAssistants(document, fields),
       });
     }
   });

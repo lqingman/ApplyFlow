@@ -4,6 +4,7 @@ import {
   type FieldFill,
   type FillResult,
   type PageScan,
+  type NormalizedField,
 } from "@applyproof/shared-types";
 
 async function activeTab() {
@@ -64,4 +65,16 @@ export async function fillActivePage(
     fills,
   });
   return pageFillResultSchema.parse(response).results;
+}
+
+export async function enableInlineAssistants(fields: NormalizedField[]) {
+  const tabId = await activeTab();
+  await ensureScanner(tabId);
+  const response: unknown = await chrome.tabs.sendMessage(tabId, {
+    type: "APPLYPROOF_ENABLE_INLINE_ASSISTANTS",
+    fields,
+  });
+  if (!(response as { ok?: boolean })?.ok)
+    throw new Error("ApplyProof could not add writing tools to this page.");
+  return (response as { mountedCount?: number }).mountedCount ?? 0;
 }

@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { fillActivePage, scanActivePage } from "./browser";
+import {
+  enableInlineAssistants,
+  fillActivePage,
+  scanActivePage,
+} from "./browser";
 
 describe("extension browser bridge", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -101,5 +105,38 @@ describe("extension browser bridge", () => {
       blockedCount: 0,
     });
     expect(executeScript).not.toHaveBeenCalled();
+  });
+
+  it("enables writing assistants for scanned fields", async () => {
+    const sendMessage = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: true, mountedCount: 1 });
+    vi.stubGlobal("chrome", {
+      tabs: {
+        query: vi.fn().mockResolvedValue([{ id: 42 }]),
+        sendMessage,
+      },
+      scripting: { executeScript: vi.fn() },
+    });
+    const fields = [
+      {
+        id: "project",
+        label: "Describe a project",
+        kind: "textarea" as const,
+        required: true,
+        value: "",
+        options: [],
+      },
+    ];
+
+    await expect(enableInlineAssistants(fields)).resolves.toBe(1);
+    expect(sendMessage).toHaveBeenLastCalledWith(
+      42,
+      expect.objectContaining({
+        type: "APPLYPROOF_ENABLE_INLINE_ASSISTANTS",
+        fields,
+      }),
+    );
   });
 });

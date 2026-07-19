@@ -9,7 +9,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 import { generateAnswerDraft } from "./answerApi";
-import { fillActivePage, scanActivePage } from "./browser";
+import {
+  enableInlineAssistants,
+  fillActivePage,
+  scanActivePage,
+} from "./browser";
 
 vi.mock("./answerApi", () => ({ generateAnswerDraft: vi.fn() }));
 
@@ -46,12 +50,16 @@ vi.mock("./browser", () => ({
   fillActivePage: vi
     .fn()
     .mockResolvedValue([{ fieldId: "email", status: "filled" }]),
+  enableInlineAssistants: vi.fn().mockResolvedValue(0),
   focusField: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe("profile-first autofill workflow", () => {
   beforeEach(() => vi.clearAllMocks());
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
 
   it("requires profile selection before autofill", () => {
     render(<App />);
@@ -99,7 +107,7 @@ describe("profile-first autofill workflow", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps a draft in review until the user fills the exact text", async () => {
+  it("routes open questions to the inline page assistant", async () => {
     vi.mocked(scanActivePage).mockResolvedValueOnce({
       blockedCount: 0,
       fields: [
@@ -114,51 +122,85 @@ describe("profile-first autofill workflow", () => {
         },
       ],
     });
-    vi.mocked(fillActivePage)
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([{ fieldId: "project", status: "filled" }]);
-    vi.mocked(generateAnswerDraft).mockResolvedValueOnce({
-      fieldId: "project",
-      draft: "A grounded project answer.",
-      evidenceIds: ["project-campus-map"],
-      notes: ["No measurable outcome is recorded."],
-      followUpQuestion: null,
-      characterCount: 26,
-      fitsLimit: true,
-    });
+    vi.mocked(fillActivePage).mockResolvedValueOnce([]);
+    vi.mocked(enableInlineAssistants).mockResolvedValueOnce(1);
     render(<App />);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Use Maya demo profile" }),
     );
     fireEvent.click(screen.getByRole("button", { name: "Scan & Autofill" }));
-    await screen.findByRole("button", { name: "Generate grounded draft" });
-    fireEvent.click(
-      screen.getByRole("button", { name: "Generate grounded draft" }),
-    );
-
-    const editor = await screen.findByLabelText(
-      "Reviewed answer for Describe a relevant project.",
-    );
-    expect(editor).toHaveValue("A grounded project answer.");
-    expect(screen.getByText("Need review").previousSibling).toHaveTextContent(
-      "1",
-    );
-    fireEvent.change(editor, {
-      target: { value: "My reviewed exact answer." },
+    const button = await screen.findByRole("button", {
+      name: "Open writing assistant ↗",
     });
-    fireEvent.click(screen.getByRole("button", { name: "Fill answer" }));
-
-    await waitFor(() =>
-      expect(fillActivePage).toHaveBeenLastCalledWith([
-        { fieldId: "project", value: "My reviewed exact answer." },
-      ]),
+    expect(enableInlineAssistants).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ id: "project" })]),
     );
     expect(screen.getByText("Need review").previousSibling).toHaveTextContent(
-      "0",
-    );
-    expect(screen.getByText("Safely filled").previousSibling).toHaveTextContent(
       "1",
+    );
+    expect(
+      screen.getByText(/Before regenerating, add an optional instruction/),
+    ).toBeInTheDocument();
+    fireEvent.click(button);
+  });
+
+  it("generates page requests with the user's extra instruction", async () => {
+    const addListener = vi.fn();
+    vi.stubGlobal("chrome", {
+      runtime: {
+        onMessage: {
+          addListener,
+          removeListener: vi.fn(),
+        },
+      },
+    });
+    vi.mocked(generateAnswerDraft).mockResolvedValue({
+      fieldId: "project",
+      draft: "A grounded project answer.",
+      evidenceIds: ["project-campus-map"],
+      notes: [],
+      followUpQuestion: null,
+      characterCount: 26,
+      fitsLimit: true,
+    });
+    render(<App />);
+    const listener = addListener.mock.calls[0]?.[0] as (
+      message: unknown,
+      sender: unknown,
+      sendResponse: (response: unknown) => void,
+    ) => boolean;
+    const sendResponse = vi.fn();
+
+    expect(
+      listener(
+        {
+          type: "APPLYPROOF_GENERATE_INLINE_DRAFT",
+          field: {
+            id: "project",
+            label: "Describe a relevant project.",
+            kind: "textarea",
+            required: true,
+            value: "",
+            options: [],
+          },
+          additionalPrompt: "Use my campus map project",
+        },
+        {},
+        sendResponse,
+      ),
+    ).toBe(true);
+    await waitFor(() =>
+      expect(generateAnswerDraft).toHaveBeenCalledWith(
+        expect.objectContaining({
+          additionalPrompt: "Use my campus map project",
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(sendResponse).toHaveBeenCalledWith(
+        expect.objectContaining({ ok: true }),
+      ),
     );
   });
 });
