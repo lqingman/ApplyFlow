@@ -45,11 +45,22 @@ vi.mock("./browser", () => ({
         value: "",
         options: ["Woman"],
       },
+      {
+        id: "accuracyConfirmation",
+        label: "I confirm this application is accurate",
+        kind: "checkbox",
+        required: true,
+        value: "",
+        options: [],
+      },
     ],
   }),
-  fillActivePage: vi
-    .fn()
-    .mockResolvedValue([{ fieldId: "email", status: "filled" }]),
+  fillActivePage: vi.fn().mockResolvedValue([
+    { fieldId: "email", status: "filled" },
+    { fieldId: "work-authorization", status: "filled" },
+    { fieldId: "gender", status: "filled" },
+    { fieldId: "accuracyConfirmation", status: "filled" },
+  ]),
   enableInlineAssistants: vi.fn().mockResolvedValue(0),
   focusField: vi.fn().mockResolvedValue(undefined),
 }));
@@ -90,21 +101,27 @@ describe("profile-first autofill workflow", () => {
       ).toBeInTheDocument(),
     );
     expect(screen.getByText("Safely filled").previousSibling).toHaveTextContent(
-      "1",
+      "4",
     );
     expect(screen.getByText("Need review").previousSibling).toHaveTextContent(
-      "1",
+      "0",
     );
-    expect(screen.getByText("Skipped").previousSibling).toHaveTextContent("1");
+    expect(screen.getByText("Skipped").previousSibling).toHaveTextContent("0");
     expect(screen.getByText("Blocked").previousSibling).toHaveTextContent("1");
+    expect(screen.getByText("Nothing needs review.")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "Work authorization is high risk and must be confirmed by you.",
-      ),
+      screen.getByText("View all 4 detected safe fields"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("View all 3 detected safe fields"),
-    ).toBeInTheDocument();
+    expect(fillActivePage).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        {
+          fieldId: "work-authorization",
+          value: "Authorized to work in Canada",
+        },
+        { fieldId: "gender", value: "woman" },
+        { fieldId: "accuracyConfirmation", value: "true" },
+      ]),
+    );
   });
 
   it("routes open questions to the inline page assistant", async () => {

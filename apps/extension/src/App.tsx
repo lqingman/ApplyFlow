@@ -13,6 +13,13 @@ import { generateAnswerDraft } from "./answerApi";
 import { buildDraftRequest } from "./evidence";
 
 type WorkflowStatus = "idle" | "working" | "complete" | "error";
+const genderLabels = {
+  woman: "Woman",
+  man: "Man",
+  nonbinary: "Non-binary",
+  decline: "Prefer not to say",
+} as const;
+
 function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
@@ -190,6 +197,14 @@ export function App() {
             <div className="profile-facts">
               <span>{profile.identity.email}</span>
               <span>{profile.education.degree}</span>
+              {profile.workAuthorization?.canada === "authorized" && (
+                <span>Authorized to work in Canada</span>
+              )}
+              {profile.demographics?.genderIdentity && (
+                <span>
+                  Gender: {genderLabels[profile.demographics.genderIdentity]}
+                </span>
+              )}
               <span>{profile.evidence.length} evidence records</span>
             </div>
             <details className="profile-details">

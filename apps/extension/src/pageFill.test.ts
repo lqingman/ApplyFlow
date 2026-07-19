@@ -11,6 +11,7 @@ describe("safe page filling", () => {
         <label><input type="radio" name="relocation" value="yes">Yes</label>
         <label><input type="radio" name="relocation" value="no">No</label>
       </fieldset>
+      <label><input type="checkbox" name="accuracyConfirmation"> Confirm accuracy</label>
     `;
   });
 
@@ -19,16 +20,23 @@ describe("safe page filling", () => {
       fillDocument(document, [
         { fieldId: "email", value: "maya.chen@example.com" },
         { fieldId: "relocation", value: "yes" },
+        { fieldId: "accuracyConfirmation", value: "true" },
       ]),
     ).toEqual([
       { fieldId: "email", status: "filled" },
       { fieldId: "relocation", status: "filled" },
+      { fieldId: "accuracyConfirmation", status: "filled" },
     ]);
     expect(document.querySelector<HTMLInputElement>("#email")?.value).toBe(
       "maya.chen@example.com",
     );
     expect(
       document.querySelector<HTMLInputElement>('input[value="yes"]')?.checked,
+    ).toBe(true);
+    expect(
+      document.querySelector<HTMLInputElement>(
+        'input[name="accuracyConfirmation"]',
+      )?.checked,
     ).toBe(true);
   });
 

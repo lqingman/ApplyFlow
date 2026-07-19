@@ -88,6 +88,12 @@ export const candidateProfileSchema = z.object({
     startDate: z.string().min(1),
     relocation: z.enum(["yes", "no"]),
   }),
+  workAuthorization: z.object({
+    canada: z.enum(["authorized", "requires_sponsorship", "prefer_discuss"]),
+  }),
+  demographics: z.object({
+    genderIdentity: z.enum(["woman", "man", "nonbinary", "decline"]),
+  }),
   evidence: z.array(evidenceRecordSchema),
 });
 

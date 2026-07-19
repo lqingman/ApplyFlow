@@ -23,6 +23,12 @@ export const mayaProfile = candidateProfileSchema.parse({
     startDate: "2026-08-03",
     relocation: "yes",
   },
+  workAuthorization: {
+    canada: "authorized",
+  },
+  demographics: {
+    genderIdentity: "woman",
+  },
   evidence: [
     {
       id: "education-ubc",

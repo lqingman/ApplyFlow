@@ -12,8 +12,8 @@ describe("Maya Chen demo profile", () => {
     );
   });
 
-  it("intentionally omits work authorization and demographics", () => {
-    expect(mayaProfile).not.toHaveProperty("workAuthorization");
-    expect(mayaProfile).not.toHaveProperty("gender");
+  it("stores user-confirmed authorization and demographic profile values", () => {
+    expect(mayaProfile.workAuthorization?.canada).toBe("authorized");
+    expect(mayaProfile.demographics?.genderIdentity).toBe("woman");
   });
 });

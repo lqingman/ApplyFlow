@@ -39,6 +39,15 @@ function fillOne(document: Document, fill: FieldFill): FillResult {
     return { fieldId: fill.fieldId, status: "filled" };
   }
 
+  if (element instanceof HTMLInputElement && element.type === "checkbox") {
+    if (element.checked)
+      return { fieldId: fill.fieldId, status: "skipped_existing" };
+    element.checked = true;
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+    return { fieldId: fill.fieldId, status: "filled" };
+  }
+
   if (
     element instanceof HTMLInputElement ||
     element instanceof HTMLTextAreaElement ||

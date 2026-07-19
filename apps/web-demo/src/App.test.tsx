@@ -58,7 +58,7 @@ describe("Northstar Labs application", () => {
     const plan = planAutofill(mayaProfile, scanDocument(document));
     const results = fillDocument(document, plan.fills);
 
-    expect(plan.fills).toHaveLength(11);
+    expect(plan.fills).toHaveLength(14);
     expect(results.every((result) => result.status === "filled")).toBe(true);
     expect(screen.getByLabelText(/First name/)).toHaveValue("Maya");
     expect(screen.getByLabelText(/Email address/)).toHaveValue(
@@ -67,10 +67,10 @@ describe("Northstar Labs application", () => {
     expect(screen.getByLabelText(/School or university/)).toHaveValue(
       "University of British Columbia",
     );
-    expect(screen.getByLabelText(/Work authorization/)).toHaveValue("");
-    expect(screen.getByLabelText("Woman")).not.toBeChecked();
-    expect(
-      screen.getByLabelText(/I confirm that I reviewed/),
-    ).not.toBeChecked();
+    expect(screen.getByLabelText(/Work authorization/)).toHaveValue(
+      "Authorized to work in Canada",
+    );
+    expect(screen.getByLabelText("Woman")).toBeChecked();
+    expect(screen.getByLabelText(/I confirm that I reviewed/)).toBeChecked();
   });
 });

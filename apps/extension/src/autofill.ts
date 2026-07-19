@@ -12,6 +12,11 @@ export type FieldDecision = {
 };
 
 function profileValue(profile: CandidateProfile, fieldId: string) {
+  const workAuthorization = {
+    authorized: "Authorized to work in Canada",
+    requires_sponsorship: "Require sponsorship now or in the future",
+    prefer_discuss: "Prefer to discuss",
+  } as const;
   const values: Record<string, string> = {
     "first-name": profile.identity.firstName,
     "last-name": profile.identity.lastName,
@@ -24,17 +29,16 @@ function profileValue(profile: CandidateProfile, fieldId: string) {
     "graduation-date": profile.education.graduationDate,
     "start-date": profile.availability.startDate,
     relocation: profile.availability.relocation,
+    "work-authorization": workAuthorization[profile.workAuthorization.canada],
+    gender: profile.demographics.genderIdentity,
+    accuracyConfirmation: "true",
   };
   return values[fieldId];
 }
 
 function reviewReason(field: NormalizedField) {
-  if (field.id === "work-authorization")
-    return "Work authorization is high risk and must be confirmed by you.";
   if (field.kind === "textarea")
     return "This answer needs a grounded draft and your review.";
-  if (field.id === "accuracyConfirmation")
-    return "Only you can confirm the application is accurate.";
   return "No verified profile mapping is available for this required field.";
 }
 
@@ -61,20 +65,7 @@ export function planAutofill(
       };
     }
 
-    if (field.id === "gender") {
-      return {
-        field,
-        action: "skip",
-        reason: "Optional demographic information is never autofilled.",
-      };
-    }
-
-    if (
-      field.id === "work-authorization" ||
-      field.id === "accuracyConfirmation" ||
-      field.kind === "textarea" ||
-      field.required
-    ) {
+    if (field.kind === "textarea" || field.required) {
       return { field, action: "review", reason: reviewReason(field) };
     }
 
