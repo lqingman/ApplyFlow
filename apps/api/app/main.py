@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from .contracts import AnswerDraftRequest, AnswerDraftResponse, empty_response
+from .providers import configured_provider
+from .validation import validate_draft
+
 
 class HealthResponse(BaseModel):
     status: str
@@ -18,8 +22,9 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origin_regex=r"chrome-extension://.*",
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -27,3 +32,20 @@ app.add_middleware(
 @app.get("/health", response_model=HealthResponse, tags=["system"])
 def health() -> HealthResponse:
     return HealthResponse(status="ok", service="applyproof-api", version=app.version)
+
+
+@app.post(
+    "/v1/answer-drafts",
+    response_model=AnswerDraftResponse,
+    response_model_by_alias=True,
+    tags=["answers"],
+)
+def answer_draft(request: AnswerDraftRequest) -> AnswerDraftResponse:
+    try:
+        candidate = configured_provider().generate(request)
+        return validate_draft(request, candidate)
+    except Exception:
+        return empty_response(
+            request,
+            "Drafting is temporarily unavailable. You can still write this answer manually.",
+        )
