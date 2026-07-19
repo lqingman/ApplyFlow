@@ -24,6 +24,7 @@ This checklist summarizes the requirements relevant to ApplyProof. The official 
 - [ ] Include sample data that avoids requiring a judge's personal resume.
 - [ ] Include exact instructions for running the API, mock application, and unpacked Chrome extension.
 - [ ] Document supported platforms and a low-friction test path.
+- [ ] Link the grounded answer generation design and distinguish fixture mode from live OpenAI mode.
 - [ ] Explain how GPT-5.6 and Codex were used.
 - [ ] Highlight where Codex accelerated implementation.
 - [ ] Identify key human product, engineering, and design decisions.
@@ -64,6 +65,10 @@ Leave a small timing buffer rather than targeting exactly three minutes.
 - [ ] Confirm the extension can be loaded unpacked in Chrome.
 - [ ] Repeat the complete demo path at least twice.
 - [ ] Verify no API keys, tokens, private prompts, or personal information are committed.
+- [ ] Confirm the OpenAI API key is read only by the FastAPI backend and never appears in the extension bundle, browser messages, logs, or demo recording.
+- [ ] Confirm fixture mode completes the grounded-answer demo without an API key.
+- [ ] Confirm open-ended fields remain `Needs review` until the user clicks `Fill answer` and successful insertion changes them to `Filled`.
+- [ ] Confirm missing evidence produces no fabricated draft and instead asks one focused follow-up question.
 - [ ] Confirm all links are accessible without the builder's logged-in session.
 - [ ] Describe Northstar as the supported local demo; do not imply that unvalidated third-party ATS sites are supported.
 - [ ] If future product workflow is discussed, distinguish the planned single editable profile and two-outcome UI from the current Maya profile-selection demo.

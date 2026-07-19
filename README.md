@@ -17,7 +17,7 @@ ApplyProof should help an applicant:
 3. Detect and classify its form fields.
 4. Fill confirmed personal information deterministically.
 5. Draft open-ended answers using only relevant candidate evidence.
-6. Review evidence, confidence, and warnings before inserting an answer.
+6. Review evidence, plain-language notes, and character limits before inserting an answer.
 7. Audit the application for missing fields, inconsistencies, unsupported claims, and length violations.
 
 ApplyProof never submits an application automatically.
@@ -27,7 +27,7 @@ ApplyProof never submits an application automatically.
 - **Evidence before eloquence.** Material claims must trace back to the resume, profile, or an explicit user answer.
 - **Deterministic when possible.** Names, email addresses, dates, and direct profile mappings do not need a language model.
 - **Human review for high-risk answers.** Work authorization, salary, legal consent, demographic information, and similar questions remain under the user's control.
-- **No silent invention.** Missing or ambiguous information is marked `needs_review` or `unsupported`.
+- **No silent invention.** Missing or ambiguous information is routed to `Needs review` with a plain-language explanation or follow-up question.
 - **No surprise overwrites.** Existing non-empty fields are preserved unless the user confirms a replacement.
 - **No automatic submission.** The user inspects and submits the final application.
 - **Minimum page access.** Only normalized form metadata and relevant job context should leave the page.
@@ -53,7 +53,7 @@ The demo uses:
 4. Review the outcome summary and exceptions such as work authorization.
 5. Generate at least three open-ended answers with concise evidence excerpts.
 6. Flag an injected claim such as “I led a team of ten engineers” as unsupported.
-7. Leave work authorization marked `needs_review`.
+7. Leave work authorization marked `Needs review`.
 8. Run a transparent readiness audit.
 
 The demo is successful when a judge can complete this flow locally without an account or personal data.
@@ -69,7 +69,7 @@ The demo is successful when a judge can complete this flow locally without an ac
 - Deterministic mapping for confirmed profile fields
 - Safe insertion with existing-value protection
 - Grounded answers for open-ended questions
-- Evidence, warnings, confidence, and editable answer previews
+- Evidence, plain-language notes, character counts, and editable answer previews
 - Sensitive-field blocking and high-risk review states
 - Unsupported-claim checks
 - Rule-based final application audit
@@ -101,6 +101,7 @@ ApplyProof/
 │   ├── shared-types/    # Shared contracts and validation schemas
 │   └── sample-data/     # Maya profile, evidence, and job fixture
 ├── docs/
+│   ├── ANSWER_GENERATION_DESIGN.md
 │   ├── BUILD_LOG.md
 │   ├── ROADMAP.md
 │   └── SUBMISSION_CHECKLIST.md
@@ -112,27 +113,20 @@ Planned stack:
 - **Extension and demo:** React, TypeScript, Vite, Zod, Vitest
 - **Backend:** Python 3.12, FastAPI, Pydantic, pytest
 - **Browser platform:** Chrome Manifest V3 and Side Panel API
-- **Model integration:** structured outputs for semantic classification, evidence selection, answer generation, and claim verification
+- **Model integration:** server-side OpenAI Responses API with Structured Outputs for evidence-grounded answer generation and later claim verification
 
 The demo should remain useful without a model key where practical. Deterministic fields, safety behavior, scanning, and auditing should still work, while sample generated answers may be supplied as fixtures for presentation reliability.
 
-## Answer statuses
-
-| Status         | Meaning                                            | Automatic fill                        |
-| -------------- | -------------------------------------------------- | ------------------------------------- |
-| `verified`     | Directly mapped to confirmed candidate information | Allowed after user initiates autofill |
-| `generated`    | Drafted from cited candidate evidence              | Only after preview and user action    |
-| `needs_review` | Ambiguous, sensitive, time-dependent, or high-risk | Never                                 |
-| `unsupported`  | Information is missing or a claim lacks evidence   | Never                                 |
-
-These statuses describe the trust state of profile facts and generated answers. The application-field workflow is intentionally simpler:
+## Field outcomes
 
 | User-visible outcome | Meaning                                                                                                                              |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `Filled`             | ApplyProof inserted a confirmed profile fact or a high-confidence, user-confirmed reusable answer after the user initiated autofill. |
 | `Needs review`       | The field is new, ambiguous, sensitive, time-dependent, conflicting, unsupported, or could not be filled safely.                     |
 
-There is no separate internal field-status taxonomy. Every detected, eligible field ends as either `Filled` or `Needs review`, with a plain-language explanation when review is needed. Sensitive denied fields do not enter the workflow, do not produce a field result, and must not have their values collected. An optional field without a trusted answer remains blank and appears under `Needs review` so the user can decide whether to answer it.
+There is no separate answer or internal field-status taxonomy. Every detected, eligible field ends as either `Filled` or `Needs review`, with a plain-language explanation when review is needed. An AI draft remains `Needs review` while it is generated, displayed, or edited and becomes `Filled` only after the user inserts the reviewed text. Sensitive denied fields do not enter the workflow, do not produce a field result, and must not have their values collected. An optional field without a trusted answer remains blank and appears under `Needs review` so the user can decide whether to answer it.
+
+The complete open-ended-question workflow, API contract, evidence rules, fixture mode, live OpenAI mode, memory policy, and failure behavior are defined in [the grounded answer generation design](docs/ANSWER_GENERATION_DESIGN.md).
 
 ## Confirmed product workflow after the demo
 

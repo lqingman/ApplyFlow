@@ -103,14 +103,20 @@ No account, personal resume, production deployment, or automatic submission is r
 
 **Goal:** demonstrate useful AI assistance without hiding uncertainty or evidence.
 
+**Design:** follow [`docs/ANSWER_GENERATION_DESIGN.md`](ANSWER_GENERATION_DESIGN.md). Open-ended fields remain `Needs review` until the user inserts reviewed text; drafts do not introduce a separate status system.
+
 ### Deliverables
 
+- [x] Approved grounded answer generation design
+- [ ] Replace the placeholder answer-status schema with the approved request and response contracts
 - [ ] Lightweight evidence selection from structured candidate records
-- [ ] Structured answer-generation contract
+- [ ] FastAPI `POST /v1/answer-drafts` endpoint and provider interface
+- [ ] Deterministic fixture provider for a reliable keyless demo
+- [ ] Live OpenAI provider using the Responses API, Structured Outputs, server-side credentials, and `store: false`
 - [ ] Answers tailored to the Northstar Labs role
-- [ ] Character-limit enforcement
-- [ ] Review cards showing answer, status, evidence excerpts, confidence, warnings, edit, and fill actions
-- [ ] Deterministic fixture mode for a reliable keyless demo
+- [ ] Deterministic evidence-ID, claim, context, and character-limit validation
+- [ ] Review cards showing editable answer, evidence, notes, character count, optional follow-up question, regenerate, and fill actions
+- [ ] Profile-update prompt for explicitly confirmed reusable facts and preferences
 
 ### Initial questions
 
@@ -126,7 +132,11 @@ No account, personal resume, production deployment, or automatic submission is r
 - [ ] Answers use the correct company and role names.
 - [ ] Character limits are respected.
 - [ ] Generated text is never inserted without user review and action.
-- [ ] Missing evidence produces `needs_review` or `unsupported`, not fabrication.
+- [ ] Generating or editing a draft leaves the field as `Needs review`; successful user-initiated insertion changes it to `Filled`.
+- [ ] Missing evidence produces an empty draft, a plain-language note, and a focused follow-up question rather than fabrication.
+- [ ] The AI-workflow question produces no draft until the profile contains confirmed AI-usage evidence.
+- [ ] Fixture and live modes return the same ApplyProof response contract.
+- [ ] The extension never receives the OpenAI API key.
 
 ## Phase 5 — Claim verification and application audit
 

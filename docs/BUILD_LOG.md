@@ -87,6 +87,20 @@ For every meaningful milestone, record:
 
 **Artifacts:** `README.md`, `docs/ROADMAP.md`, and `docs/BUILD_LOG.md`.
 
+### 2026-07-18 — Grounded answer generation design
+
+**Goal:** turn the Phase 4 open-ended-question concept into an implementable, evidence-first workflow with one API contract across keyless demo and live AI modes.
+
+**Human decision:** keep every eligible field in the same two-outcome model; leave AI drafts as `Needs review` until the user explicitly inserts them; show evidence, notes, and character count without answer statuses or confidence scores; return no draft when evidence is insufficient; remember confirmed reusable facts rather than complete company-specific answers; and keep the OpenAI API key exclusively on the backend.
+
+**Codex contribution:** wrote the answer-generation design covering question strategies, evidence and claim rules, review-card behavior, FastAPI request and response shapes, deterministic validation, fixture and live providers, memory and privacy policies, failure behavior, tests, implementation order, and acceptance criteria; then synchronized the README, roadmap, build log, and submission checklist.
+
+**Why GPT-5.6 helped:** the design required reconciling truthful generation, a deliberately minimal state model, data minimization, character and context constraints, reusable candidate memory, reliable keyless judging, and a production-safe provider boundary.
+
+**Verification:** checked current official OpenAI guidance for the Responses API, Structured Outputs, and server-side API-key management; reviewed the design against the existing scanner, profile fixtures, shared contracts, and two-outcome workflow decision; then ran Markdown formatting, repository format checks, link checks, and `git diff --check`.
+
+**Artifacts:** `docs/ANSWER_GENERATION_DESIGN.md`, `README.md`, `docs/ROADMAP.md`, `docs/BUILD_LOG.md`, and `docs/SUBMISSION_CHECKLIST.md`.
+
 ## Entry template
 
 Copy this section for the next milestone:
