@@ -6,6 +6,7 @@
   "workspaces": [
     "apps/extension",
     "apps/web-demo",
+    "packages/sample-data",
     "packages/shared-types"
   ],
   "scripts": {

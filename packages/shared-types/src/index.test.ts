@@ -46,6 +46,7 @@ describe("shared contracts", () => {
         ],
       }),
     ).toEqual({
+      blockedCount: 0,
       fields: [
         {
           id: "name",

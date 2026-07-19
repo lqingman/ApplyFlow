@@ -37,9 +37,33 @@ export type NormalizedField = z.infer<typeof normalizedFieldSchema>;
 
 export const pageScanSchema = z.object({
   fields: z.array(normalizedFieldSchema),
+  blockedCount: z.number().int().nonnegative().default(0),
 });
 
 export type PageScan = z.infer<typeof pageScanSchema>;
+
+export const fieldFillSchema = z.object({
+  fieldId: z.string().min(1),
+  value: z.string(),
+});
+
+export type FieldFill = z.infer<typeof fieldFillSchema>;
+
+export const fillResultSchema = z.object({
+  fieldId: z.string().min(1),
+  status: z.enum([
+    "filled",
+    "skipped_existing",
+    "not_found",
+    "unsupported_option",
+  ]),
+});
+
+export type FillResult = z.infer<typeof fillResultSchema>;
+
+export const pageFillResultSchema = z.object({
+  results: z.array(fillResultSchema),
+});
 
 export const evidenceRecordSchema = z.object({
   id: z.string().min(1),
@@ -49,6 +73,34 @@ export const evidenceRecordSchema = z.object({
 });
 
 export type EvidenceRecord = z.infer<typeof evidenceRecordSchema>;
+
+export const candidateProfileSchema = z.object({
+  id: z.string().min(1),
+  displayName: z.string().min(1),
+  headline: z.string().min(1),
+  identity: z.object({
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+    email: z.string().email(),
+    phone: z.string().min(1),
+    location: z.string().min(1),
+  }),
+  links: z.object({
+    portfolio: z.string().url(),
+  }),
+  education: z.object({
+    school: z.string().min(1),
+    degree: z.string().min(1),
+    graduationDate: z.string().min(1),
+  }),
+  availability: z.object({
+    startDate: z.string().min(1),
+    relocation: z.enum(["yes", "no"]),
+  }),
+  evidence: z.array(evidenceRecordSchema),
+});
+
+export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 
 export const answerDraftSchema = z.object({
   fieldId: z.string().min(1),
