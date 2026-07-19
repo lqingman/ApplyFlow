@@ -24,7 +24,7 @@ This checklist summarizes the requirements relevant to ApplyProof. The official 
 - [ ] Include sample data that avoids requiring a judge's personal resume.
 - [ ] Include exact instructions for running the API, mock application, and unpacked Chrome extension.
 - [ ] Document supported platforms and a low-friction test path.
-- [ ] Link the grounded answer generation design and distinguish fixture mode from OpenRouter mode.
+- [ ] Link the inline answer generation design and distinguish fixture, OpenRouter, and Gemini modes.
 - [ ] Explain how GPT-5.6 and Codex were used.
 - [ ] Highlight where Codex accelerated implementation.
 - [ ] Identify key human product, engineering, and design decisions.
@@ -41,9 +41,9 @@ This checklist summarizes the requirements relevant to ApplyProof. The official 
 ### Recommended video allocation
 
 - **0:00–0:20 — Problem and promise:** generic autofill is fast, but generated applications can become inaccurate; ApplyProof makes claims inspectable.
-- **0:20–1:55 — Working demo:** scan, safe autofill, grounded answers with evidence, unsupported-claim warning, high-risk review state, and audit.
+- **0:20–1:55 — Working demo:** select the profile, run Scan & Autofill, show authorization/gender/confirmation filled, review auto-generated answers on the page, add a project instruction, regenerate, and show a character limit being respected.
 - **1:55–2:25 — Codex collaboration:** show short planning and implementation artifacts; explain how GPT-5.6 helped synthesize the roadmap and how Codex accelerated code, tests, and debugging.
-- **2:25–2:50 — Technical design and impact:** deterministic mappings, structured model outputs, human control, and why the approach is different.
+- **2:25–2:50 — Technical design and impact:** deterministic mappings, inline Shadow DOM assistance, strict structured model outputs, live limit enforcement, and why page-native review is different.
 - **2:50–2:58 — Closing:** “ApplyProof helps applicants move faster without losing control of the truth.”
 
 Leave a small timing buffer rather than targeting exactly three minutes.
@@ -67,8 +67,14 @@ Leave a small timing buffer rather than targeting exactly three minutes.
 - [ ] Verify no API keys, tokens, private prompts, or personal information are committed.
 - [ ] Confirm the OpenRouter API key is read only by the FastAPI backend and never appears in the extension bundle, browser messages, logs, or demo recording.
 - [ ] Confirm fixture mode completes the grounded-answer demo without an API key.
-- [ ] Confirm open-ended fields remain `Needs review` until the user clicks `Fill answer` and successful insertion changes them to `Filled`.
-- [ ] Confirm missing evidence produces no fabricated draft and instead asks one focused follow-up question.
+- [ ] Confirm Scan & Autofill fills saved profile values, authorization, gender, and the accuracy checkbox.
+- [ ] Confirm blank open-ended fields generate directly on the page and existing answers are preserved.
+- [ ] Confirm hover/focus reveals the optional instruction and Regenerate control.
+- [ ] Confirm native, helper-text, and live character limits are passed to generation and an over-limit result is retried once.
+- [ ] Confirm AI-workflow answers use conservative resume evidence and remain editable by the user.
+- [ ] Confirm the side panel has no duplicated outcome summary, review queue, or field inventory.
+- [ ] Confirm Continue, Next, and Submit are never clicked automatically.
+- [ ] Confirm changing `.env` provider settings is followed by a full API restart.
 - [ ] Confirm all links are accessible without the builder's logged-in session.
 - [ ] Describe Northstar as the supported local demo; do not imply that unvalidated third-party ATS sites are supported.
-- [ ] If future product workflow is discussed, distinguish the planned single editable profile and two-outcome UI from the current Maya profile-selection demo.
+- [ ] If future product workflow is discussed, distinguish the planned editable persistent profile from the current Maya profile-selection demo.

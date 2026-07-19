@@ -2,11 +2,11 @@
 
 ApplyProof is a Chrome extension that helps people complete job applications with answers grounded in their actual resume and candidate profile.
 
-Traditional autofill handles contact details. Generic AI can write polished answers, but may exaggerate or invent experience. ApplyProof combines the speed of autofill with visible evidence, conservative answer generation, and a final accuracy audit.
+Traditional autofill handles contact details. Generic AI can write polished answers, but may exaggerate or invent experience. ApplyProof combines deterministic profile autofill with resume-grounded drafts that are generated and reviewed directly on the application page.
 
-> **Project status:** Phase 3 safe autofill complete. The user selects Maya's trusted profile, runs Scan & Autofill once, and reviews only exceptions and manual decisions.
+> **Project status:** Phase 4 inline answer generation complete. One Scan & Autofill action fills saved profile fields and checkboxes, then generates blank open-ended answers on the page. Hover or focus reveals an optional instruction and Regenerate action.
 
-The current build is a controlled local demo. The confirmed product direction is one editable applicant profile, reusable user-confirmed answers, two primary field outcomes (`Filled` and `Needs review`), and gradual validation on real application sites after the local workflow is stable.
+The current build is a controlled local demo. The confirmed product direction is one editable applicant profile, page-native review, and gradual validation on real application sites after the local workflow is stable.
 
 ## The idea
 
@@ -16,8 +16,8 @@ ApplyProof should help an applicant:
 2. Open a job application.
 3. Detect and classify its form fields.
 4. Fill confirmed personal information deterministically.
-5. Draft open-ended answers using only relevant candidate evidence.
-6. Review evidence, plain-language notes, and character limits before inserting an answer.
+5. Draft blank open-ended answers from relevant resume evidence directly into the page.
+6. Review and edit the answer in the application field; add an optional instruction before regenerating.
 7. Audit the application for missing fields, inconsistencies, unsupported claims, and length violations.
 
 ApplyProof never submits an application automatically.
@@ -26,8 +26,8 @@ ApplyProof never submits an application automatically.
 
 - **Evidence before eloquence.** Material claims must trace back to the resume, profile, or an explicit user answer.
 - **Deterministic when possible.** Names, email addresses, dates, and direct profile mappings do not need a language model.
-- **Human review for high-risk answers.** Work authorization, salary, legal consent, demographic information, and similar questions remain under the user's control.
-- **No silent invention.** Missing or ambiguous information is routed to `Needs review` with a plain-language explanation or follow-up question.
+- **Explicit profile choices.** Work authorization and gender are filled only from choices saved in the profile, never inferred from a name or resume.
+- **Review on the real page.** Generated drafts are starting points that remain editable in the application field.
 - **No surprise overwrites.** Existing non-empty fields are preserved unless the user confirms a replacement.
 - **No automatic submission.** The user inspects and submits the final application.
 - **Minimum page access.** Only normalized form metadata and relevant job context should leave the page.
@@ -50,11 +50,11 @@ The demo uses:
 1. Open the Northstar Labs mock application.
 2. Open the ApplyProof side panel and choose Maya's demo profile.
 3. Run Scan & Autofill to detect the page and insert verified profile fields in one action.
-4. Review the outcome summary and exceptions such as work authorization.
-5. Generate at least three open-ended answers with concise evidence excerpts.
-6. Flag an injected claim such as “I led a team of ten engineers” as unsupported.
-7. Leave work authorization marked `Needs review`.
-8. Run a transparent readiness audit.
+4. See saved authorization, gender, and confirmation choices filled with the other profile fields.
+5. See blank open-ended answers generate directly on the application page.
+6. Hover or focus an answer, add an optional instruction, and regenerate it in place.
+7. Confirm character limits are respected and edit the generated text before continuing.
+8. Run a transparent readiness audit when that milestone is complete.
 
 The demo is successful when a judge can complete this flow locally without an account or personal data.
 
@@ -69,8 +69,9 @@ The demo is successful when a judge can complete this flow locally without an ac
 - Deterministic mapping for confirmed profile fields
 - Safe insertion with existing-value protection
 - Grounded answers for open-ended questions
-- Evidence, plain-language notes, character counts, and editable answer previews
-- Sensitive-field blocking and high-risk review states
+- Inline Generate and Regenerate controls with optional instructions
+- Live character-limit discovery, validation, and automatic over-limit retry
+- Sensitive-field blocking
 - Unsupported-claim checks
 - Rule-based final application audit
 
@@ -113,18 +114,15 @@ Planned stack:
 - **Extension and demo:** React, TypeScript, Vite, Zod, Vitest
 - **Backend:** Python 3.12, FastAPI, Pydantic, pytest
 - **Browser platform:** Chrome Manifest V3 and Side Panel API
-- **Model integration:** server-side OpenRouter Responses API with Structured Outputs for evidence-grounded answer generation and later claim verification
+- **Model integration:** server-side fixture, OpenRouter Responses API, or Gemini OpenAI-compatible provider with Structured Outputs
 
 The demo should remain useful without a model key where practical. Deterministic fields, safety behavior, scanning, and auditing should still work, while sample generated answers may be supplied as fixtures for presentation reliability.
 
-## Field outcomes
+## Page-native workflow
 
-| User-visible outcome | Meaning                                                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `Filled`             | ApplyProof inserted a confirmed profile fact or a high-confidence, user-confirmed reusable answer after the user initiated autofill. |
-| `Needs review`       | The field is new, ambiguous, sensitive, time-dependent, conflicting, unsupported, or could not be filled safely.                     |
+The side panel is intentionally compact: it selects the profile, starts Scan & Autofill, and reports progress. It does not duplicate an outcome summary, review queue, or complete field inventory.
 
-There is no separate answer or internal field-status taxonomy. Every detected, eligible field ends as either `Filled` or `Needs review`, with a plain-language explanation when review is needed. An AI draft remains `Needs review` while it is generated, displayed, or edited and becomes `Filled` only after the user inserts the reviewed text. Sensitive denied fields do not enter the workflow, do not produce a field result, and must not have their values collected. An optional field without a trusted answer remains blank and appears under `Needs review` so the user can decide whether to answer it.
+Deterministic values and mapped checkboxes are inserted after the user initiates autofill. Blank textareas receive resume-grounded drafts. Existing deterministic and open-ended values are preserved. Generated answers are reviewed and edited in the page itself, and explicit Regenerate may replace the current open-ended answer.
 
 The complete open-ended-question workflow, API contract, evidence rules, fixture mode, OpenRouter mode, memory policy, and failure behavior are defined in [the grounded answer generation design](docs/ANSWER_GENERATION_DESIGN.md).
 
@@ -132,11 +130,11 @@ The complete open-ended-question workflow, API contract, evidence rules, fixture
 
 1. The user creates or imports one editable `My Profile` containing stable facts and evidence.
 2. ApplyProof scans an application only after the user initiates the action.
-3. Confirmed profile facts and applicable remembered answers are filled deterministically.
-4. Everything else enters `Needs review`; existing page values are preserved.
+3. Confirmed profile facts, authorization, demographics, applicable remembered answers, and mapped confirmations are filled deterministically.
+4. Blank open-ended questions receive a resume-based draft; existing page values are preserved.
 5. When the user confirms a reusable answer, ApplyProof stores it under a canonical, scoped meaning rather than the site's exact wording.
 6. Later semantically equivalent questions may reuse that answer when classification confidence is high.
-7. Time-dependent preferences can be reviewed again, while legal attestations and final submission always require a fresh user action.
+7. Time-dependent preferences can be reviewed again. Continue, Next, and Submit always remain user actions.
 
 For example, a confirmed answer to “Are you legally authorized to work in Canada?” may be stored as `work_authorization.canada` with its source and confirmation time. A later equivalent Canadian work-eligibility question may reuse it. That does not authorize ApplyProof to answer a different country's question, infer immigration status, accept legal terms, or submit the application.
 
@@ -144,7 +142,7 @@ For example, a confirmed answer to “Are you legally authorized to work in Cana
 
 The supported and tested environment today is the local Northstar Labs application. The extension uses user-initiated active-tab access and has persistent host permissions only for the local demo origins. Simple online forms may happen to work, but they are not yet an advertised capability.
 
-Online support will be introduced as a compatibility pilot: validate ordinary HTML forms first, then selected ATS platforms one at a time. Each advertised site must pass repeatable tests covering semantic field classification, custom controls, dynamic and multi-step forms, iframe boundaries, existing-value protection, review routing, and the guarantee that ApplyProof never submits automatically. Universal ATS support remains out of scope.
+Online support will be introduced as a compatibility pilot: validate ordinary HTML forms first, then selected ATS platforms one at a time. Each advertised site must pass repeatable tests covering semantic field classification, custom controls, dynamic and multi-step forms, iframe boundaries, existing-value protection, inline drafting, live limits, and the guarantee that ApplyProof never submits automatically. Universal ATS support remains out of scope.
 
 ## Safety boundaries
 
@@ -152,7 +150,7 @@ ApplyProof must not:
 
 - click a final Submit button;
 - accept legal terms;
-- automatically answer optional demographic questions;
+- infer work authorization or demographic answers that are absent from the saved profile;
 - fill passwords, government identifiers, payment fields, banking fields, or security questions;
 - make legal or immigration conclusions;
 - send unrelated page content to the backend; or
@@ -165,10 +163,10 @@ Development follows a demo-first sequence:
 1. **Foundation:** runnable extension shell, API health endpoint, and mock application.
 2. **Scan:** detect and normalize fields on the mock page.
 3. **Safe autofill:** load Maya's profile and fill verified fields without overwriting values.
-4. **Grounded answers:** prepare evidence-backed open-ended answers for review.
+4. **Grounded answers:** generate evidence-backed open-ended answers on the page for review and regeneration.
 5. **Verification and audit:** detect unsupported claims and calculate application readiness using transparent rules.
 6. **Demo polish:** improve UI, resilience, documentation, and the three-minute presentation.
-7. **Post-demo expansion:** replace profile selection with one editable profile, add scoped answer memory and a two-outcome field workflow, then validate online sites incrementally.
+7. **Post-demo expansion:** replace demo profile selection with one editable profile, add scoped answer memory, then validate online sites incrementally.
 
 See [the detailed roadmap](docs/ROADMAP.md) for acceptance criteria and sequencing.
 
@@ -181,7 +179,7 @@ ApplyProof is being planned and built collaboratively with Codex. We use GPT-5.6
 - Read the original long-form product plan and converted it into a narrower, judge-ready vertical slice.
 - Inspected the new repository before proposing implementation work.
 - Created the initial README and phased roadmap from the planning conversation.
-- Made safety requirements—no automatic submission, no unsupported claims, and human review for high-risk questions—explicit acceptance criteria rather than informal intentions.
+- Made safety requirements—no automatic submission, no unsupported material claims, explicit profile choices, and page-native review—acceptance criteria rather than informal intentions.
 - Identified features that should be deterministic and moved expensive or risky features, such as broad ATS support and vector search, after the demo milestone.
 
 As implementation progresses, this section will be updated with concrete examples of code generation, debugging, test creation, browser verification, and design iteration.
@@ -190,7 +188,7 @@ As implementation progresses, this section will be updated with concrete example
 
 - Build the controlled demo first, then polish it before expanding scope.
 - Position ApplyProof around truthfulness and visible evidence, not generic form filling.
-- Keep applicants in control of generated, sensitive, and legal answers.
+- Keep applicants in control by making generated answers editable and leaving navigation and submission manual.
 - Optimize the hackathon build for one coherent end-to-end experience.
 
 ### How we preserve evidence of the collaboration
@@ -252,25 +250,25 @@ For Chrome, build the extension with `npm run build --workspace @applyproof/exte
 `apps/extension/dist`. Click the ApplyProof toolbar action to open its side panel.
 
 With the Northstar Labs application active, select **Use Maya demo profile**, then click **Scan &
-Autofill**. ApplyProof fills 11 direct profile matches, preserves existing values, leaves optional
-demographics blank, blocks the password fixture, and sends work authorization, long answers, and
-the final accuracy confirmation to the review queue. The complete 18-field inventory remains
-available as optional technical detail. After rebuilding an already loaded unpacked extension, use
-the reload button on `chrome://extensions` before retesting.
+Autofill**. ApplyProof fills saved profile values, work authorization, gender, and the accuracy
+confirmation; preserves existing answers; blocks the password fixture; and starts generating blank
+open-ended fields directly on the page. Hover or focus an open-ended field to add an optional
+instruction and regenerate it. The side panel remains compact and does not duplicate a summary,
+review queue, or field inventory. After rebuilding an already loaded unpacked extension, use the
+reload button on `chrome://extensions` and refresh the application page before retesting.
 
-Start the API in the default keyless fixture mode to generate the three supported grounded answers.
-Each review card shows its evidence, notes, editable text, and character count; it stays **Needs
-review** until **Fill answer** successfully inserts the exact reviewed text. The AI-workflow question
-returns no draft until the user explicitly confirms reusable AI-usage evidence. To exercise the live
-provider, set `ANSWER_GENERATION_MODE=openrouter` and provide `OPENROUTER_API_KEY` only in the API
-server environment; the extension never reads or receives that key. The model defaults to
-`openai/gpt-4o-mini` and can be changed with `OPENROUTER_MODEL`. `npm run dev:api` loads these values
-from the ignored root `.env` file created during setup. Alternatively, set
-`ANSWER_GENERATION_MODE=gemini` and provide a server-only `GEMINI_API_KEY`. Gemini mode uses Google's
-OpenAI-compatible Chat Completions endpoint with Structured Outputs and defaults to the stable
-`gemini-2.5-flash` model; override it with `GEMINI_MODEL`. Google may use free-tier request and
-response content to improve its products, so use fixture mode or a suitable paid data-processing
-arrangement for sensitive real applicant data.
+Start the API in keyless fixture mode for deterministic demo answers. The AI-workflow question uses
+resume project, skill, testing, and accessibility evidence to produce a conservative starting draft
+for user review; it does not require a separate confirmation flow. Character constraints are read
+from native attributes, custom attributes, ARIA/helper text, and the live field before each request.
+If a provider still exceeds a known limit, the API retries once with the exact maximum.
+
+For live OpenRouter generation, set `ANSWER_GENERATION_MODE=openrouter` and provide
+`OPENROUTER_API_KEY` only in the API server environment. The default model is
+`openai/gpt-4o-mini`. Alternatively, use `ANSWER_GENERATION_MODE=gemini` with a server-only
+`GEMINI_API_KEY`; Gemini defaults to `gemini-2.5-flash`. The extension never reads either key.
+`npm run dev:api` loads the ignored root `.env`. After changing `.env`, fully stop and restart the
+API process because Uvicorn file reload does not reload environment variables.
 
 ### Verify
 

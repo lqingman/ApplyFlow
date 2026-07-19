@@ -4,6 +4,8 @@ This log records how ApplyProof was shaped and built with GPT-5.6 and Codex. It 
 
 Use this document as source material for the README, Devpost description, and demo-video narration. Do not paste private prompts, hidden reasoning, secrets, or personal candidate data here.
 
+Entries are chronological decision records. When a later entry explicitly says it supersedes an earlier workflow, the later entry and the current design documents define product behavior; the older entry remains only to show how the design evolved.
+
 ## Working method
 
 For every meaningful milestone, record:
@@ -114,6 +116,36 @@ For every meaningful milestone, record:
 **Verification:** repository formatting, linting, TypeScript and Python type checks, unit and integration tests, and production builds pass. Tests cover three grounded fixture answers, missing AI evidence, duplicate and unavailable evidence IDs, unsafe claim rejection, server-side OpenRouter credentials and strict JSON Schema requests, selective evidence, review-before-fill state transitions, exact-text insertion, and existing-value preservation. The builder reloaded the unpacked extension and verified the three-answer review and insertion workflow in Chrome.
 
 **Artifacts:** shared answer contracts; Maya evidence fixture; `apps/api/app/contracts.py`, `providers.py`, and `validation.py`; the `/v1/answer-drafts` route; extension evidence selection, API client, review UI, and tests; `.env.example`; `README.md`; and `docs/ROADMAP.md`.
+
+### 2026-07-19 — Page-native autofill and inline answer workflow
+
+**Goal:** remove the split between the application page and side-panel review cards so the primary workflow happens where the user is completing the form.
+
+**Human decision:** one Scan & Autofill action should fill all explicitly saved profile values, select mapped checkboxes, and generate blank open-ended answers directly on the page. Hovering or focusing an open-ended field should reveal Regenerate and an optional instruction. The side panel should contain only profile controls, the primary action, and compact progress; it should not contain an outcome summary, review queue, field inventory, or submission-boundary copy.
+
+**Supersedes:** the 2026-07-18 decisions that required separate review cards, explicit Fill answer insertion, a two-outcome side-panel queue, unfilled demographics, work-authorization review, and a manual accuracy confirmation. Those entries remain above as historical records of the design evolution, not the current specification.
+
+**Codex contribution:** added isolated Shadow DOM assistants beside textareas; automatic first generation for blank fields; optional regeneration prompts; native-setter page insertion with React-compatible events; status synchronization; and side-panel simplification. Extended the profile contract with required work authorization and gender choices, mapped them deterministically, added true checkbox selection for the accuracy confirmation, and retained the rule that Continue, Next, and Submit are never clicked.
+
+**Evidence decision:** AI-workflow questions now receive a conservative starting draft from resume project, experience, skills, testing, and accessibility evidence. They no longer require a `confirmed-ai-workflow` record or a follow-up profile-memory flow. Optional instructions may choose evidence or emphasis but are not factual evidence themselves.
+
+**Verification:** extension, web-demo, shared-type, sample-data, and API tests pass alongside formatting, linting, type checks, and production builds. Browser testing confirmed inline assistants mount on the live demo fields and generated values reach framework-managed inputs.
+
+**Artifacts:** `apps/extension/src/inlineAssistant.ts`, content/browser messaging, autofill and page-fill logic, profile schemas and fixtures, side-panel UI, provider instructions, tests, `README.md`, `docs/ANSWER_GENERATION_DESIGN.md`, and `docs/ROADMAP.md`.
+
+### 2026-07-19 — Provider and character-limit hardening
+
+**Goal:** make live generation reliable when providers reject strict schemas, quotas are exhausted, or ATS character limits are not represented by a simple native attribute.
+
+**Human decision:** support fixture, OpenRouter, and Gemini during development; allow switching through `.env`; keep credentials server-side; and automatically regenerate once when a provider returns a draft longer than the live field limit.
+
+**Codex contribution:** diagnosed a Gemini 429 free-tier quota failure and an OpenRouter 400 caused by strict JSON Schema missing `additionalProperties: false`; corrected the provider schema; added server-side exception logging; documented that `.env` changes require a full API restart; and verified a real OpenRouter structured response end to end.
+
+The scanner now recognizes native `maxlength`, common custom data attributes, `aria-describedby`, and nearby helper text. The inline assistant refreshes the live limit before every request. The API accepts limits from 1–20,000 characters, recalculates returned length, and retries one over-limit draft with an explicit maximum. A real 100-character OpenRouter test returned a 71-character accepted draft.
+
+**Verification:** automated tests cover strict provider schemas, optional prompts, live limit refresh, helper-text parsing, and over-limit retry. Repository formatting, linting, TypeScript/Python type checks, all tests, and production builds pass.
+
+**Artifacts:** scanner and inline assistant limit handling, shared and Pydantic contracts, answer endpoint retry logic, provider contracts and logging, API tests, and the synchronized design documentation.
 
 ## Entry template
 

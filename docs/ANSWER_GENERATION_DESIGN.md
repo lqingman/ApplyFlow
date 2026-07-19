@@ -1,215 +1,188 @@
-# Grounded Answer Generation Design
+# ApplyProof Inline Answer Generation Design
 
-**Status:** Implemented and verified
-**Owner:** ApplyProof  
-**Last updated:** 2026-07-18  
-**Roadmap milestone:** Phase 4
+**Status:** Implemented controlled demo
+
+**Roadmap milestone:** Phase 4, revised after browser workflow testing
+
+**Last updated:** 2026-07-19
 
 ## Purpose
 
-This document defines how ApplyProof prepares answers for open-ended job-application questions without inventing candidate experience or inserting AI-written text without review.
+ApplyProof completes deterministic application fields from a saved candidate profile and drafts open-ended answers from resume evidence. The primary interaction happens on the application page so the user can review and edit answers in their real context.
 
-The first controlled questions are:
+The extension may fill fields and check mapped checkboxes after the user clicks **Scan & Autofill**. It never clicks Continue, Next, or Submit.
 
-- Why are you interested in this role?
-- Describe a relevant project.
-- How do you use AI in your development workflow?
-- What makes you a strong candidate?
+## Final product decisions
 
-The design covers both a deterministic keyless demo and a live OpenRouter-backed mode.
+1. One user action starts scanning, deterministic autofill, checkbox selection, and first-draft generation for blank open-ended fields.
+2. Open-ended drafts are generated directly into the application page, not into side-panel review cards.
+3. Hovering or focusing an open-ended field reveals an inline ApplyProof assistant with an optional instruction and a Generate or Regenerate action.
+4. A user instruction may select a resume project, emphasis, or tone. It is an instruction, not evidence for a new factual claim.
+5. The user reviews and edits the generated text in the application field itself.
+6. The side panel contains only profile selection, Scan & Autofill, and compact progress text. It does not duplicate an outcome summary, review queue, or field inventory.
+7. Work authorization and gender identity are reusable profile values. A valid profile must contain explicit selections, including `Prefer not to say` when chosen.
+8. The accuracy-confirmation checkbox is checked during autofill. Navigation and submission remain manual.
+9. Existing page values are preserved during deterministic autofill. Regeneration replaces an open-ended answer only after the user explicitly clicks Regenerate.
+10. Provider keys remain on the FastAPI server.
 
-## Product invariants
-
-1. Every eligible application field has exactly one workflow outcome: `Filled` or `Needs review`.
-2. An open-ended field remains `Needs review` while a draft is generated, displayed, or edited.
-3. An open-ended field becomes `Filled` only after the user explicitly inserts the reviewed text into the page.
-4. Drafts have evidence and notes, not a separate status or confidence taxonomy.
-5. Missing evidence produces an empty draft and a focused follow-up question, never fabricated content.
-6. Existing page text is never silently replaced.
-7. Character limits are enforced before insertion.
-8. Sensitive denied fields never enter this workflow and their values are never sent to the backend or model.
-9. ApplyProof never accepts legal terms or submits an application.
-
-## Current state
-
-Phase 4 now routes textareas into evidence-backed review cards and exposes a FastAPI draft endpoint with fixture and live providers. The shared request and response contracts deliberately contain no draft status or confidence field. Final unpacked-extension verification in Chrome remains pending.
-
-## User experience
-
-### Primary flow
+## User workflow
 
 ```text
-Scan open-ended field
-        ↓
-Field is Needs review
-        ↓
-User requests a draft
-        ↓
-ApplyProof selects relevant profile evidence and limited job context
-        ↓
-Fixture provider or live AI provider returns a structured draft
-        ↓
-User reviews evidence, notes, length, and editable text
-        ↓
-User clicks Fill answer
-        ↓
-ApplyProof inserts the exact reviewed text
-        ↓
-Field is Filled
+Select saved profile
+        |
+        v
+Click Scan & Autofill
+        |
+        +--> Scan eligible fields and character constraints
+        |
+        +--> Fill saved profile values and mapped checkboxes
+        |
+        +--> Mount inline assistants beside open-ended fields
+        |
+        +--> Generate drafts for blank open-ended fields
+        |
+        v
+Review and edit answers on the application page
+        |
+        +--> Hover/focus a field
+        +--> Add an optional instruction
+        +--> Regenerate in place
+        |
+        v
+User manually continues or submits
 ```
 
-Generating a draft does not count as filling a field. Editing a draft does not count as filling a field. Only successful insertion into the application page changes the outcome to `Filled`.
+The side panel does not become a second editing surface. Page-native inputs remain the source of truth after insertion.
 
-### Review card
+## Profile-driven deterministic fields
 
-Each open-ended question has one review card containing:
+The controlled profile contains stable identity, contact, education, links, availability, work authorization, and demographic choices.
 
-- the normalized question;
-- the page-provided character limit, when present;
-- an editable draft, or an empty editor when evidence is insufficient;
-- the exact profile evidence records used;
-- plain-language notes about missing support, possible overclaiming, or required user input;
-- a live character count;
-- one optional follow-up question;
-- `Regenerate` and `Fill answer` actions.
+Current Northstar mappings include:
 
-The card does not display `generated`, `unsupported`, a confidence score, or another answer status. Those concepts do not create additional workflow states.
+- identity and contact fields;
+- education and portfolio fields;
+- start date and relocation preference;
+- `work-authorization` from `profile.workAuthorization.canada`;
+- `gender` from `profile.demographics.genderIdentity`;
+- `accuracyConfirmation`, checked after the user initiates autofill.
 
-### Insufficient evidence
+Profile schemas require a work-authorization choice and a gender choice. The gender value may be `woman`, `man`, `nonbinary`, or `decline`. ApplyProof does not infer either answer from a name or resume.
 
-When the available records cannot support a truthful answer:
+Checkbox filling sets the real DOM `checked` property and dispatches `input` and `change` events so React and ATS forms observe the update.
 
-- return an empty draft;
-- identify what information is missing in a note;
-- ask one focused follow-up question;
-- keep the field as `Needs review`;
-- allow the user to answer manually;
-- offer to save reusable facts or preferences to `My Profile` only after explicit confirmation.
+## Open-ended field detection and inline UI
 
-Example for “How do you use AI in your development workflow?” when the profile contains no AI-usage evidence:
+The current inline workflow targets scanned `textarea` fields.
 
-> How do you use AI, and what steps do you take to verify its output?
+After scanning, the content script mounts an isolated Shadow DOM assistant beside each open-ended field. The assistant is visible when the field is hovered or focused and contains:
 
-## Question strategies
+- ApplyProof identity and grounded-profile context;
+- an optional extra-instruction textarea;
+- Generate or Regenerate;
+- progress, evidence-source, follow-up, or provider-error text.
 
-| Question family  | Required inputs                                                                    | Draft strategy                                                                           | When evidence is missing                                                                  |
-| ---------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Role motivation  | Company, role, relevant job requirements, confirmed candidate interests            | Connect one or two real candidate interests or experiences to specific role attributes   | Ask what interests the user most: product, mission, technical work, or growth opportunity |
-| Relevant project | One relevant project record, supported technologies, candidate contribution        | Describe the project, supported contribution, technologies, problem, and role relevance  | Ask for the project, personal contribution, or outcome that is absent                     |
-| AI workflow      | User-confirmed AI tools, use cases, verification practices, and privacy boundaries | Explain actual use and how outputs are checked                                           | Return no draft and ask how the user uses and verifies AI                                 |
-| Strong candidate | Job requirements plus supported education, experience, projects, and skills        | Synthesize two or three supported matches without inventing personality traits or impact | Ask for the missing strength or rely only on the evidence that exists                     |
+On the first scan, every blank open-ended field starts generation automatically. A field with an existing answer is never automatically regenerated.
 
-## Evidence and claim policy
+Generated text is written through the native input setter, followed by bubbling `input` and `change` events. This updates both the visible field and framework-managed form state.
 
-### Allowed sources
+## Evidence selection
 
-A material statement may come only from:
+Candidate claims should be supported by profile evidence whenever possible. Job context supports company, role, and requirement alignment but is not candidate evidence.
 
-- a structured fact in `My Profile`;
-- a profile evidence record;
-- an explicit answer the user confirmed;
-- limited job context taken from the current application.
+Known demo questions use deterministic strategies:
 
-Job context supports statements about the company and role. It cannot support a claim about the candidate.
+| Question class   | Preferred resume evidence                                  |
+| ---------------- | ---------------------------------------------------------- |
+| Motivation       | Product interest plus a relevant project                   |
+| Relevant project | Relevant project record                                    |
+| Strengths        | Education, experience, and skills                          |
+| AI workflow      | Project, co-op, skills, testing, and accessibility records |
 
-### Material claims
+AI-workflow questions no longer require a separate `confirmed-ai-workflow` record. ApplyProof produces a conservative resume-based starting draft and asks the user to review and personalize it. It avoids inventing named AI tools, usage frequency, or results not present in the profile.
 
-Names, employers, schools, degrees, technologies, responsibilities, leadership, team size, dates, quantities, performance improvements, awards, and outcomes are material claims. Each material candidate claim must map to at least one evidence record.
+When the user supplies an extra instruction, the request may include up to twenty verified profile evidence records so the provider can follow instructions such as “use the campus map project.” The backend still rejects returned evidence IDs that were not supplied.
 
-The generator must not infer or embellish:
+## Character-limit handling
 
-- leadership or ownership;
-- numerical impact;
-- team size;
-- years of experience;
-- technologies not present in evidence;
-- legal or immigration status;
-- personality traits stated as facts;
-- company enthusiasm that the user has not expressed.
+Character constraints are enforced at three layers.
 
-### Evidence display
+### 1. Scan-time discovery
 
-The response returns evidence IDs, and the extension resolves those IDs to the exact records shown in the review card. The model does not create evidence excerpts or source labels. If a returned ID is not present in the request, the backend rejects the response.
+The scanner reads limits from:
 
-## Architecture
+- native `maxlength`;
+- custom attributes such as `data-maxlength`, `data-max-length`, `data-character-limit`, and `aria-maxlength`;
+- `aria-describedby` text;
+- nearby helper text such as “Maximum 500 characters” or “250 character limit.”
+
+### 2. Generate-time refresh
+
+Every Generate or Regenerate action re-reads the current field rather than relying only on the initial scan. This supports dynamic ATS forms that reveal or change a limit after interaction.
+
+The live value is sent as `field.maxCharacters`. Supported API limits are 1–20,000 characters.
+
+### 3. Backend validation and retry
+
+The backend recalculates the returned draft length. If the provider exceeds the known limit, ApplyProof retries once with an explicit instruction containing the exact maximum and asks it to retain only the strongest grounded details.
+
+If the second result is still too long, validation returns an empty draft and an explanatory note. The content script does not insert an over-limit result.
+
+Word limits are not yet parsed; the current implementation handles character limits.
+
+## Additional prompt behavior
+
+The optional inline prompt is sent as `additionalPrompt`, trimmed, and limited to 1,000 characters.
+
+It may guide:
+
+- which resume project to use;
+- which skill or experience to emphasize;
+- concision or tone;
+- how to structure the answer.
+
+It must not be treated as verified evidence for quantities, employers, technologies, achievements, legal status, or other candidate facts.
+
+## API boundary
 
 ```text
-Job application page
-        ↓ normalized question and constraints
-Chrome extension
-        ↓ question + limited job context + selected structured evidence
-FastAPI POST /v1/answer-drafts
-        ↓ provider interface
-Fixture provider ─────────────── OpenRouter provider
-        │                         ↓ Responses API + Structured Outputs
-        └──────── structured AnswerDraftResponse ────────┘
-                                  ↓
-                         Review card in extension
-                                  ↓ explicit user action
-                         Exact-text page insertion
+Chrome page/content script
+        |
+        | APPLYPROOF_GENERATE_INLINE_DRAFT
+        v
+Extension side panel
+        |
+        | POST /v1/answer-drafts
+        v
+FastAPI validation layer
+        |
+        +--> FixtureProvider
+        +--> OpenRouterProvider
+        +--> GeminiProvider
 ```
 
-The Chrome extension never calls OpenRouter directly. The API key exists only in the FastAPI environment or a deployment secret manager. It must not be bundled into extension code, returned to the browser, written to the repository, or logged.
+The page does not receive provider credentials. The side panel builds the request from the selected profile, job context, field metadata, live limit, and optional instruction.
 
-## Generation modes
-
-### Fixture mode
-
-`ANSWER_GENERATION_MODE=fixture`
-
-- requires no model key;
-- serves deterministic drafts for the Northstar questions;
-- returns the same response contract as OpenRouter mode;
-- uses only Maya's fixture evidence;
-- is the default for the reliable hackathon demo and automated tests;
-- must not pretend to support arbitrary questions.
-
-### OpenRouter mode
-
-`ANSWER_GENERATION_MODE=openrouter`
-
-- requires `OPENROUTER_API_KEY` on the FastAPI server;
-- uses OpenRouter's OpenAI-compatible Responses API Beta;
-- requests Structured Outputs matching the backend response schema;
-- sets `store: false` and sends the complete current input each time;
-- reads the model name from server configuration rather than hard-coding it in the extension;
-- validates the model response again with Pydantic before returning it.
-
-OpenRouter documents its Responses API as Beta and stateless. Its Structured Outputs support can constrain compatible models to a supplied JSON Schema. ApplyProof keeps the key in server-side environment configuration and preserves fixture mode as the reliable demo default.
-
-### Gemini mode
-
-`ANSWER_GENERATION_MODE=gemini`
-
-- requires `GEMINI_API_KEY` on the FastAPI server;
-- uses Google's OpenAI-compatible Chat Completions endpoint with Structured Outputs;
-- defaults to the stable `gemini-2.5-flash` model and reads overrides from `GEMINI_MODEL`;
-- sends the same minimized request contract and validates the structured response with Pydantic;
-- keeps the API key out of the extension, responses, repository, and logs.
-
-Google states that free-tier Gemini API content may be used to improve its products. Fixture mode remains the safe default for judging, and free-tier Gemini mode should use demo data rather than sensitive real applicant data.
-
-## ApplyProof API contract
-
-The following is ApplyProof's own backend contract, not the raw OpenRouter request shape.
-
-### Endpoint
+## Request contract
 
 `POST /v1/answer-drafts`
-
-### Request
 
 ```json
 {
   "field": {
-    "id": "relevant-project",
+    "id": "project",
     "question": "Describe a relevant project.",
-    "maxCharacters": 700
+    "maxCharacters": 500
   },
   "job": {
     "company": "Northstar Labs",
     "role": "Junior Software Engineer",
-    "requirements": ["React", "TypeScript", "accessibility"]
+    "requirements": [
+      "React",
+      "TypeScript",
+      "accessibility",
+      "automated testing"
+    ]
   },
   "evidence": [
     {
@@ -218,172 +191,123 @@ The following is ApplyProof's own backend contract, not the raw OpenRouter reque
       "text": "Built an accessible campus navigation app with React, TypeScript, and FastAPI.",
       "source": "Demo resume · Projects"
     }
-  ]
+  ],
+  "additionalPrompt": "Emphasize the accessibility decisions."
 }
 ```
 
-Rules:
+`additionalPrompt` and `maxCharacters` are optional.
 
-- send normalized field metadata, not full-page HTML;
-- send only job context relevant to the question;
-- send only structured candidate evidence needed for the draft;
-- never send values from denied sensitive fields;
-- reject empty questions, invalid limits, duplicate evidence IDs, or oversized payloads.
-
-### Response with a draft
+## Response contract
 
 ```json
 {
-  "fieldId": "relevant-project",
-  "draft": "I built an accessible campus navigation app using React, TypeScript, and FastAPI. The project focused on making navigation information easier to use through an accessible interface, which is relevant to Northstar Labs' product work.",
+  "fieldId": "project",
+  "draft": "I built an accessible campus navigation app using React and TypeScript.",
   "evidenceIds": ["project-campus-map"],
-  "notes": ["No measurable project outcome is recorded."],
+  "notes": [],
   "followUpQuestion": null,
-  "characterCount": 232,
+  "characterCount": 71,
   "fitsLimit": true
 }
 ```
 
-### Response without enough evidence
+The backend, not the model, calculates `characterCount` and `fitsLimit`.
 
-```json
-{
-  "fieldId": "ai-workflow",
-  "draft": "",
-  "evidenceIds": [],
-  "notes": ["Your profile does not yet contain evidence about AI usage."],
-  "followUpQuestion": "How do you use AI, and how do you verify its output?",
-  "characterCount": 0,
-  "fitsLimit": true
-}
+## Providers
+
+### Fixture mode
+
+Fixture mode is deterministic and requires no network key. It supports the controlled Northstar questions and remains useful for unit tests and offline demos.
+
+### OpenRouter mode
+
+OpenRouter mode uses the server-side Responses API with `store: false` and strict JSON Schema output. `ProviderDraft` forbids additional properties so its generated schema includes `additionalProperties: false`, which strict OpenRouter requests require.
+
+Environment variables:
+
+```env
+ANSWER_GENERATION_MODE=openrouter
+OPENROUTER_API_KEY=...
+OPENROUTER_MODEL=openai/gpt-4o-mini
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 ```
 
-There is deliberately no answer `status` or `confidence` property.
+Changing `.env` requires a full API process restart; Uvicorn file reload does not re-import changed environment variables.
 
-## Prompt contract
+### Gemini mode
 
-The live provider instructions must require the model to:
+Gemini mode uses the OpenAI-compatible Chat Completions endpoint with structured output. A 429 means the configured project or model quota is exhausted. Provider exceptions are logged server-side while the extension receives a safe drafting-unavailable note.
 
-- use only the supplied candidate evidence for candidate claims;
-- use job context only for company and role statements;
-- avoid unsupported leadership, quantities, outcomes, technologies, and legal conclusions;
-- keep the answer specific and concise;
-- respect the character limit;
-- return evidence IDs exactly as supplied;
-- return an empty draft and one focused follow-up question when evidence is insufficient;
-- avoid mentioning the evidence system, model, prompt, or review process in the candidate-facing draft.
+Environment variables:
 
-The prompt must not ask the model to reveal chain-of-thought. The product displays evidence and concise notes, not hidden reasoning.
+```env
+ANSWER_GENERATION_MODE=gemini
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+```
 
-## Deterministic validation
+## Validation
 
-The backend validates every fixture and live response before it reaches the extension:
+The backend validates every provider result:
 
-1. Parse against the response schema.
-2. Confirm `fieldId` matches the request.
-3. Confirm every evidence ID was supplied in the request.
-4. Recalculate `characterCount`; do not trust the model's count.
-5. Confirm the draft fits the page limit.
-6. Check company and role names for context mismatches.
-7. Run conservative checks for unsupported numbers, leadership language, team size, and unreferenced technologies.
-8. If validation fails, return an empty draft with a plain-language note rather than unsafe text.
+1. The returned field ID matches the request.
+2. Every evidence ID was supplied by the extension.
+3. Company names do not drift to another employer.
+4. Leadership, numerical, and technology claims are supported.
+5. Character count is recalculated.
+6. A known character limit is respected, with one retry when needed.
+7. Invalid structured output is rejected.
 
-The extension performs the character-limit and existing-value checks again immediately before insertion.
-
-## Memory policy for open-ended answers
-
-ApplyProof remembers reusable facts and preferences, not complete tailored answers by default.
-
-Good candidates for explicit profile updates include:
-
-- how the user uses and verifies AI;
-- the user's actual project contribution;
-- supported project outcomes;
-- technical interests;
-- preferred work themes or environments.
-
-Complete answers containing a company name, role name, or job-specific motivation are application artifacts. They are not silently reused on another application. A later similar question receives a new draft from confirmed facts and the new job context, and remains `Needs review` until the user fills it.
-
-## Privacy and retention
-
-- The extension sends only the current question, its constraints, limited job context, and selected evidence.
-- The backend must not log raw resumes, profile evidence, questions, or generated drafts in production logs.
-- Operational logs may contain request IDs, timings, provider mode, token usage, and error categories.
-- OpenRouter requests set `store: false` and include only the current minimized input.
-- Profile-memory writes are a separate explicit user action; generating or filling a draft does not automatically change `My Profile`.
-- The privacy UI must let the user inspect and delete locally remembered facts and preferences.
+Resume-based process answers may conservatively describe review, testing, and verification practices, but should not introduce named tools, frequencies, or results unsupported by the profile.
 
 ## Failure behavior
 
-| Failure                               | User behavior                                                                                  |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| API key absent in OpenRouter mode     | Keep the field `Needs review`; explain that live drafting is unavailable; allow manual editing |
-| Network error, timeout, or rate limit | Keep the field `Needs review`; preserve any user text; offer retry                             |
-| Model refusal                         | Keep the field `Needs review`; show a neutral note; allow manual editing                       |
-| Invalid structured response           | Reject it; keep the field `Needs review`; offer retry                                          |
-| Unsupported or insufficient evidence  | Return no draft and ask one follow-up question                                                 |
-| Character limit exceeded              | Do not insert; offer a shorter regeneration or manual edit                                     |
-| Page value changed after drafting     | Do not overwrite; show the current value and require a new explicit decision                   |
-| Field no longer exists                | Keep the review card and explain that the page field is unavailable                            |
+| Failure                                   | Behavior                                                                                  |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------- |
+| API unavailable                           | Keep the page value unchanged and show a retryable inline error                           |
+| Missing provider key                      | Log the server configuration error and show drafting unavailable                          |
+| Provider timeout, quota, or network error | Preserve page text and show drafting unavailable                                          |
+| Invalid structured output                 | Reject it and preserve page text                                                          |
+| First result exceeds a known limit        | Retry once with the exact live limit                                                      |
+| Second result exceeds the limit           | Return no draft and show the limit note                                                   |
+| Evidence is insufficient                  | Return a conservative resume-based draft when possible; otherwise show a focused question |
+| Existing deterministic value              | Preserve it during Scan & Autofill                                                        |
+| Existing open-ended value                 | Do not auto-generate; allow explicit Regenerate                                           |
 
-## Testing strategy
+## Privacy and submission boundary
 
-### Contract tests
+- Provider keys stay in `.env` or a deployment secret manager.
+- OpenRouter requests set `store: false`.
+- The extension sends only the selected profile evidence and current job context required for drafting.
+- Production logs should contain exceptions and provider metadata, not raw resumes or generated drafts.
+- ApplyProof never clicks Continue, Next, or Submit.
 
-- request and response schema validation;
-- no answer status or confidence field;
-- evidence IDs must be a subset of request evidence;
-- empty draft requires a note or follow-up question;
-- deterministic character-count validation.
+## Test coverage
 
-### Fixture tests
+Automated tests cover:
 
-- the relevant-project fixture uses only `project-campus-map`;
-- the AI-workflow fixture returns no draft when AI evidence is absent;
-- no fixture invents leadership, metrics, team size, or unsupported technologies;
-- every fixture respects its page limit.
+- deterministic profile mappings, including authorization, gender, and confirmation checkboxes;
+- true DOM checkbox selection and framework events;
+- inline assistant mounting, automatic first generation, regeneration, and existing-value preservation;
+- optional prompt propagation and expanded evidence selection;
+- native, custom-attribute, ARIA, and helper-text character limits;
+- live-limit refresh immediately before generation;
+- one backend retry for an over-limit provider result;
+- strict provider schemas and evidence-ID validation;
+- fixture, OpenRouter, and Gemini request shapes;
+- production extension builds.
 
-### Provider tests
+## Current acceptance criteria
 
-- mock the OpenRouter HTTP client; do not require a network call in the default test suite;
-- verify the OpenRouter provider uses the Responses API, strict Structured Outputs, and `store: false`;
-- verify provider errors become safe review explanations;
-- keep optional live smoke tests separate and explicitly enabled.
-
-### Extension tests
-
-- all open-ended questions begin as `Needs review`;
-- generating and editing a draft does not change the field outcome;
-- `Fill answer` inserts exactly the reviewed text and changes the outcome to `Filled`;
-- existing values and page changes are preserved;
-- failed insertion remains `Needs review`;
-- no automatic generation, insertion, or submission occurs on page load.
-
-## Phase 4 implementation order
-
-1. Replace the placeholder answer-status contract with the request and response schemas in this document.
-2. Add the FastAPI provider interface and deterministic fixture provider.
-3. Build one end-to-end relevant-project review card and insertion flow.
-4. Add deterministic validation and negative claim fixtures.
-5. Add the OpenRouter provider behind server configuration.
-6. Add the remaining Northstar question strategies and missing-evidence follow-ups.
-7. Add tests, manual Chrome verification, and build-log evidence.
-
-## Acceptance criteria
-
-- At least three Northstar answers can be drafted, reviewed, edited, and inserted.
-- Every eligible open-ended field is always either `Filled` or `Needs review`.
-- No AI-generated text is inserted without a user action.
-- Every material candidate claim is supported by displayed evidence.
-- Missing AI-workflow evidence produces no fabricated draft.
-- Every inserted answer respects the page character limit.
-- Fixture mode completes the demo without an API key.
-- OpenRouter mode keeps the API key on the server and returns the same contract as fixture mode.
-- Provider or validation failures leave the field in `Needs review` and preserve user text.
-- Final legal confirmation and submission remain manual.
-
-## Provider references
-
-- [OpenRouter Responses API Beta](https://openrouter.ai/docs/api/reference/responses/overview)
-- [OpenRouter Structured Outputs](https://openrouter.ai/docs/guides/features/structured-outputs)
-- [OpenRouter API authentication](https://openrouter.ai/docs/api/reference/authentication)
+- One Scan & Autofill action fills all mapped profile fields and checkboxes.
+- Blank open-ended questions begin generating on the application page.
+- Existing answers are not overwritten automatically.
+- Hover or focus reveals an inline Regenerate control and optional instruction.
+- Generated drafts are editable in the real application field.
+- AI-workflow questions receive a resume-based draft rather than requiring a profile follow-up flow.
+- Known character limits are sent to the provider and enforced with one retry.
+- Work authorization, gender, and accuracy confirmation fill from the current profile/workflow rules.
+- The side panel does not duplicate field summaries or review queues.
+- Continue, Next, and Submit remain user actions.

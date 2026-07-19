@@ -17,14 +17,14 @@ This roadmap turns the product plan into a demo-first build sequence. Every mile
 | 1. Demo foundation                | Complete    |
 | 2. Page scanning                  | Complete    |
 | 3. Demo profile and safe autofill | Complete    |
-| 4. Grounded answer review         | Complete    |
+| 4. Inline grounded answers        | Complete    |
 | 5. Claim verification and audit   | Not started |
 | 6. Hackathon polish               | Not started |
 | 7. Post-demo productization       | Deferred    |
 
 ## Definition of the first demo
 
-A judge can install the unpacked extension, open the local Northstar Labs application, select the Maya Chen profile, scan the form, fill safe fields, inspect three grounded answers, see one unsupported claim rejected, review a high-risk field, and run a final audit.
+A judge can install the unpacked extension, open the local Northstar Labs application, select the Maya Chen profile, run one Scan & Autofill action, see saved profile values and checkboxes filled, review generated open-ended answers on the page, add an instruction before regeneration, and confirm character limits are respected.
 
 No account, personal resume, production deployment, or automatic submission is required.
 
@@ -60,7 +60,7 @@ No account, personal resume, production deployment, or automatic submission is r
 - [x] Label extraction using associated labels, parent labels, ARIA attributes, nearby text, then placeholders
 - [x] Normalized field metadata
 - [x] Sensitive-field denylist
-- [x] Side-panel field inventory
+- [x] Initial side-panel field inventory, later removed when the workflow moved onto the page
 - [x] Page highlighting and jump-to-field behavior
 
 ### Acceptance criteria
@@ -73,7 +73,7 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ## Phase 3 — Demo profile and safe autofill
 
-**Goal:** let the user choose a trusted profile, scan and safely autofill the application in one action, then focus only on exceptions requiring review.
+**Goal:** let the user choose a trusted profile and fill all explicitly saved profile choices and mapped confirmations in one action.
 
 ### Deliverables
 
@@ -81,29 +81,29 @@ No account, personal resume, production deployment, or automatic submission is r
 - [x] Profile selection, summary, and inspection UI
 - [x] Combined Scan & Autofill primary action that requires a selected profile
 - [x] Rule-based field classification for known demo fields
-- [x] Deterministic mappings for identity, contact, education, links, location, relocation, and availability
+- [x] Deterministic mappings for identity, contact, education, links, location, relocation, availability, work authorization, and gender
+- [x] Real checkbox selection for the accuracy confirmation
 - [x] Existing-value protection
-- [x] Explicit skip behavior for demographic and high-risk fields
-- [x] Autofill result summary for filled, review-required, skipped, and blocked fields
-- [x] Review queue that surfaces only exceptions and manual decisions
-- [x] Full detected-field inventory moved into optional details
+- [x] Work authorization and gender sourced from explicit profile choices rather than inference
+- [x] Compact side panel containing profile, Scan & Autofill, and progress only
+- [x] Removal of the superseded outcome summary, review queue, and field inventory
 
 ### Acceptance criteria
 
 - [x] Name, email, phone, school, degree, graduation date, GitHub URL, and location map correctly.
 - [x] Non-empty fields are not overwritten without confirmation.
-- [x] Optional demographics remain unfilled.
-- [x] Work authorization is visibly marked `needs_review`.
+- [x] Saved work authorization and gender choices autofill correctly.
+- [x] Accuracy confirmation is checked through the real DOM property and framework events.
 - [x] Filling occurs only after a user action.
 - [x] Autofill cannot run until the user selects a profile.
-- [x] Scan results prioritize the outcome summary and review queue instead of raw field metadata.
+- [x] Continue, Next, and Submit are not clicked.
 - [x] Reload the unpacked extension and verify the complete workflow in Chrome.
 
-## Phase 4 — Grounded answer review
+## Phase 4 — Inline grounded answers
 
-**Goal:** demonstrate useful AI assistance without hiding uncertainty or evidence.
+**Goal:** generate useful resume-based drafts in the application context and make review and regeneration immediate.
 
-**Design:** follow [`docs/ANSWER_GENERATION_DESIGN.md`](ANSWER_GENERATION_DESIGN.md). Open-ended fields remain `Needs review` until the user inserts reviewed text; drafts do not introduce a separate status system.
+**Design:** follow [`docs/ANSWER_GENERATION_DESIGN.md`](ANSWER_GENERATION_DESIGN.md). The application page is the answer editor and source of truth; the side panel is not a review surface.
 
 ### Deliverables
 
@@ -115,8 +115,15 @@ No account, personal resume, production deployment, or automatic submission is r
 - [x] OpenRouter provider using the Responses API Beta, Structured Outputs, server-side credentials, and `store: false`
 - [x] Answers tailored to the Northstar Labs role
 - [x] Deterministic evidence-ID, claim, context, and character-limit validation
-- [x] Review cards showing editable answer, evidence, notes, character count, optional follow-up question, regenerate, and fill actions
-- [x] Profile-update prompt for explicitly confirmed reusable facts and preferences
+- [x] Shadow DOM inline assistants beside open-ended fields
+- [x] Automatic first generation for blank textareas
+- [x] Hover/focus Generate and Regenerate controls with optional instructions
+- [x] Native page insertion with `input` and `change` events
+- [x] Resume-based AI-workflow draft without a separate confirmation flow
+- [x] Live limit detection from native, custom, ARIA, and helper-text constraints
+- [x] One automatic provider retry when a draft exceeds the live character limit
+- [x] Fixture, OpenRouter, and Gemini provider modes
+- [x] Strict provider schema compatibility and server-side provider exception logging
 
 ### Initial questions
 
@@ -127,17 +134,17 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ### Acceptance criteria
 
-- [x] At least three answers can be reviewed and inserted.
+- [x] Blank open-ended answers generate and insert directly after Scan & Autofill.
 - [x] Every material generated answer cites candidate evidence.
 - [x] Answers use the correct company and role names.
-- [x] Character limits are respected.
-- [x] Generated text is never inserted without user review and action.
-- [x] Generating or editing a draft leaves the field as `Needs review`; successful user-initiated insertion changes it to `Filled`.
-- [x] Missing evidence produces an empty draft, a plain-language note, and a focused follow-up question rather than fabrication.
-- [x] The AI-workflow question produces no draft until the profile contains confirmed AI-usage evidence.
+- [x] Known character limits are refreshed before generation and enforced with one retry.
+- [x] Existing open-ended answers are not regenerated automatically.
+- [x] Generated text remains editable on the page.
+- [x] AI-workflow questions receive a conservative resume-based draft for review.
+- [x] Optional instructions can select a resume project or emphasis without becoming evidence.
 - [x] Fixture and OpenRouter modes return the same ApplyProof response contract.
 - [x] The extension never receives the OpenRouter API key.
-- [x] Reload the unpacked extension and verify the three-answer review and insertion workflow in Chrome.
+- [x] Reload the unpacked extension and verify inline generation and regeneration in Chrome.
 
 ## Phase 5 — Claim verification and application audit
 
@@ -184,7 +191,7 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ## Phase 7 — Post-demo productization
 
-These items begin only after the controlled demo is stable. The product workflow has been narrowed to one applicant-owned profile rather than a profile picker, two user-visible field outcomes rather than four, and gradual online-site support rather than a claim of universal ATS compatibility.
+These items begin only after the controlled demo is stable. The product workflow has been narrowed to one applicant-owned profile, page-native review instead of a side-panel queue, and gradual online-site support rather than a claim of universal ATS compatibility.
 
 ### 7A — Single editable profile and answer memory
 
@@ -192,24 +199,24 @@ These items begin only after the controlled demo is stable. The product workflow
 - [ ] Add create, inspect, edit, save, and local reset controls for that profile
 - [ ] Keep “Load Maya demo data” as a demo seeding action, not a second selectable profile
 - [ ] Add plain-text and PDF resume import with editable extraction results
-- [ ] Separate stable profile facts from user-confirmed application preferences
+- [ ] Require explicit work-authorization and gender choices during profile setup, including `Prefer not to say`
+- [ ] Separate stable profile facts from reusable application preferences
 - [ ] Store reusable answers under canonical keys such as `work_authorization.canada`
 - [ ] Record the answer source, confirmation time, and applicable country or scope
 - [ ] Reuse a saved answer only when the new question maps to the same canonical meaning with high confidence
 - [ ] Re-review time-dependent preferences such as start date, salary, and relocation when context changes
-- [ ] Never remember or autofill passwords, verification codes, government identifiers, financial data, or per-application legal attestations
+- [ ] Never remember or autofill passwords, verification codes, government identifiers, or financial data
 - [ ] Add local privacy controls for viewing, editing, exporting, and deleting saved data
 
-### 7B — Simplified field workflow
+### 7B — Page-native field workflow
 
-- [ ] Show only `Filled` and `Needs review` as primary user-facing field outcomes
+- [ ] Keep the side panel limited to profile controls, Scan & Autofill, and progress
 - [ ] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
-- [ ] Route unknown questions, first-time decisions, conflicts, ambiguous options, and failed insertions to `Needs review`
-- [ ] Remove `Skipped`, `Blocked`, `Not found`, and `Unsupported` as both user-facing and internal field statuses
-- [ ] Keep a plain-language review explanation on each `Needs review` field instead of introducing additional status codes
-- [ ] Exclude denied sensitive fields from scanning results and field outcomes without collecting or recording their values
-- [ ] Route optional fields without trusted answers to `Needs review` rather than a separate skipped state
-- [ ] Require a fresh user action for legal accuracy confirmations and final submission on every application
+- [ ] Keep generated open-ended answers editable in their application fields
+- [ ] Preserve existing page values unless the user explicitly regenerates an open-ended answer
+- [ ] Exclude denied sensitive fields from scanning without collecting or recording their values
+- [ ] Detect character and word limits across supported ATS implementations
+- [ ] Keep Continue, Next, and Submit as user actions
 
 ### 7C — Online application pilot
 
@@ -232,12 +239,11 @@ These items begin only after the controlled demo is stable. The product workflow
 
 - [ ] Returning users can autofill without selecting a profile on every application.
 - [ ] Editing `My Profile` changes subsequent deterministic fills.
-- [ ] A first-time work-authorization answer requires review; a later semantically equivalent question can reuse the confirmed scoped answer.
+- [ ] A saved work-authorization answer fills semantically equivalent questions within its recorded country scope.
 - [ ] Existing page values are never silently overwritten.
-- [ ] Every eligible detected field has exactly one result: `Filled` or `Needs review`.
 - [ ] Denied sensitive fields have no workflow result and no captured value.
-- [ ] Final legal confirmation and submission always require a fresh user action.
-- [ ] Each advertised online site passes a repeatable scan, fill, review, and no-submit test.
+- [ ] Mapped confirmations may be checked, while navigation and submission remain manual.
+- [ ] Each advertised online site passes a repeatable scan, fill, inline-review, and no-submit test.
 
 ## Explicit non-goals for the hackathon
 
