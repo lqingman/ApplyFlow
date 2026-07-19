@@ -1,0 +1,131 @@
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { extractFieldLabel, findField, scanDocument } from "./scanner";
+
+describe("page scanner", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("extracts labels in accessible priority order", () => {
+    document.body.innerHTML = `
+      <label for="email">Email address <span aria-hidden="true">*</span></label>
+      <input id="email" aria-label="Ignored aria label" placeholder="Ignored placeholder">
+      <div id="custom-label">Preferred location</div>
+      <div id="location" role="textbox" aria-labelledby="custom-label"></div>
+      <span>Portfolio link</span><input id="portfolio" placeholder="https://example.com">
+      <input id="nickname" placeholder="Preferred name">
+    `;
+
+    expect(extractFieldLabel(document.getElementById("email")!, document)).toBe(
+      "Email address",
+    );
+    expect(
+      extractFieldLabel(document.getElementById("location")!, document),
+    ).toBe("Preferred location");
+    expect(
+      extractFieldLabel(document.getElementById("portfolio")!, document),
+    ).toBe("Portfolio link");
+    expect(
+      extractFieldLabel(document.getElementById("nickname")!, document),
+    ).toBe("Preferred name");
+  });
+
+  it("normalizes native controls and groups radio options", () => {
+    document.body.innerHTML = `
+      <label>Email address <input id="email" name="email" type="email" required value="maya@example.com"></label>
+      <label>Story <textarea id="story" maxlength="500"></textarea><small>Maximum 500 characters</small></label>
+      <label>Work authorization <select id="authorization" required>
+        <option value="" disabled selected>Select one</option><option value="yes">Authorized</option>
+      </select></label>
+      <fieldset><legend>Open to relocating?</legend>
+        <label><input type="radio" name="relocation" value="yes"> Yes</label>
+        <label><input type="radio" name="relocation" value="no" checked> No</label>
+      </fieldset>
+      <label><input type="checkbox" name="confirmation" required> I reviewed this application</label>
+    `;
+
+    expect(scanDocument(document)).toEqual([
+      {
+        id: "email",
+        label: "Email address",
+        kind: "email",
+        required: true,
+        value: "maya@example.com",
+        options: [],
+      },
+      {
+        id: "story",
+        label: "Story",
+        kind: "textarea",
+        required: false,
+        value: "",
+        options: [],
+        maxLength: 500,
+      },
+      {
+        id: "authorization",
+        label: "Work authorization",
+        kind: "select",
+        required: true,
+        value: "",
+        options: ["Authorized"],
+      },
+      {
+        id: "relocation",
+        label: "Open to relocating?",
+        kind: "radio",
+        required: false,
+        value: "no",
+        options: ["Yes", "No"],
+      },
+      {
+        id: "confirmation",
+        label: "I reviewed this application",
+        kind: "checkbox",
+        required: true,
+        value: "",
+        options: [],
+      },
+    ]);
+  });
+
+  it("excludes blocked fields without losing safe controls", () => {
+    document.body.innerHTML = `
+      <label>Password <input id="password" type="password"></label>
+      <label>Social insurance number <input id="sin"></label>
+      <label>Bank account <input name="bankAccount"></label>
+      <label>First name <input id="first-name"></label>
+    `;
+
+    expect(scanDocument(document).map((field) => field.id)).toEqual([
+      "first-name",
+    ]);
+  });
+
+  it("supports practical ARIA custom controls", () => {
+    document.body.innerHTML = `
+      <div id="city-label">Current city</div>
+      <div role="combobox" aria-labelledby="city-label" aria-required="true">
+        <div role="option">Vancouver</div><div role="option">Toronto</div>
+      </div>
+      <div role="textbox" aria-label="Project summary" contenteditable="true"></div>
+    `;
+
+    const fields = scanDocument(document);
+
+    expect(fields).toMatchObject([
+      {
+        label: "Current city",
+        kind: "select",
+        required: true,
+        options: ["Vancouver", "Toronto"],
+      },
+      { label: "Project summary", kind: "text", required: false },
+    ]);
+    expect(findField(document, fields[0].id)).toHaveAttribute(
+      "role",
+      "combobox",
+    );
+  });
+});

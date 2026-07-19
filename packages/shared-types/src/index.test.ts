@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { answerDraftSchema, normalizedFieldSchema } from "./index";
+import {
+  answerDraftSchema,
+  normalizedFieldSchema,
+  pageScanSchema,
+} from "./index";
 
 describe("shared contracts", () => {
   it("accepts normalized form metadata", () => {
@@ -26,5 +30,32 @@ describe("shared contracts", () => {
         warnings: [],
       }),
     ).toThrow();
+  });
+
+  it("accepts a metadata-only page scan", () => {
+    expect(
+      pageScanSchema.parse({
+        fields: [
+          {
+            id: "name",
+            label: "Name",
+            kind: "text",
+            required: true,
+            value: "",
+          },
+        ],
+      }),
+    ).toEqual({
+      fields: [
+        {
+          id: "name",
+          label: "Name",
+          kind: "text",
+          required: true,
+          value: "",
+          options: [],
+        },
+      ],
+    });
   });
 });

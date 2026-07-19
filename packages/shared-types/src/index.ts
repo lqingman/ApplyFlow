@@ -21,6 +21,8 @@ export const fieldKindSchema = z.enum([
   "checkbox",
 ]);
 
+export type FieldKind = z.infer<typeof fieldKindSchema>;
+
 export const normalizedFieldSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
@@ -32,6 +34,12 @@ export const normalizedFieldSchema = z.object({
 });
 
 export type NormalizedField = z.infer<typeof normalizedFieldSchema>;
+
+export const pageScanSchema = z.object({
+  fields: z.array(normalizedFieldSchema),
+});
+
+export type PageScan = z.infer<typeof pageScanSchema>;
 
 export const evidenceRecordSchema = z.object({
   id: z.string().min(1),
