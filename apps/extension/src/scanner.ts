@@ -260,6 +260,25 @@ export function scanDocument(document: Document): NormalizedField[] {
   return fields;
 }
 
+export function countBlockedFields(document: Document) {
+  return Array.from(
+    document.querySelectorAll<ScannableElement>(
+      `${nativeSelector}, ${customSelector}`,
+    ),
+  ).filter((element) => {
+    if (!isUsable(element)) return false;
+    const kind = fieldKind(element);
+    if (
+      !kind &&
+      !(element instanceof HTMLInputElement && element.type === "password")
+    )
+      return false;
+    const label =
+      extractFieldLabel(element, document) || fallbackLabel(element);
+    return isSensitive(element, label);
+  }).length;
+}
+
 export function findField(document: Document, fieldId: string) {
   return (
     document.getElementById(fieldId) ||

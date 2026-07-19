@@ -1,6 +1,9 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { mayaProfile } from "@applyproof/sample-data";
 
+import { planAutofill } from "../../extension/src/autofill";
+import { fillDocument } from "../../extension/src/pageFill";
 import { scanDocument } from "../../extension/src/scanner";
 import { App } from "./App";
 
@@ -47,5 +50,27 @@ describe("Northstar Labs application", () => {
       kind: "textarea",
       maxLength: 500,
     });
+  });
+
+  it("safely autofills the complete deterministic Phase 3 mapping", () => {
+    render(<App />);
+
+    const plan = planAutofill(mayaProfile, scanDocument(document));
+    const results = fillDocument(document, plan.fills);
+
+    expect(plan.fills).toHaveLength(11);
+    expect(results.every((result) => result.status === "filled")).toBe(true);
+    expect(screen.getByLabelText(/First name/)).toHaveValue("Maya");
+    expect(screen.getByLabelText(/Email address/)).toHaveValue(
+      "maya.chen@example.com",
+    );
+    expect(screen.getByLabelText(/School or university/)).toHaveValue(
+      "University of British Columbia",
+    );
+    expect(screen.getByLabelText(/Work authorization/)).toHaveValue("");
+    expect(screen.getByLabelText("Woman")).not.toBeChecked();
+    expect(
+      screen.getByLabelText(/I confirm that I reviewed/),
+    ).not.toBeChecked();
   });
 });

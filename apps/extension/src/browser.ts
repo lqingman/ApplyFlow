@@ -1,4 +1,10 @@
-import { pageScanSchema, type NormalizedField } from "@applyproof/shared-types";
+import {
+  pageFillResultSchema,
+  pageScanSchema,
+  type FieldFill,
+  type FillResult,
+  type PageScan,
+} from "@applyproof/shared-types";
 
 async function activeTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -7,6 +13,15 @@ async function activeTab() {
 }
 
 async function ensureScanner(tabId: number) {
+  try {
+    const response: unknown = await chrome.tabs.sendMessage(tabId, {
+      type: "APPLYPROOF_PING",
+    });
+    if ((response as { ok?: boolean })?.ok) return;
+  } catch {
+    // A missing listener is expected before the first user-initiated scan.
+  }
+
   try {
     await chrome.scripting.executeScript({
       target: { tabId },
@@ -19,13 +34,13 @@ async function ensureScanner(tabId: number) {
   }
 }
 
-export async function scanActivePage(): Promise<NormalizedField[]> {
+export async function scanActivePage(): Promise<PageScan> {
   const tabId = await activeTab();
   await ensureScanner(tabId);
   const response: unknown = await chrome.tabs.sendMessage(tabId, {
     type: "APPLYPROOF_SCAN",
   });
-  return pageScanSchema.parse(response).fields;
+  return pageScanSchema.parse(response);
 }
 
 export async function focusField(fieldId: string) {
@@ -37,4 +52,16 @@ export async function focusField(fieldId: string) {
   });
   if (!(response as { ok?: boolean })?.ok)
     throw new Error("That field is no longer available on the page.");
+}
+
+export async function fillActivePage(
+  fills: FieldFill[],
+): Promise<FillResult[]> {
+  const tabId = await activeTab();
+  await ensureScanner(tabId);
+  const response: unknown = await chrome.tabs.sendMessage(tabId, {
+    type: "APPLYPROOF_FILL_FIELDS",
+    fills,
+  });
+  return pageFillResultSchema.parse(response).results;
 }

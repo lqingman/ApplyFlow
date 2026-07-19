@@ -1,4 +1,5 @@
-import { findField, scanDocument } from "./scanner";
+import { countBlockedFields, findField, scanDocument } from "./scanner";
+import { fillDocument } from "./pageFill";
 
 declare global {
   interface Window {
@@ -39,12 +40,30 @@ function highlightField(fieldId: string) {
 if (!window.__applyProofScannerReady) {
   window.__applyProofScannerReady = true;
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message?.type === "APPLYPROOF_PING") {
+      sendResponse({ ok: true });
+      return;
+    }
     if (message?.type === "APPLYPROOF_SCAN") {
-      sendResponse({ ok: true, fields: scanDocument(document) });
+      sendResponse({
+        ok: true,
+        fields: scanDocument(document),
+        blockedCount: countBlockedFields(document),
+      });
       return;
     }
     if (message?.type === "APPLYPROOF_FOCUS_FIELD") {
       sendResponse({ ok: highlightField(String(message.fieldId)) });
+      return;
+    }
+    if (message?.type === "APPLYPROOF_FILL_FIELDS") {
+      sendResponse({
+        ok: true,
+        results: fillDocument(
+          document,
+          Array.isArray(message.fills) ? message.fills : [],
+        ),
+      });
     }
   });
 }

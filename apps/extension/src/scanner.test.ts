@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { extractFieldLabel, findField, scanDocument } from "./scanner";
+import {
+  countBlockedFields,
+  extractFieldLabel,
+  findField,
+  scanDocument,
+} from "./scanner";
 
 describe("page scanner", () => {
   beforeEach(() => {
@@ -101,6 +106,7 @@ describe("page scanner", () => {
     expect(scanDocument(document).map((field) => field.id)).toEqual([
       "first-name",
     ]);
+    expect(countBlockedFields(document)).toBe(3);
   });
 
   it("supports practical ARIA custom controls", () => {

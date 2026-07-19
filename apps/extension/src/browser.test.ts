@@ -1,35 +1,40 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { scanActivePage } from "./browser";
+import { fillActivePage, scanActivePage } from "./browser";
 
 describe("extension browser bridge", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("scans when Chrome omits the active tab URL", async () => {
     const executeScript = vi.fn().mockResolvedValue([]);
+    const sendMessage = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("No listener"))
+      .mockResolvedValueOnce({
+        ok: true,
+        fields: [
+          {
+            id: "email",
+            label: "Email address",
+            kind: "email",
+            required: true,
+            value: "",
+            options: [],
+          },
+        ],
+      });
     vi.stubGlobal("chrome", {
       tabs: {
         query: vi.fn().mockResolvedValue([{ id: 42 }]),
-        sendMessage: vi.fn().mockResolvedValue({
-          ok: true,
-          fields: [
-            {
-              id: "email",
-              label: "Email address",
-              kind: "email",
-              required: true,
-              value: "",
-              options: [],
-            },
-          ],
-        }),
+        sendMessage,
       },
       scripting: { executeScript },
     });
 
-    await expect(scanActivePage()).resolves.toMatchObject([
-      { id: "email", label: "Email address" },
-    ]);
+    await expect(scanActivePage()).resolves.toMatchObject({
+      blockedCount: 0,
+      fields: [{ id: "email", label: "Email address" }],
+    });
     expect(executeScript).toHaveBeenCalledWith({
       target: { tabId: 42 },
       files: ["content.js"],
@@ -42,6 +47,7 @@ describe("extension browser bridge", () => {
         query: vi
           .fn()
           .mockResolvedValue([{ id: 42, url: "chrome://extensions" }]),
+        sendMessage: vi.fn().mockRejectedValue(new Error("No listener")),
       },
       scripting: {
         executeScript: vi
@@ -53,5 +59,47 @@ describe("extension browser bridge", () => {
     await expect(scanActivePage()).rejects.toThrow(
       "ApplyProof could not access this tab",
     );
+  });
+
+  it("returns normalized safe-fill results", async () => {
+    const sendMessage = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("No listener"))
+      .mockResolvedValueOnce({
+        ok: true,
+        results: [{ fieldId: "email", status: "filled" }],
+      });
+    vi.stubGlobal("chrome", {
+      tabs: {
+        query: vi.fn().mockResolvedValue([{ id: 42 }]),
+        sendMessage,
+      },
+      scripting: { executeScript: vi.fn().mockResolvedValue([]) },
+    });
+
+    await expect(
+      fillActivePage([{ fieldId: "email", value: "maya.chen@example.com" }]),
+    ).resolves.toEqual([{ fieldId: "email", status: "filled" }]);
+  });
+
+  it("reuses an installed listener without reinjecting the bundle", async () => {
+    const executeScript = vi.fn();
+    const sendMessage = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: true, fields: [], blockedCount: 0 });
+    vi.stubGlobal("chrome", {
+      tabs: {
+        query: vi.fn().mockResolvedValue([{ id: 42 }]),
+        sendMessage,
+      },
+      scripting: { executeScript },
+    });
+
+    await expect(scanActivePage()).resolves.toEqual({
+      fields: [],
+      blockedCount: 0,
+    });
+    expect(executeScript).not.toHaveBeenCalled();
   });
 });
