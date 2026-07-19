@@ -173,16 +173,58 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ## Phase 7 — Post-demo productization
 
-These items begin only after the controlled demo is stable:
+These items begin only after the controlled demo is stable. The product workflow has been narrowed to one applicant-owned profile rather than a profile picker, two user-visible field outcomes rather than four, and gradual online-site support rather than a claim of universal ATS compatibility.
 
-- [ ] Plain-text and PDF resume import with editable extraction results
-- [ ] Persistent profiles and local privacy controls
-- [ ] Compatibility testing against selected ATS platforms
-- [ ] More robust accessible custom-control support
+### 7A — Single editable profile and answer memory
+
+- [ ] Replace profile selection with one persistent `My Profile`
+- [ ] Add create, inspect, edit, save, and local reset controls for that profile
+- [ ] Keep “Load Maya demo data” as a demo seeding action, not a second selectable profile
+- [ ] Add plain-text and PDF resume import with editable extraction results
+- [ ] Separate stable profile facts from user-confirmed application preferences
+- [ ] Store reusable answers under canonical keys such as `work_authorization.canada`
+- [ ] Record the answer source, confirmation time, and applicable country or scope
+- [ ] Reuse a saved answer only when the new question maps to the same canonical meaning with high confidence
+- [ ] Re-review time-dependent preferences such as start date, salary, and relocation when context changes
+- [ ] Never remember or autofill passwords, verification codes, government identifiers, financial data, or per-application legal attestations
+- [ ] Add local privacy controls for viewing, editing, exporting, and deleting saved data
+
+### 7B — Simplified field workflow
+
+- [ ] Show only `Filled` and `Needs review` as primary user-facing field outcomes
+- [ ] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
+- [ ] Route unknown questions, first-time decisions, conflicts, ambiguous options, and failed insertions to `Needs review`
+- [ ] Keep `blocked_sensitive`, `optional_unmapped`, `not_found`, and `unsupported_control` as internal reason codes for safety, diagnostics, and audit
+- [ ] Remove `Skipped` and `Blocked` from the primary outcome summary
+- [ ] Optionally disclose ignored sensitive fields in privacy details without exposing their values
+- [ ] Require a fresh user action for legal accuracy confirmations and final submission on every application
+
+### 7C — Online application pilot
+
+- [ ] Preserve least-privilege, user-initiated access to the active application tab
+- [ ] Validate ordinary online HTML forms before claiming third-party site support
+- [ ] Pilot one selected ATS, then add platforms individually using regression fixtures
+- [ ] Improve semantic field classification using labels, names, IDs, autocomplete metadata, types, options, and surrounding question text
+- [ ] Add more robust accessible custom-control, dynamic-form, multi-step, and iframe support
+- [ ] Document an explicit supported-site matrix and known limitations
+- [ ] Do not claim universal ATS support without compatibility evidence
+
+### 7D — Operational readiness
+
 - [ ] Evaluation datasets for classification and claim verification
 - [ ] Model-provider configuration, observability, cost controls, and failure handling
 - [ ] Security and privacy review
 - [ ] Chrome Web Store readiness
+
+### Acceptance criteria
+
+- [ ] Returning users can autofill without selecting a profile on every application.
+- [ ] Editing `My Profile` changes subsequent deterministic fills.
+- [ ] A first-time work-authorization answer requires review; a later semantically equivalent question can reuse the confirmed scoped answer.
+- [ ] Existing page values are never silently overwritten.
+- [ ] The primary UI contains only `Filled` and `Needs review`; internal safety reasons remain inspectable for debugging and audit.
+- [ ] Final legal confirmation and submission always require a fresh user action.
+- [ ] Each advertised online site passes a repeatable scan, fill, review, and no-submit test.
 
 ## Explicit non-goals for the hackathon
 

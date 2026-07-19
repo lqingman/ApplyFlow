@@ -65,3 +65,5 @@ Leave a small timing buffer rather than targeting exactly three minutes.
 - [ ] Repeat the complete demo path at least twice.
 - [ ] Verify no API keys, tokens, private prompts, or personal information are committed.
 - [ ] Confirm all links are accessible without the builder's logged-in session.
+- [ ] Describe Northstar as the supported local demo; do not imply that unvalidated third-party ATS sites are supported.
+- [ ] If future product workflow is discussed, distinguish the planned single editable profile and two-outcome UI from the current Maya profile-selection demo.

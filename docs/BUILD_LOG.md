@@ -73,6 +73,20 @@ For every meaningful milestone, record:
 
 **Artifacts:** `packages/sample-data`, shared profile and fill contracts, `apps/extension/src/autofill.ts`, `apps/extension/src/pageFill.ts`, the revised side-panel UI, browser messaging tests, `README.md`, and `docs/ROADMAP.md`.
 
+### 2026-07-18 — Post-demo workflow design
+
+**Goal:** simplify the safe-autofill workflow before expanding from the controlled demo to personal data and real application sites.
+
+**Human decision:** use one editable applicant profile instead of a profile picker; show only `Filled` and `Needs review` as primary field outcomes; retain blocked, skipped, missing, and unsupported conditions only as internal safety or diagnostic reasons; remember reusable user-confirmed answers by canonical meaning and scope; and introduce online support through tested site pilots rather than claiming universal ATS compatibility.
+
+**Codex contribution:** inspected the Phase 2 scanner, Phase 3 deterministic mappings, extension permissions, result states, and roadmap; explained which behavior currently relies on sensitive-field regexes versus fixed demo-field IDs; separated user-visible outcomes from internal reason codes; and translated the discussion into sequenced roadmap deliverables, acceptance criteria, README workflow documentation, and explicit website-support boundaries.
+
+**Why GPT-5.6 helped:** the design required aligning a simple user experience with privacy boundaries, semantic field matching, durable versus time-dependent answers, legal confirmations, least-privilege browser access, and an incremental ATS compatibility strategy.
+
+**Verification:** reviewed the documentation against the current implementation so completed Phase 3 behavior remains labeled as current and the newly agreed behavior remains unchecked future work; ran formatting and diff checks for the changed Markdown files.
+
+**Artifacts:** `README.md`, `docs/ROADMAP.md`, and `docs/BUILD_LOG.md`.
+
 ## Entry template
 
 Copy this section for the next milestone:

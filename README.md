@@ -6,6 +6,8 @@ Traditional autofill handles contact details. Generic AI can write polished answ
 
 > **Project status:** Phase 3 safe autofill complete. The user selects Maya's trusted profile, runs Scan & Autofill once, and reviews only exceptions and manual decisions.
 
+The current build is a controlled local demo. The confirmed product direction is one editable applicant profile, reusable user-confirmed answers, two primary field outcomes (`Filled` and `Needs review`), and gradual validation on real application sites after the local workflow is stable.
+
 ## The idea
 
 ApplyProof should help an applicant:
@@ -29,6 +31,8 @@ ApplyProof never submits an application automatically.
 - **No surprise overwrites.** Existing non-empty fields are preserved unless the user confirms a replacement.
 - **No automatic submission.** The user inspects and submits the final application.
 - **Minimum page access.** Only normalized form metadata and relevant job context should leave the page.
+- **One applicant-owned profile.** The product should edit and reuse one `My Profile`; Maya remains seed data for the demo rather than a long-term profile choice.
+- **Remember meaning, not wording.** A reviewed answer may be reused only when a later question maps confidently to the same scoped concept.
 
 ## Hackathon demo
 
@@ -73,6 +77,8 @@ The demo is successful when a judge can complete this flow locally without an ac
 ### Deferred until the demo works
 
 - Resume PDF upload and extraction
+- A persistent, editable `My Profile` and local answer memory
+- Validated online forms and selected ATS integrations
 - Broad third-party ATS compatibility
 - Authentication or multi-user persistence
 - Automatic job discovery or submission
@@ -119,6 +125,33 @@ The demo should remain useful without a model key where practical. Deterministic
 | `needs_review` | Ambiguous, sensitive, time-dependent, or high-risk | Never                                 |
 | `unsupported`  | Information is missing or a claim lacks evidence   | Never                                 |
 
+These statuses describe the trust state of profile facts and generated answers. The application-field workflow is intentionally simpler:
+
+| User-visible outcome | Meaning                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `Filled`             | ApplyProof inserted a confirmed profile fact or a high-confidence, user-confirmed reusable answer after the user initiated autofill. |
+| `Needs review`       | The field is new, ambiguous, sensitive, time-dependent, conflicting, unsupported, or could not be filled safely.                     |
+
+The implementation may retain internal reasons such as `blocked_sensitive`, `optional_unmapped`, `not_found`, and `unsupported_control`. They support privacy, diagnostics, and audit but should not appear as competing workflow states in the primary UI. Optional unmapped fields can remain blank. Sensitive blocked fields are intentionally ignored, and their values must not be collected.
+
+## Confirmed product workflow after the demo
+
+1. The user creates or imports one editable `My Profile` containing stable facts and evidence.
+2. ApplyProof scans an application only after the user initiates the action.
+3. Confirmed profile facts and applicable remembered answers are filled deterministically.
+4. Everything else enters `Needs review`; existing page values are preserved.
+5. When the user confirms a reusable answer, ApplyProof stores it under a canonical, scoped meaning rather than the site's exact wording.
+6. Later semantically equivalent questions may reuse that answer when classification confidence is high.
+7. Time-dependent preferences can be reviewed again, while legal attestations and final submission always require a fresh user action.
+
+For example, a confirmed answer to “Are you legally authorized to work in Canada?” may be stored as `work_authorization.canada` with its source and confirmation time. A later equivalent Canadian work-eligibility question may reuse it. That does not authorize ApplyProof to answer a different country's question, infer immigration status, accept legal terms, or submit the application.
+
+## Website support
+
+The supported and tested environment today is the local Northstar Labs application. The extension uses user-initiated active-tab access and has persistent host permissions only for the local demo origins. Simple online forms may happen to work, but they are not yet an advertised capability.
+
+Online support will be introduced as a compatibility pilot: validate ordinary HTML forms first, then selected ATS platforms one at a time. Each advertised site must pass repeatable tests covering semantic field classification, custom controls, dynamic and multi-step forms, iframe boundaries, existing-value protection, review routing, and the guarantee that ApplyProof never submits automatically. Universal ATS support remains out of scope.
+
 ## Safety boundaries
 
 ApplyProof must not:
@@ -141,7 +174,7 @@ Development follows a demo-first sequence:
 4. **Grounded answers:** prepare evidence-backed open-ended answers for review.
 5. **Verification and audit:** detect unsupported claims and calculate application readiness using transparent rules.
 6. **Demo polish:** improve UI, resilience, documentation, and the three-minute presentation.
-7. **Post-demo expansion:** add resume parsing and carefully broaden site compatibility.
+7. **Post-demo expansion:** replace profile selection with one editable profile, add scoped answer memory and a two-outcome field workflow, then validate online sites incrementally.
 
 See [the detailed roadmap](docs/ROADMAP.md) for acceptance criteria and sequencing.
 
@@ -244,8 +277,9 @@ npm run build
 The API scripts expect the project-local `.venv` created by the install steps. The extension and
 mock application contain no model dependency or secrets. Scanning runs only after a user action and
 passes normalized field metadata through the extension; it does not send full-page HTML or page copy
-to the API. Phase 2 host access is limited to the local demo origins (`localhost` and `127.0.0.1`);
-broad website access is intentionally deferred.
+to the API. Persistent host access is limited to the local demo origins (`localhost` and
+`127.0.0.1`). Real application sites are not yet supported or advertised; they will be added through
+the compatibility pilot described above.
 
 Before submitting, use the [hackathon submission checklist](docs/SUBMISSION_CHECKLIST.md).
 
