@@ -16,7 +16,7 @@ This roadmap turns the product plan into a demo-first build sequence. Every mile
 | --------------------------------- | ----------- |
 | 1. Demo foundation                | Complete    |
 | 2. Page scanning                  | Complete    |
-| 3. Demo profile and safe autofill | Not started |
+| 3. Demo profile and safe autofill | Complete    |
 | 4. Grounded answer review         | Not started |
 | 5. Claim verification and audit   | Not started |
 | 6. Hackathon polish               | Not started |
@@ -73,24 +73,31 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ## Phase 3 — Demo profile and safe autofill
 
-**Goal:** make the deterministic half of the product excellent before adding model behavior.
+**Goal:** let the user choose a trusted profile, scan and safely autofill the application in one action, then focus only on exceptions requiring review.
 
 ### Deliverables
 
-- [ ] Maya Chen profile with resume-like evidence records
-- [ ] Profile summary and inspection UI
-- [ ] Rule-based field classification for known demo fields
-- [ ] Deterministic mappings for identity, contact, education, links, location, relocation, and availability
-- [ ] Existing-value protection
-- [ ] Explicit skip behavior for demographic and high-risk fields
+- [x] Maya Chen profile with resume-like evidence records
+- [x] Profile selection, summary, and inspection UI
+- [x] Combined Scan & Autofill primary action that requires a selected profile
+- [x] Rule-based field classification for known demo fields
+- [x] Deterministic mappings for identity, contact, education, links, location, relocation, and availability
+- [x] Existing-value protection
+- [x] Explicit skip behavior for demographic and high-risk fields
+- [x] Autofill result summary for filled, review-required, skipped, and blocked fields
+- [x] Review queue that surfaces only exceptions and manual decisions
+- [x] Full detected-field inventory moved into optional details
 
 ### Acceptance criteria
 
-- [ ] Name, email, phone, school, degree, graduation date, GitHub URL, and location map correctly.
-- [ ] Non-empty fields are not overwritten without confirmation.
-- [ ] Optional demographics remain unfilled.
-- [ ] Work authorization is visibly marked `needs_review`.
-- [ ] Filling occurs only after a user action.
+- [x] Name, email, phone, school, degree, graduation date, GitHub URL, and location map correctly.
+- [x] Non-empty fields are not overwritten without confirmation.
+- [x] Optional demographics remain unfilled.
+- [x] Work authorization is visibly marked `needs_review`.
+- [x] Filling occurs only after a user action.
+- [x] Autofill cannot run until the user selects a profile.
+- [x] Scan results prioritize the outcome summary and review queue instead of raw field metadata.
+- [x] Reload the unpacked extension and verify the complete workflow in Chrome.
 
 ## Phase 4 — Grounded answer review
 

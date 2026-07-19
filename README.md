@@ -4,7 +4,7 @@ ApplyProof is a Chrome extension that helps people complete job applications wit
 
 Traditional autofill handles contact details. Generic AI can write polished answers, but may exaggerate or invent experience. ApplyProof combines the speed of autofill with visible evidence, conservative answer generation, and a final accuracy audit.
 
-> **Project status:** Phase 2 page scanning implemented. The extension detects the controlled demo form, excludes sensitive fields, shows normalized metadata, and can highlight a selected field on the page.
+> **Project status:** Phase 3 safe autofill complete. The user selects Maya's trusted profile, runs Scan & Autofill once, and reviews only exceptions and manual decisions.
 
 ## The idea
 
@@ -45,8 +45,8 @@ The demo uses:
 
 1. Open the Northstar Labs mock application.
 2. Open the ApplyProof side panel and choose Maya's demo profile.
-3. Scan the page and show detected fields.
-4. Autofill verified fields such as name, email, education, and GitHub URL.
+3. Run Scan & Autofill to detect the page and insert verified profile fields in one action.
+4. Review the outcome summary and exceptions such as work authorization.
 5. Generate at least three open-ended answers with concise evidence excerpts.
 6. Flag an injected claim such as “I led a team of ten engineers” as unsupported.
 7. Leave work authorization marked `needs_review`.
@@ -224,10 +224,12 @@ For Chrome, build the extension with `npm run build --workspace @applyproof/exte
 `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select
 `apps/extension/dist`. Click the ApplyProof toolbar action to open its side panel.
 
-With the Northstar Labs application active, click **Scan application** in the side panel. ApplyProof
-shows an inventory of 18 safe normalized fields; the password fixture is excluded. Click any field
-card to scroll to and briefly highlight that field on the application page. After rebuilding an
-already loaded unpacked extension, use the reload button on `chrome://extensions` before retesting.
+With the Northstar Labs application active, select **Use Maya demo profile**, then click **Scan &
+Autofill**. ApplyProof fills 11 direct profile matches, preserves existing values, leaves optional
+demographics blank, blocks the password fixture, and sends work authorization, long answers, and
+the final accuracy confirmation to the review queue. The complete 18-field inventory remains
+available as optional technical detail. After rebuilding an already loaded unpacked extension, use
+the reload button on `chrome://extensions` before retesting.
 
 ### Verify
 

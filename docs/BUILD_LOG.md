@@ -59,6 +59,20 @@ For every meaningful milestone, record:
 
 **Artifacts:** `apps/extension/src/scanner.ts`, `apps/extension/src/content.ts`, `apps/extension/src/browser.ts`, the Phase 2 side-panel UI and tests, `packages/shared-types`, `README.md`, and `docs/ROADMAP.md`.
 
+### 2026-07-18 — Phase 3 trusted profile and safe autofill
+
+**Goal:** replace the developer-oriented field inventory workflow with a profile-first experience that fills verified data in one action and focuses the user on exceptions.
+
+**Human decision:** require a selected trusted profile before autofill; combine scan and deterministic fill into one primary action; keep resume upload deferred until the controlled demo is stable; preserve existing values; never fill demographics, work authorization, or legal confirmation; and move raw field metadata into optional details.
+
+**Codex contribution:** updated the roadmap around the revised workflow; added a schema-validated Maya Chen profile with evidence records; implemented deterministic classification and mappings, page-safe value insertion, existing-value protection, profile inspection, an outcome summary, and an exception-only review queue; then used live Chrome inspection to find and fix repeated content-script injection that unit DOM tests did not expose.
+
+**Why GPT-5.6 helped:** the work required translating product intent into a coherent state model across profile trust, browser scanning, deterministic mappings, high-risk decisions, UI prioritization, and extension messaging while preserving the boundaries planned for grounded generation in Phase 4.
+
+**Verification:** formatting, linting, type checking, tests, and production builds pass. Twenty-two TypeScript tests plus one API test cover the profile fixture, profile-gated UI, 11 deterministic Northstar mappings, existing-value protection, demographic and legal skips, review routing, blocked-field counts, page insertion, browser messaging, and repeated-injection prevention. The controlled-form integration test confirms all 11 safe mappings fill while work authorization, demographics, and final confirmation remain empty. After rebuilding and reloading the unpacked extension, the builder completed the profile selection and Scan & Autofill workflow in Chrome without errors and accepted the Phase 3 behavior.
+
+**Artifacts:** `packages/sample-data`, shared profile and fill contracts, `apps/extension/src/autofill.ts`, `apps/extension/src/pageFill.ts`, the revised side-panel UI, browser messaging tests, `README.md`, and `docs/ROADMAP.md`.
+
 ## Entry template
 
 Copy this section for the next milestone:
