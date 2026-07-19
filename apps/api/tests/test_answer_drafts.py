@@ -115,6 +115,20 @@ def test_ai_question_uses_resume_evidence_for_a_reviewable_draft() -> None:
     ]
 
 
+def test_ai_question_cannot_fall_back_to_a_follow_up_when_resume_evidence_exists() -> None:
+    body = request_body("ats-generated-ai-field")
+    body["field"]["question"] = "How do you use AI in your development workflow?"  # type: ignore[index]
+    body["evidence"] = request_body()["evidence"]
+
+    response = post_draft(body)
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["draft"]
+    assert payload["followUpQuestion"] is None
+    assert payload["evidenceIds"] == ["project-campus-map"]
+
+
 def test_three_fixture_answers_are_grounded_and_fit_their_limits() -> None:
     requests = {
         "motivation": [

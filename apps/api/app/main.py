@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from .contracts import AnswerDraftRequest, AnswerDraftResponse, empty_response
-from .providers import configured_provider
+from .providers import configured_provider, resume_based_ai_fallback
 from .validation import validate_draft
 
 
@@ -43,6 +43,8 @@ def health() -> HealthResponse:
 def answer_draft(request: AnswerDraftRequest) -> AnswerDraftResponse:
     try:
         candidate = configured_provider().generate(request)
+        if not candidate.draft.strip():
+            candidate = resume_based_ai_fallback(request) or candidate
         return validate_draft(request, candidate)
     except Exception:
         return empty_response(

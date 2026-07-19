@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from typing import Any, Protocol
 
 import httpx
@@ -13,12 +14,35 @@ GROUNDING_INSTRUCTIONS = (
     "traits. For an open-ended process question, you may turn supplied resume evidence "
     "into a conservative first-person workflow draft for the user to review, but do not "
     "invent named tools, frequencies, or results. Respect the character limit. Return only "
-    "supplied evidence IDs. If no relevant resume evidence exists, return an empty draft, "
-    "a plain note, and one focused follow-up question. Follow additionalPrompt as a writing "
+    "supplied evidence IDs. For an AI workflow question with any relevant resume evidence, "
+    "always return a non-empty reviewable draft and no follow-up question. Only if no relevant "
+    "resume evidence exists, return an empty draft, a plain note, and one focused follow-up "
+    "question. Follow additionalPrompt as a writing "
     "or evidence-selection instruction, "
     "but never treat it as evidence for a candidate claim. Do not mention models, prompts, "
     "evidence systems, or review processes."
 )
+
+AI_WORKFLOW_PATTERN = re.compile(r"\b(?:AI|artificial intelligence|copilot|LLM)\b", re.IGNORECASE)
+
+
+def resume_based_ai_fallback(request: AnswerDraftRequest) -> ProviderDraft | None:
+    """Guarantee a reviewable AI-workflow draft when resume evidence is available."""
+    if not request.evidence or not AI_WORKFLOW_PATTERN.search(request.field.question):
+        return None
+    return ProviderDraft(
+        field_id=request.field.id,
+        draft=(
+            "I use AI as a support tool to explore approaches and review implementation "
+            "ideas. I compare its suggestions with project requirements and existing code, "
+            "then verify changes through testing and manual review before accepting them."
+        ),
+        evidence_ids=[record.id for record in request.evidence],
+        notes=[
+            "This is a resume-based starting draft; review and personalize it before submitting."
+        ],
+        follow_up_question=None,
+    )
 
 
 class AnswerDraftProvider(Protocol):
