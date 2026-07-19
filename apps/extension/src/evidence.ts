@@ -21,7 +21,13 @@ const strategies: Record<string, string[]> = {
 export function selectEvidence(
   profile: CandidateProfile,
   field: NormalizedField,
+  additionalPrompt?: string,
 ): EvidenceRecord[] {
+  // A user instruction such as “use the campus map project” may refer to any
+  // resume section. Give the model the verified profile records to choose from;
+  // the server still validates every returned evidence ID.
+  if (additionalPrompt?.trim()) return profile.evidence.slice(0, 20);
+
   const selectedIds = strategies[field.id];
   if (field.id === "ai-workflow") {
     return profile.evidence.filter(
@@ -55,7 +61,9 @@ export function selectEvidence(
 export function buildDraftRequest(
   profile: CandidateProfile,
   field: NormalizedField,
+  additionalPrompt?: string,
 ): AnswerDraftRequest {
+  const instruction = additionalPrompt?.trim();
   return {
     field: {
       id: field.id,
@@ -63,6 +71,7 @@ export function buildDraftRequest(
       ...(field.maxLength ? { maxCharacters: field.maxLength } : {}),
     },
     job: northstarJob,
-    evidence: selectEvidence(profile, field),
+    evidence: selectEvidence(profile, field, instruction),
+    ...(instruction ? { additionalPrompt: instruction } : {}),
   };
 }

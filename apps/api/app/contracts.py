@@ -30,6 +30,9 @@ class AnswerDraftRequest(ApiModel):
     field: DraftField
     job: JobContext
     evidence: list[EvidenceRecord] = Field(max_length=20)
+    additional_prompt: str | None = Field(
+        default=None, alias="additionalPrompt", min_length=1, max_length=1000
+    )
 
     @model_validator(mode="after")
     def unique_evidence_ids(self) -> "AnswerDraftRequest":

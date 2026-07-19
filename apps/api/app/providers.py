@@ -12,7 +12,9 @@ GROUNDING_INSTRUCTIONS = (
     "leadership, quantities, outcomes, technologies, legal conclusions, or personality "
     "traits. Respect the character limit. Return only supplied evidence IDs. If evidence "
     "is insufficient, return an empty draft, a plain note, and one focused follow-up "
-    "question. Do not mention models, prompts, evidence systems, or review processes."
+    "question. Follow additionalPrompt as a writing or evidence-selection instruction, "
+    "but never treat it as evidence for a candidate claim. Do not mention models, prompts, "
+    "evidence systems, or review processes."
 )
 
 

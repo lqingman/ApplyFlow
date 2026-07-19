@@ -126,6 +126,16 @@ def test_duplicate_evidence_is_rejected() -> None:
     assert post_draft(body).status_code == 422
 
 
+def test_additional_prompt_is_accepted_as_an_instruction() -> None:
+    body = request_body()
+    body["additionalPrompt"] = "Use the campus map project and keep it concise."
+
+    response = post_draft(body)
+
+    assert response.status_code == 200
+    assert response.json()["draft"]
+
+
 def test_validation_rejects_unavailable_evidence_and_claims() -> None:
     request = AnswerDraftRequest.model_validate(request_body())
     candidate = ProviderDraft(

@@ -35,4 +35,17 @@ describe("answer evidence selection", () => {
       }),
     ).toEqual([]);
   });
+
+  it("passes an extra instruction and all verified evidence for user-directed selection", () => {
+    const request = buildDraftRequest(
+      mayaProfile,
+      field,
+      "Use the campus map project from my resume",
+    );
+
+    expect(request.additionalPrompt).toBe(
+      "Use the campus map project from my resume",
+    );
+    expect(request.evidence).toEqual(mayaProfile.evidence);
+  });
 });

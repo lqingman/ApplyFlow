@@ -110,6 +110,7 @@ export const answerDraftRequestSchema = z
     field: answerDraftFieldSchema,
     job: answerDraftJobSchema,
     evidence: z.array(evidenceRecordSchema).max(20),
+    additionalPrompt: z.string().trim().min(1).max(1000).optional(),
   })
   .superRefine((request, context) => {
     const ids = request.evidence.map((record) => record.id);
