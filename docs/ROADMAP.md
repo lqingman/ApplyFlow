@@ -18,9 +18,8 @@ This roadmap turns the product plan into a demo-first build sequence. Every mile
 | 2. Page scanning                  | Complete    |
 | 3. Demo profile and safe autofill | Complete    |
 | 4. Inline grounded answers        | Complete    |
-| 5. Claim verification and audit   | Not started |
-| 6. Hackathon polish               | Not started |
-| 7. Post-demo productization       | Deferred    |
+| 5. Product workflow expansion     | Not started |
+| 6. Submission and demo polish     | Not started |
 
 ## Definition of the first demo
 
@@ -146,54 +145,11 @@ No account, personal resume, production deployment, or automatic submission is r
 - [x] The extension never receives the OpenRouter API key.
 - [x] Reload the unpacked extension and verify inline generation and regeneration in Chrome.
 
-## Phase 5 — Claim verification and application audit
+## Phase 5 — Product workflow expansion
 
-**Goal:** make truthfulness and review—not text generation—the memorable feature.
+These items build on the stable controlled prototype and must be completed before final submission polish. The product workflow has been narrowed to one applicant-owned profile, page-native review instead of a side-panel queue, and gradual online-site support rather than a claim of universal ATS compatibility.
 
-### Deliverables
-
-- [ ] Material-claim extraction and evidence checks
-- [ ] Conservative replacement suggestions
-- [ ] Unsupported leadership and numerical-impact test cases
-- [ ] Checks for blank required fields, length violations, context mismatches, conflicting values, repeated generic answers, and review-required fields
-- [ ] Transparent rule-based readiness score
-- [ ] Issue list with jump-to-field actions
-
-### Acceptance criteria
-
-- [ ] “I led a team of ten engineers” is flagged when the profile does not support it.
-- [ ] Invented metrics and technologies are flagged.
-- [ ] Supported technical claims pass.
-- [ ] Missing required fields and length violations reduce readiness predictably.
-- [ ] The UI explains every deduction from the readiness score.
-
-## Phase 6 — Hackathon polish
-
-**Goal:** make the complete story easy to understand and difficult to break during judging.
-
-### Deliverables
-
-- [ ] Cohesive visual design and status language
-- [ ] Loading, empty, error, and offline states
-- [ ] Seed/reset demo controls
-- [ ] Automated unit and integration coverage for the critical path
-- [ ] Fresh-machine setup validation
-- [ ] Three-minute demo script and backup recording
-- [ ] Architecture and model-usage documentation
-
-### Acceptance criteria
-
-- [ ] The full demo completes without editing source code or supplying personal data.
-- [ ] Resetting restores the initial demo state.
-- [ ] The primary path works repeatedly in a clean Chrome profile.
-- [ ] A new contributor can follow the README to run all services.
-- [ ] The demo fits within three minutes.
-
-## Phase 7 — Post-demo productization
-
-These items begin only after the controlled demo is stable. The product workflow has been narrowed to one applicant-owned profile, page-native review instead of a side-panel queue, and gradual online-site support rather than a claim of universal ATS compatibility.
-
-### 7A — Single editable profile and answer memory
+### 5A — Single editable profile and answer memory
 
 - [ ] Replace profile selection with one persistent `My Profile`
 - [ ] Add create, inspect, edit, save, and local reset controls for that profile
@@ -208,7 +164,7 @@ These items begin only after the controlled demo is stable. The product workflow
 - [ ] Never remember or autofill passwords, verification codes, government identifiers, or financial data
 - [ ] Add local privacy controls for viewing, editing, exporting, and deleting saved data
 
-### 7B — Page-native field workflow
+### 5B — Page-native field workflow
 
 - [ ] Keep the side panel limited to profile controls, Scan & Autofill, and progress
 - [ ] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
@@ -218,7 +174,7 @@ These items begin only after the controlled demo is stable. The product workflow
 - [ ] Detect character and word limits across supported ATS implementations
 - [ ] Keep Continue, Next, and Submit as user actions
 
-### 7C — Online application pilot
+### 5C — Online application pilot
 
 - [ ] Preserve least-privilege, user-initiated access to the active application tab
 - [ ] Validate ordinary online HTML forms before claiming third-party site support
@@ -228,9 +184,9 @@ These items begin only after the controlled demo is stable. The product workflow
 - [ ] Document an explicit supported-site matrix and known limitations
 - [ ] Do not claim universal ATS support without compatibility evidence
 
-### 7D — Operational readiness
+### 5D — Operational readiness
 
-- [ ] Evaluation datasets for classification and claim verification
+- [ ] Field-classification compatibility fixtures
 - [ ] Model-provider configuration, observability, cost controls, and failure handling
 - [ ] Security and privacy review
 - [ ] Chrome Web Store readiness
@@ -244,6 +200,30 @@ These items begin only after the controlled demo is stable. The product workflow
 - [ ] Denied sensitive fields have no workflow result and no captured value.
 - [ ] Mapped confirmations may be checked, while navigation and submission remain manual.
 - [ ] Each advertised online site passes a repeatable scan, fill, inline-review, and no-submit test.
+
+## Phase 6 — Submission and demo polish
+
+**Goal:** package the completed product workflow into a clear, reliable submission and judging experience.
+
+### Deliverables
+
+- [ ] Cohesive visual design and status language
+- [ ] Loading, empty, error, and offline states
+- [ ] Seed/reset demo controls
+- [ ] Automated unit and integration coverage for the critical path
+- [ ] Fresh-machine setup validation
+- [ ] Three-minute demo script and backup recording
+- [ ] Architecture and model-usage documentation
+- [ ] Final repository, video, and Devpost submission checks
+
+### Acceptance criteria
+
+- [ ] The full demo completes without editing source code or supplying personal data.
+- [ ] Resetting restores the initial demo state.
+- [ ] The primary path works repeatedly in a clean Chrome profile.
+- [ ] A new contributor can follow the README to run all services.
+- [ ] The final product workflow fits within the three-minute demo.
+- [ ] Repository, video, and submission links pass the final checklist.
 
 ## Explicit non-goals for the hackathon
 

@@ -18,7 +18,6 @@ ApplyProof should help an applicant:
 4. Fill confirmed personal information deterministically.
 5. Draft blank open-ended answers from relevant resume evidence directly into the page.
 6. Review and edit the answer in the application field; add an optional instruction before regenerating.
-7. Audit the application for missing fields, inconsistencies, unsupported claims, and length violations.
 
 ApplyProof never submits an application automatically.
 
@@ -54,7 +53,6 @@ The demo uses:
 5. See blank open-ended answers generate directly on the application page.
 6. Hover or focus an answer, add an optional instruction, and regenerate it in place.
 7. Confirm character limits are respected and edit the generated text before continuing.
-8. Run a transparent readiness audit when that milestone is complete.
 
 The demo is successful when a judge can complete this flow locally without an account or personal data.
 
@@ -72,8 +70,6 @@ The demo is successful when a judge can complete this flow locally without an ac
 - Inline Generate and Regenerate controls with optional instructions
 - Live character-limit discovery, validation, and automatic over-limit retry
 - Sensitive-field blocking
-- Unsupported-claim checks
-- Rule-based final application audit
 
 ### Deferred until the demo works
 
@@ -116,7 +112,7 @@ Planned stack:
 - **Browser platform:** Chrome Manifest V3 and Side Panel API
 - **Model integration:** server-side fixture, OpenRouter Responses API, or Gemini OpenAI-compatible provider with Structured Outputs
 
-The demo should remain useful without a model key where practical. Deterministic fields, safety behavior, scanning, and auditing should still work, while sample generated answers may be supplied as fixtures for presentation reliability.
+The demo should remain useful without a model key where practical. Deterministic fields, safety behavior, and scanning should still work, while sample generated answers may be supplied as fixtures for presentation reliability.
 
 ## Page-native workflow
 
@@ -126,7 +122,7 @@ Deterministic values and mapped checkboxes are inserted after the user initiates
 
 The complete open-ended-question workflow, API contract, evidence rules, fixture mode, OpenRouter mode, memory policy, and failure behavior are defined in [the grounded answer generation design](docs/ANSWER_GENERATION_DESIGN.md).
 
-## Confirmed product workflow after the demo
+## Planned product workflow before final demo polish
 
 1. The user creates or imports one editable `My Profile` containing stable facts and evidence.
 2. ApplyProof scans an application only after the user initiates the action.
@@ -164,9 +160,8 @@ Development follows a demo-first sequence:
 2. **Scan:** detect and normalize fields on the mock page.
 3. **Safe autofill:** load Maya's profile and fill verified fields without overwriting values.
 4. **Grounded answers:** generate evidence-backed open-ended answers on the page for review and regeneration.
-5. **Verification and audit:** detect unsupported claims and calculate application readiness using transparent rules.
-6. **Demo polish:** improve UI, resilience, documentation, and the three-minute presentation.
-7. **Post-demo expansion:** replace demo profile selection with one editable profile, add scoped answer memory, then validate online sites incrementally.
+5. **Product workflow expansion:** replace demo profile selection with one editable profile, add scoped answer memory, and validate online sites incrementally.
+6. **Submission and demo polish:** improve UI, resilience, documentation, judge setup, and the three-minute presentation after the product workflow is complete.
 
 See [the detailed roadmap](docs/ROADMAP.md) for acceptance criteria and sequencing.
 
@@ -180,13 +175,13 @@ ApplyProof is being planned and built collaboratively with Codex. We use GPT-5.6
 - Inspected the new repository before proposing implementation work.
 - Created the initial README and phased roadmap from the planning conversation.
 - Made safety requirements—no automatic submission, no unsupported material claims, explicit profile choices, and page-native review—acceptance criteria rather than informal intentions.
-- Identified features that should be deterministic and moved expensive or risky features, such as broad ATS support and vector search, after the demo milestone.
+- Identified features that should be deterministic and kept broad ATS support and vector search outside the submission scope.
 
 As implementation progresses, this section will be updated with concrete examples of code generation, debugging, test creation, browser verification, and design iteration.
 
 ### Key decisions made by the human builder
 
-- Build the controlled demo first, then polish it before expanding scope.
+- Build the controlled prototype first, complete the intended product workflow, then polish the final submission demo.
 - Position ApplyProof around truthfulness and visible evidence, not generic form filling.
 - Keep applicants in control by making generated answers editable and leaving navigation and submission manual.
 - Optimize the hackathon build for one coherent end-to-end experience.

@@ -62,6 +62,8 @@ Leave a small timing buffer rather than targeting exactly three minutes.
 
 - [ ] Follow the README from a clean checkout.
 - [ ] Confirm the sample profile requires no private data.
+- [ ] Confirm `My Profile` can be created, edited, saved, reset, and seeded with Maya demo data.
+- [ ] Confirm supported resume import produces editable profile data.
 - [ ] Confirm the extension can be loaded unpacked in Chrome.
 - [ ] Repeat the complete demo path at least twice.
 - [ ] Verify no API keys, tokens, private prompts, or personal information are committed.
@@ -72,9 +74,11 @@ Leave a small timing buffer rather than targeting exactly three minutes.
 - [ ] Confirm hover/focus reveals the optional instruction and Regenerate control.
 - [ ] Confirm native, helper-text, and live character limits are passed to generation and an over-limit result is retried once.
 - [ ] Confirm AI-workflow answers use conservative resume evidence and remain editable by the user.
+- [ ] Confirm reviewed reusable answers are remembered only by canonical meaning and scope.
+- [ ] Confirm every advertised online site passes its compatibility test path.
 - [ ] Confirm the side panel has no duplicated outcome summary, review queue, or field inventory.
 - [ ] Confirm Continue, Next, and Submit are never clicked automatically.
 - [ ] Confirm changing `.env` provider settings is followed by a full API restart.
 - [ ] Confirm all links are accessible without the builder's logged-in session.
 - [ ] Describe Northstar as the supported local demo; do not imply that unvalidated third-party ATS sites are supported.
-- [ ] If future product workflow is discussed, distinguish the planned editable persistent profile from the current Maya profile-selection demo.
+- [ ] Confirm the demo and documentation show the completed editable-profile workflow rather than the superseded profile-selection prototype.

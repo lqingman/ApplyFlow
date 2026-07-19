@@ -147,6 +147,30 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** scanner and inline assistant limit handling, shared and Pydantic contracts, answer endpoint retry logic, provider contracts and logging, API tests, and the synchronized design documentation.
 
+### 2026-07-19 — Remove the standalone audit phase
+
+**Goal:** keep the roadmap focused on the page-native autofill and answer-review experience that matters for the demo.
+
+**Human decision:** remove the planned claim-verification, readiness-score, and final-application-audit phase. Grounded generation, evidence constraints, live character-limit handling, and user review remain part of the current workflow; a separate audit surface is not required.
+
+**Codex contribution:** removed the standalone audit milestone and related MVP promises, renumbered Hackathon polish and Post-demo productization as Phases 5 and 6, and synchronized the README and roadmap.
+
+**Verification:** ran Markdown formatting, repository format checks, terminology searches, and `git diff --check`.
+
+**Artifacts:** `README.md`, `docs/ROADMAP.md`, and `docs/BUILD_LOG.md`.
+
+### 2026-07-19 — Put product expansion before submission polish
+
+**Goal:** make the roadmap order match the intended build and submission sequence.
+
+**Human decision:** complete the editable profile, answer memory, page-native workflow, and validated site-support work before investing in the final demo, video, and submission polish.
+
+**Codex contribution:** moved Product workflow expansion to Phase 5, moved Submission and demo polish to Phase 6, removed the contradictory “post-demo” wording, and synchronized the README and submission checklist.
+
+**Verification:** ran Markdown formatting, repository format checks, phase-order terminology searches, and `git diff --check`.
+
+**Artifacts:** `README.md`, `docs/ROADMAP.md`, `docs/SUBMISSION_CHECKLIST.md`, and `docs/BUILD_LOG.md`.
+
 ## Entry template
 
 Copy this section for the next milestone:
