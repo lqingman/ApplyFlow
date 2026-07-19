@@ -77,9 +77,9 @@ For every meaningful milestone, record:
 
 **Goal:** simplify the safe-autofill workflow before expanding from the controlled demo to personal data and real application sites.
 
-**Human decision:** use one editable applicant profile instead of a profile picker; show only `Filled` and `Needs review` as primary field outcomes; retain blocked, skipped, missing, and unsupported conditions only as internal safety or diagnostic reasons; remember reusable user-confirmed answers by canonical meaning and scope; and introduce online support through tested site pilots rather than claiming universal ATS compatibility.
+**Human decision:** use one editable applicant profile instead of a profile picker; use only `Filled` and `Needs review` for eligible fields, without a second internal taxonomy for blocked, skipped, missing, or unsupported states; exclude denied sensitive fields from the workflow entirely; remember reusable user-confirmed answers by canonical meaning and scope; and introduce online support through tested site pilots rather than claiming universal ATS compatibility.
 
-**Codex contribution:** inspected the Phase 2 scanner, Phase 3 deterministic mappings, extension permissions, result states, and roadmap; explained which behavior currently relies on sensitive-field regexes versus fixed demo-field IDs; separated user-visible outcomes from internal reason codes; and translated the discussion into sequenced roadmap deliverables, acceptance criteria, README workflow documentation, and explicit website-support boundaries.
+**Codex contribution:** inspected the Phase 2 scanner, Phase 3 deterministic mappings, extension permissions, result states, and roadmap; explained which behavior currently relies on sensitive-field regexes versus fixed demo-field IDs; reduced the proposed state model to two outcomes with plain-language review explanations; and translated the discussion into sequenced roadmap deliverables, acceptance criteria, README workflow documentation, and explicit website-support boundaries.
 
 **Why GPT-5.6 helped:** the design required aligning a simple user experience with privacy boundaries, semantic field matching, durable versus time-dependent answers, legal confirmations, least-privilege browser access, and an incremental ATS compatibility strategy.
 

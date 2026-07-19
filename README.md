@@ -132,7 +132,7 @@ These statuses describe the trust state of profile facts and generated answers. 
 | `Filled`             | ApplyProof inserted a confirmed profile fact or a high-confidence, user-confirmed reusable answer after the user initiated autofill. |
 | `Needs review`       | The field is new, ambiguous, sensitive, time-dependent, conflicting, unsupported, or could not be filled safely.                     |
 
-The implementation may retain internal reasons such as `blocked_sensitive`, `optional_unmapped`, `not_found`, and `unsupported_control`. They support privacy, diagnostics, and audit but should not appear as competing workflow states in the primary UI. Optional unmapped fields can remain blank. Sensitive blocked fields are intentionally ignored, and their values must not be collected.
+There is no separate internal field-status taxonomy. Every detected, eligible field ends as either `Filled` or `Needs review`, with a plain-language explanation when review is needed. Sensitive denied fields do not enter the workflow, do not produce a field result, and must not have their values collected. An optional field without a trusted answer remains blank and appears under `Needs review` so the user can decide whether to answer it.
 
 ## Confirmed product workflow after the demo
 

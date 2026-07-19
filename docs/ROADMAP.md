@@ -194,9 +194,10 @@ These items begin only after the controlled demo is stable. The product workflow
 - [ ] Show only `Filled` and `Needs review` as primary user-facing field outcomes
 - [ ] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
 - [ ] Route unknown questions, first-time decisions, conflicts, ambiguous options, and failed insertions to `Needs review`
-- [ ] Keep `blocked_sensitive`, `optional_unmapped`, `not_found`, and `unsupported_control` as internal reason codes for safety, diagnostics, and audit
-- [ ] Remove `Skipped` and `Blocked` from the primary outcome summary
-- [ ] Optionally disclose ignored sensitive fields in privacy details without exposing their values
+- [ ] Remove `Skipped`, `Blocked`, `Not found`, and `Unsupported` as both user-facing and internal field statuses
+- [ ] Keep a plain-language review explanation on each `Needs review` field instead of introducing additional status codes
+- [ ] Exclude denied sensitive fields from scanning results and field outcomes without collecting or recording their values
+- [ ] Route optional fields without trusted answers to `Needs review` rather than a separate skipped state
 - [ ] Require a fresh user action for legal accuracy confirmations and final submission on every application
 
 ### 7C — Online application pilot
@@ -222,7 +223,8 @@ These items begin only after the controlled demo is stable. The product workflow
 - [ ] Editing `My Profile` changes subsequent deterministic fills.
 - [ ] A first-time work-authorization answer requires review; a later semantically equivalent question can reuse the confirmed scoped answer.
 - [ ] Existing page values are never silently overwritten.
-- [ ] The primary UI contains only `Filled` and `Needs review`; internal safety reasons remain inspectable for debugging and audit.
+- [ ] Every eligible detected field has exactly one result: `Filled` or `Needs review`.
+- [ ] Denied sensitive fields have no workflow result and no captured value.
 - [ ] Final legal confirmation and submission always require a fresh user action.
 - [ ] Each advertised online site passes a repeatable scan, fill, review, and no-submit test.
 
