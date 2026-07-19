@@ -7,6 +7,7 @@ import { findField } from "./scanner";
 
 type OpenField = HTMLTextAreaElement | HTMLInputElement | HTMLElement;
 type Cleanup = () => void;
+type MountOptions = { generateBlankFields?: boolean };
 
 const hostAttribute = "data-applyproof-inline-assistant";
 let cleanups: Cleanup[] = [];
@@ -125,7 +126,11 @@ async function requestDraft(
   return { response: payload.response, sources: payload.sources ?? [] };
 }
 
-function mountOne(document: Document, field: NormalizedField) {
+function mountOne(
+  document: Document,
+  field: NormalizedField,
+  options: MountOptions,
+) {
   const element = findField(document, field.id);
   if (!element || !isOpenQuestion(field, element)) return;
 
@@ -228,6 +233,12 @@ function mountOne(document: Document, field: NormalizedField) {
     }
   });
 
+  // The first Scan & Autofill should complete blank open questions, while
+  // preserving any answer already present on the application page.
+  if (options.generateBlankFields && !readValue(element).trim()) {
+    window.setTimeout(() => button.click(), 0);
+  }
+
   cleanups.push(() => {
     if (closeTimer) window.clearTimeout(closeTimer);
     element.removeEventListener("mouseenter", open);
@@ -246,8 +257,9 @@ export function disposeInlineAssistants() {
 export function mountInlineAssistants(
   document: Document,
   fields: NormalizedField[],
+  options: MountOptions = {},
 ) {
   disposeInlineAssistants();
-  fields.forEach((field) => mountOne(document, field));
+  fields.forEach((field) => mountOne(document, field, options));
   return document.querySelectorAll(`[${hostAttribute}]`).length;
 }

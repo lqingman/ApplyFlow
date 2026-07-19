@@ -73,6 +73,7 @@ export async function enableInlineAssistants(fields: NormalizedField[]) {
   const response: unknown = await chrome.tabs.sendMessage(tabId, {
     type: "APPLYPROOF_ENABLE_INLINE_ASSISTANTS",
     fields,
+    generateBlankFields: true,
   });
   if (!(response as { ok?: boolean })?.ok)
     throw new Error("ApplyProof could not add writing tools to this page.");

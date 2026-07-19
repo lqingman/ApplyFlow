@@ -79,6 +79,42 @@ describe("inline writing assistant", () => {
     expect(button).toHaveTextContent("Regenerate answer");
   });
 
+  it("automatically generates blank open questions after the first scan", async () => {
+    document.body.innerHTML = `<textarea id="project"></textarea>`;
+    const sendMessage = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        response: {
+          fieldId: "project",
+          draft: "Automatically generated grounded answer.",
+          evidenceIds: ["project-campus-map"],
+          notes: [],
+          followUpQuestion: null,
+          characterCount: 40,
+          fitsLimit: true,
+        },
+        sources: ["Demo resume · Projects"],
+      })
+      .mockResolvedValueOnce(undefined);
+    vi.stubGlobal("chrome", { runtime: { sendMessage } });
+
+    mountInlineAssistants(document, [field], { generateBlankFields: true });
+
+    await vi.waitFor(() =>
+      expect(document.querySelector("#project")).toHaveValue(
+        "Automatically generated grounded answer.",
+      ),
+    );
+    expect(sendMessage).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        type: "APPLYPROOF_GENERATE_INLINE_DRAFT",
+        field: expect.objectContaining({ id: "project" }),
+      }),
+    );
+  });
+
   it("preserves the page answer when evidence is insufficient", async () => {
     document.body.innerHTML = `<textarea id="project">My existing answer</textarea>`;
     vi.stubGlobal("chrome", {

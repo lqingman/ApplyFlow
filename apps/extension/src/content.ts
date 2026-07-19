@@ -74,7 +74,9 @@ if (!window.__applyProofScannerReady) {
         : [];
       sendResponse({
         ok: true,
-        mountedCount: mountInlineAssistants(document, fields),
+        mountedCount: mountInlineAssistants(document, fields, {
+          generateBlankFields: message.generateBlankFields === true,
+        }),
       });
     }
   });

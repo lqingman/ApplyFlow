@@ -136,6 +136,7 @@ describe("extension browser bridge", () => {
       expect.objectContaining({
         type: "APPLYPROOF_ENABLE_INLINE_ASSISTANTS",
         fields,
+        generateBlankFields: true,
       }),
     );
   });

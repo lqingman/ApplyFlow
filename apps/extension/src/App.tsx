@@ -86,7 +86,7 @@ export function App() {
         (item) => item.action === "review",
       ).length;
       setMessage(
-        `Filled ${filled} verified fields. ${review} ${review === 1 ? "item needs" : "items need"} your attention. ${mountedCount ? `Writing tools are ready on ${mountedCount} open ${mountedCount === 1 ? "question" : "questions"}.` : ""}`,
+        `Filled ${filled} verified fields. ${review} ${review === 1 ? "item needs" : "items need"} your attention. ${mountedCount ? `Writing tools are ready on ${mountedCount} open ${mountedCount === 1 ? "question" : "questions"}; blank answers are generating on the page.` : ""}`,
       );
     } catch (error) {
       setStatus("error");
