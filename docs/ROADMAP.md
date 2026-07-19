@@ -17,7 +17,7 @@ This roadmap turns the product plan into a demo-first build sequence. Every mile
 | 1. Demo foundation                | Complete    |
 | 2. Page scanning                  | Complete    |
 | 3. Demo profile and safe autofill | Complete    |
-| 4. Grounded answer review         | Not started |
+| 4. Grounded answer review         | Complete    |
 | 5. Claim verification and audit   | Not started |
 | 6. Hackathon polish               | Not started |
 | 7. Post-demo productization       | Deferred    |
@@ -108,15 +108,15 @@ No account, personal resume, production deployment, or automatic submission is r
 ### Deliverables
 
 - [x] Approved grounded answer generation design
-- [ ] Replace the placeholder answer-status schema with the approved request and response contracts
-- [ ] Lightweight evidence selection from structured candidate records
-- [ ] FastAPI `POST /v1/answer-drafts` endpoint and provider interface
-- [ ] Deterministic fixture provider for a reliable keyless demo
-- [ ] Live OpenAI provider using the Responses API, Structured Outputs, server-side credentials, and `store: false`
-- [ ] Answers tailored to the Northstar Labs role
-- [ ] Deterministic evidence-ID, claim, context, and character-limit validation
-- [ ] Review cards showing editable answer, evidence, notes, character count, optional follow-up question, regenerate, and fill actions
-- [ ] Profile-update prompt for explicitly confirmed reusable facts and preferences
+- [x] Replace the placeholder answer-status schema with the approved request and response contracts
+- [x] Lightweight evidence selection from structured candidate records
+- [x] FastAPI `POST /v1/answer-drafts` endpoint and provider interface
+- [x] Deterministic fixture provider for a reliable keyless demo
+- [x] OpenRouter provider using the Responses API Beta, Structured Outputs, server-side credentials, and `store: false`
+- [x] Answers tailored to the Northstar Labs role
+- [x] Deterministic evidence-ID, claim, context, and character-limit validation
+- [x] Review cards showing editable answer, evidence, notes, character count, optional follow-up question, regenerate, and fill actions
+- [x] Profile-update prompt for explicitly confirmed reusable facts and preferences
 
 ### Initial questions
 
@@ -127,16 +127,17 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ### Acceptance criteria
 
-- [ ] At least three answers can be reviewed and inserted.
-- [ ] Every material generated answer cites candidate evidence.
-- [ ] Answers use the correct company and role names.
-- [ ] Character limits are respected.
-- [ ] Generated text is never inserted without user review and action.
-- [ ] Generating or editing a draft leaves the field as `Needs review`; successful user-initiated insertion changes it to `Filled`.
-- [ ] Missing evidence produces an empty draft, a plain-language note, and a focused follow-up question rather than fabrication.
-- [ ] The AI-workflow question produces no draft until the profile contains confirmed AI-usage evidence.
-- [ ] Fixture and live modes return the same ApplyProof response contract.
-- [ ] The extension never receives the OpenAI API key.
+- [x] At least three answers can be reviewed and inserted.
+- [x] Every material generated answer cites candidate evidence.
+- [x] Answers use the correct company and role names.
+- [x] Character limits are respected.
+- [x] Generated text is never inserted without user review and action.
+- [x] Generating or editing a draft leaves the field as `Needs review`; successful user-initiated insertion changes it to `Filled`.
+- [x] Missing evidence produces an empty draft, a plain-language note, and a focused follow-up question rather than fabrication.
+- [x] The AI-workflow question produces no draft until the profile contains confirmed AI-usage evidence.
+- [x] Fixture and OpenRouter modes return the same ApplyProof response contract.
+- [x] The extension never receives the OpenRouter API key.
+- [x] Reload the unpacked extension and verify the three-answer review and insertion workflow in Chrome.
 
 ## Phase 5 — Claim verification and application audit
 

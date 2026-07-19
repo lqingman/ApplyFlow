@@ -91,15 +91,29 @@ For every meaningful milestone, record:
 
 **Goal:** turn the Phase 4 open-ended-question concept into an implementable, evidence-first workflow with one API contract across keyless demo and live AI modes.
 
-**Human decision:** keep every eligible field in the same two-outcome model; leave AI drafts as `Needs review` until the user explicitly inserts them; show evidence, notes, and character count without answer statuses or confidence scores; return no draft when evidence is insufficient; remember confirmed reusable facts rather than complete company-specific answers; and keep the OpenAI API key exclusively on the backend.
+**Human decision:** keep every eligible field in the same two-outcome model; leave AI drafts as `Needs review` until the user explicitly inserts them; show evidence, notes, and character count without answer statuses or confidence scores; return no draft when evidence is insufficient; remember confirmed reusable facts rather than complete company-specific answers; and keep the provider API key exclusively on the backend.
 
 **Codex contribution:** wrote the answer-generation design covering question strategies, evidence and claim rules, review-card behavior, FastAPI request and response shapes, deterministic validation, fixture and live providers, memory and privacy policies, failure behavior, tests, implementation order, and acceptance criteria; then synchronized the README, roadmap, build log, and submission checklist.
 
 **Why GPT-5.6 helped:** the design required reconciling truthful generation, a deliberately minimal state model, data minimization, character and context constraints, reusable candidate memory, reliable keyless judging, and a production-safe provider boundary.
 
-**Verification:** checked current official OpenAI guidance for the Responses API, Structured Outputs, and server-side API-key management; reviewed the design against the existing scanner, profile fixtures, shared contracts, and two-outcome workflow decision; then ran Markdown formatting, repository format checks, link checks, and `git diff --check`.
+**Verification:** checked current provider guidance for the Responses API, Structured Outputs, and server-side API-key management; reviewed the design against the existing scanner, profile fixtures, shared contracts, and two-outcome workflow decision; then ran Markdown formatting, repository format checks, link checks, and `git diff --check`.
 
 **Artifacts:** `docs/ANSWER_GENERATION_DESIGN.md`, `README.md`, `docs/ROADMAP.md`, `docs/BUILD_LOG.md`, and `docs/SUBMISSION_CHECKLIST.md`.
+
+### 2026-07-18 — Phase 4 grounded answer review implementation
+
+**Goal:** turn the approved evidence-first design into a complete keyless demo path with an optional production-safe live provider.
+
+**Human decision:** support three useful Northstar drafts from confirmed Maya evidence, keep the AI-workflow answer empty until the user confirms reusable facts, and require a separate user action before exact-text insertion.
+
+**Codex contribution:** replaced the placeholder answer taxonomy with shared request and response contracts; added selective evidence routing, deterministic Northstar fixtures, provider-independent validation, the FastAPI endpoint, and an OpenRouter Responses API provider with Structured Outputs and `store: false`; then built editable evidence review cards, character checks, follow-up confirmation, regeneration, existing-value protection, and explicit insertion.
+
+**Why GPT-5.6 helped:** the work required keeping the TypeScript and Pydantic contracts aligned while translating truthfulness rules into deterministic validation, safe failure behavior, provider parity, and a compact two-outcome review experience.
+
+**Verification:** repository formatting, linting, TypeScript and Python type checks, unit and integration tests, and production builds pass. Tests cover three grounded fixture answers, missing AI evidence, duplicate and unavailable evidence IDs, unsafe claim rejection, server-side OpenRouter credentials and strict JSON Schema requests, selective evidence, review-before-fill state transitions, exact-text insertion, and existing-value preservation. The builder reloaded the unpacked extension and verified the three-answer review and insertion workflow in Chrome.
+
+**Artifacts:** shared answer contracts; Maya evidence fixture; `apps/api/app/contracts.py`, `providers.py`, and `validation.py`; the `/v1/answer-drafts` route; extension evidence selection, API client, review UI, and tests; `.env.example`; `README.md`; and `docs/ROADMAP.md`.
 
 ## Entry template
 

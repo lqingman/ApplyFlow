@@ -1,6 +1,6 @@
 # Grounded Answer Generation Design
 
-**Status:** Approved design; implementation not started  
+**Status:** Implemented and verified
 **Owner:** ApplyProof  
 **Last updated:** 2026-07-18  
 **Roadmap milestone:** Phase 4
@@ -16,7 +16,7 @@ The first controlled questions are:
 - How do you use AI in your development workflow?
 - What makes you a strong candidate?
 
-The design covers both a deterministic keyless demo and a live OpenAI-backed mode. It does not implement either mode.
+The design covers both a deterministic keyless demo and a live OpenRouter-backed mode.
 
 ## Product invariants
 
@@ -32,7 +32,7 @@ The design covers both a deterministic keyless demo and a live OpenAI-backed mod
 
 ## Current state
 
-Phase 3 detects textareas and routes them to review, but does not generate content. The FastAPI service currently exposes only a health endpoint. The shared `answerStatusSchema` and `AnswerDraft.status` field are pre-design placeholders and should be removed or replaced when Phase 4 is implemented; they are not part of the approved product model.
+Phase 4 now routes textareas into evidence-backed review cards and exposes a FastAPI draft endpoint with fixture and live providers. The shared request and response contracts deliberately contain no draft status or confidence field. Final unpacked-extension verification in Chrome remains pending.
 
 ## User experience
 
@@ -140,7 +140,7 @@ Chrome extension
         ↓ question + limited job context + selected structured evidence
 FastAPI POST /v1/answer-drafts
         ↓ provider interface
-Fixture provider ─────────────── Live OpenAI provider
+Fixture provider ─────────────── OpenRouter provider
         │                         ↓ Responses API + Structured Outputs
         └──────── structured AnswerDraftResponse ────────┘
                                   ↓
@@ -149,7 +149,7 @@ Fixture provider ─────────────── Live OpenAI provi
                          Exact-text page insertion
 ```
 
-The Chrome extension never calls OpenAI directly. The API key exists only in the FastAPI environment or a deployment secret manager. It must not be bundled into extension code, returned to the browser, written to the repository, or logged.
+The Chrome extension never calls OpenRouter directly. The API key exists only in the FastAPI environment or a deployment secret manager. It must not be bundled into extension code, returned to the browser, written to the repository, or logged.
 
 ## Generation modes
 
@@ -159,27 +159,27 @@ The Chrome extension never calls OpenAI directly. The API key exists only in the
 
 - requires no model key;
 - serves deterministic drafts for the Northstar questions;
-- returns the same response contract as live mode;
+- returns the same response contract as OpenRouter mode;
 - uses only Maya's fixture evidence;
 - is the default for the reliable hackathon demo and automated tests;
 - must not pretend to support arbitrary questions.
 
-### Live mode
+### OpenRouter mode
 
-`ANSWER_GENERATION_MODE=live`
+`ANSWER_GENERATION_MODE=openrouter`
 
-- requires `OPENAI_API_KEY` on the FastAPI server;
-- uses the OpenAI Responses API;
+- requires `OPENROUTER_API_KEY` on the FastAPI server;
+- uses OpenRouter's OpenAI-compatible Responses API Beta;
 - requests Structured Outputs matching the backend response schema;
-- sets `store: false` for application-generation requests;
+- sets `store: false` and sends the complete current input each time;
 - reads the model name from server configuration rather than hard-coding it in the extension;
 - validates the model response again with Pydantic before returning it.
 
-OpenAI recommends the Responses API for new projects, and Structured Outputs can constrain model responses to a supplied JSON Schema. OpenAI also recommends keeping API keys out of source code and providing them through environment variables or secret management.
+OpenRouter documents its Responses API as Beta and stateless. Its Structured Outputs support can constrain compatible models to a supplied JSON Schema. ApplyProof keeps the key in server-side environment configuration and preserves fixture mode as the reliable demo default.
 
 ## ApplyProof API contract
 
-The following is ApplyProof's own backend contract, not the raw OpenAI request shape.
+The following is ApplyProof's own backend contract, not the raw OpenRouter request shape.
 
 ### Endpoint
 
@@ -297,7 +297,7 @@ Complete answers containing a company name, role name, or job-specific motivatio
 - The extension sends only the current question, its constraints, limited job context, and selected evidence.
 - The backend must not log raw resumes, profile evidence, questions, or generated drafts in production logs.
 - Operational logs may contain request IDs, timings, provider mode, token usage, and error categories.
-- Live OpenAI requests use `store: false`.
+- OpenRouter requests set `store: false` and include only the current minimized input.
 - Profile-memory writes are a separate explicit user action; generating or filling a draft does not automatically change `My Profile`.
 - The privacy UI must let the user inspect and delete locally remembered facts and preferences.
 
@@ -305,7 +305,7 @@ Complete answers containing a company name, role name, or job-specific motivatio
 
 | Failure                               | User behavior                                                                                  |
 | ------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| API key absent in live mode           | Keep the field `Needs review`; explain that live drafting is unavailable; allow manual editing |
+| API key absent in OpenRouter mode     | Keep the field `Needs review`; explain that live drafting is unavailable; allow manual editing |
 | Network error, timeout, or rate limit | Keep the field `Needs review`; preserve any user text; offer retry                             |
 | Model refusal                         | Keep the field `Needs review`; show a neutral note; allow manual editing                       |
 | Invalid structured response           | Reject it; keep the field `Needs review`; offer retry                                          |
@@ -333,8 +333,8 @@ Complete answers containing a company name, role name, or job-specific motivatio
 
 ### Provider tests
 
-- mock the OpenAI client; do not require a network call in the default test suite;
-- verify the live provider uses the Responses API, Structured Outputs, and `store: false`;
+- mock the OpenRouter HTTP client; do not require a network call in the default test suite;
+- verify the OpenRouter provider uses the Responses API, strict Structured Outputs, and `store: false`;
 - verify provider errors become safe review explanations;
 - keep optional live smoke tests separate and explicitly enabled.
 
@@ -353,7 +353,7 @@ Complete answers containing a company name, role name, or job-specific motivatio
 2. Add the FastAPI provider interface and deterministic fixture provider.
 3. Build one end-to-end relevant-project review card and insertion flow.
 4. Add deterministic validation and negative claim fixtures.
-5. Add the live OpenAI provider behind server configuration.
+5. Add the OpenRouter provider behind server configuration.
 6. Add the remaining Northstar question strategies and missing-evidence follow-ups.
 7. Add tests, manual Chrome verification, and build-log evidence.
 
@@ -366,12 +366,12 @@ Complete answers containing a company name, role name, or job-specific motivatio
 - Missing AI-workflow evidence produces no fabricated draft.
 - Every inserted answer respects the page character limit.
 - Fixture mode completes the demo without an API key.
-- Live mode keeps the API key on the server and returns the same contract as fixture mode.
+- OpenRouter mode keeps the API key on the server and returns the same contract as fixture mode.
 - Provider or validation failures leave the field in `Needs review` and preserve user text.
 - Final legal confirmation and submission remain manual.
 
-## Official OpenAI references
+## Provider references
 
-- [Responses API migration guide](https://developers.openai.com/api/docs/guides/migrate-to-responses)
-- [Structured model outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
-- [Production best practices and API-key handling](https://developers.openai.com/api/docs/guides/production-best-practices)
+- [OpenRouter Responses API Beta](https://openrouter.ai/docs/api/reference/responses/overview)
+- [OpenRouter Structured Outputs](https://openrouter.ai/docs/guides/features/structured-outputs)
+- [OpenRouter API authentication](https://openrouter.ai/docs/api/reference/authentication)

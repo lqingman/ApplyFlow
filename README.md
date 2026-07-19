@@ -113,7 +113,7 @@ Planned stack:
 - **Extension and demo:** React, TypeScript, Vite, Zod, Vitest
 - **Backend:** Python 3.12, FastAPI, Pydantic, pytest
 - **Browser platform:** Chrome Manifest V3 and Side Panel API
-- **Model integration:** server-side OpenAI Responses API with Structured Outputs for evidence-grounded answer generation and later claim verification
+- **Model integration:** server-side OpenRouter Responses API with Structured Outputs for evidence-grounded answer generation and later claim verification
 
 The demo should remain useful without a model key where practical. Deterministic fields, safety behavior, scanning, and auditing should still work, while sample generated answers may be supplied as fixtures for presentation reliability.
 
@@ -126,7 +126,7 @@ The demo should remain useful without a model key where practical. Deterministic
 
 There is no separate answer or internal field-status taxonomy. Every detected, eligible field ends as either `Filled` or `Needs review`, with a plain-language explanation when review is needed. An AI draft remains `Needs review` while it is generated, displayed, or edited and becomes `Filled` only after the user inserts the reviewed text. Sensitive denied fields do not enter the workflow, do not produce a field result, and must not have their values collected. An optional field without a trusted answer remains blank and appears under `Needs review` so the user can decide whether to answer it.
 
-The complete open-ended-question workflow, API contract, evidence rules, fixture mode, live OpenAI mode, memory policy, and failure behavior are defined in [the grounded answer generation design](docs/ANSWER_GENERATION_DESIGN.md).
+The complete open-ended-question workflow, API contract, evidence rules, fixture mode, OpenRouter mode, memory policy, and failure behavior are defined in [the grounded answer generation design](docs/ANSWER_GENERATION_DESIGN.md).
 
 ## Confirmed product workflow after the demo
 
@@ -257,6 +257,15 @@ demographics blank, blocks the password fixture, and sends work authorization, l
 the final accuracy confirmation to the review queue. The complete 18-field inventory remains
 available as optional technical detail. After rebuilding an already loaded unpacked extension, use
 the reload button on `chrome://extensions` before retesting.
+
+Start the API in the default keyless fixture mode to generate the three supported grounded answers.
+Each review card shows its evidence, notes, editable text, and character count; it stays **Needs
+review** until **Fill answer** successfully inserts the exact reviewed text. The AI-workflow question
+returns no draft until the user explicitly confirms reusable AI-usage evidence. To exercise the live
+provider, set `ANSWER_GENERATION_MODE=openrouter` and provide `OPENROUTER_API_KEY` only in the API
+server environment; the extension never reads or receives that key. The model defaults to
+`openai/gpt-4o-mini` and can be changed with `OPENROUTER_MODEL`. `npm run dev:api` loads these values
+from the ignored root `.env` file created during setup.
 
 ### Verify
 
