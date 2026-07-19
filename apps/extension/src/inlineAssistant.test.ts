@@ -56,7 +56,7 @@ describe("inline writing assistant", () => {
       '[data-applyproof-inline-assistant="project"]',
     );
     expect(host?.dataset.open).toBe("true");
-    const prompt = host?.shadowRoot?.querySelector("textarea");
+    const prompt = host?.shadowRoot?.querySelector("input");
     const button = host?.shadowRoot?.querySelector("button");
     if (!prompt || !button)
       throw new Error("Assistant controls were not mounted");
@@ -76,7 +76,8 @@ describe("inline writing assistant", () => {
       }),
     );
     expect(onInput).toHaveBeenCalledOnce();
-    expect(button).toHaveTextContent("Regenerate answer");
+    expect(button).toHaveAccessibleName("Regenerate answer");
+    expect(host?.shadowRoot?.querySelector(".heading")).not.toBeInTheDocument();
   });
 
   it("automatically generates blank open questions after the first scan", async () => {

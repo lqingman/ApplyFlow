@@ -18,18 +18,13 @@ const assistantStyles = `
   .assistant {
     position: absolute;
     right: 0;
-    top: 7px;
-    width: min(360px, calc(100vw - 28px));
-    padding: 13px;
-    border: 1px solid #acd0ba;
-    border-radius: 13px;
+    top: 6px;
+    width: min(340px, calc(100vw - 24px));
     color: #20362b;
-    background: #ffffff;
-    box-shadow: 0 14px 38px rgba(23, 67, 47, 0.2);
-    font: 13px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font: 13px/1.2 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     transition: opacity 140ms ease, transform 140ms ease;
   }
   :host([data-open="true"]) .assistant {
@@ -37,25 +32,77 @@ const assistantStyles = `
     pointer-events: auto;
     transform: translateY(0);
   }
-  .heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .brand { color: #176b4d; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-  .state { color: #708078; font-size: 10px; }
-  label { display: grid; gap: 5px; margin-top: 10px; color: #50645a; font-size: 11px; font-weight: 700; }
-  textarea {
-    width: 100%; min-height: 58px; padding: 8px 9px; resize: vertical;
-    border: 1px solid #cfdbd4; border-radius: 8px; outline: none;
-    color: #23372d; background: #f9fbfa; font: inherit; font-weight: 400;
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px;
+    border: 1px solid #c8d6ce;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, .98);
+    box-shadow: 0 8px 22px rgba(23, 67, 47, .15);
   }
-  textarea:focus { border-color: #3b8b68; box-shadow: 0 0 0 2px rgba(59, 139, 104, .13); }
-  .hint { margin: 4px 0 0; color: #7a8981; font-size: 10px; }
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 32px;
+    padding: 0 8px;
+    border: 0;
+    outline: none;
+    color: #23372d;
+    background: transparent;
+    font: inherit;
+  }
+  input::placeholder { color: #829087; }
   button {
-    width: 100%; margin-top: 10px; padding: 9px 12px; border: 0; border-radius: 9px;
-    color: #fff; background: #176b4d; font: inherit; font-weight: 800; cursor: pointer;
+    display: grid;
+    flex: 0 0 32px;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    color: #fff;
+    background: #176b4d;
+    cursor: pointer;
+    transition: background 120ms ease, transform 120ms ease;
   }
+  button:hover:not(:disabled) { background: #115b40; }
+  button:active:not(:disabled) { transform: scale(.96); }
+  button:focus-visible { outline: 2px solid #8bc8aa; outline-offset: 2px; }
   button:disabled { cursor: wait; opacity: .65; }
-  .status { min-height: 0; margin: 8px 0 0; color: #62736a; font-size: 10px; }
-  .status:empty { display: none; }
-  .status.error { color: #9b3b35; }
+  button svg { width: 16px; height: 16px; }
+  button[data-loading="true"] svg { animation: spin 700ms linear infinite; }
+  .status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .status.error {
+    right: 0;
+    top: calc(100% + 5px);
+    width: min(340px, calc(100vw - 24px));
+    height: auto;
+    padding: 7px 9px;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    border: 1px solid #e7b7b3;
+    border-radius: 7px;
+    color: #8d302b;
+    background: #fff8f7;
+    box-shadow: 0 5px 14px rgba(92, 34, 30, .1);
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 `;
 
 function readValue(field: OpenField) {
@@ -146,30 +193,36 @@ function mountOne(
     `ApplyProof writing assistant for ${field.label}`,
   );
   panel.innerHTML = `
-    <div class="heading">
-      <span class="brand">ApplyProof</span>
-      <span class="state">Grounded in your profile</span>
+    <div class="toolbar">
+      <input
+        type="text"
+        maxlength="1000"
+        aria-label="Extra instruction for regenerated answer"
+        placeholder="Add an instruction (optional)"
+      />
+      <button type="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20 11a8 8 0 1 0-2.34 5.66" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M20 5v6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     </div>
-    <label>
-      Extra instruction (optional)
-      <textarea maxlength="1000" placeholder="e.g. Use the campus map project from my resume"></textarea>
-    </label>
-    <p class="hint">Tell ApplyProof what experience, emphasis, or tone to use.</p>
-    <button type="button"></button>
     <p class="status" role="status"></p>
   `;
   shadow.append(style, panel);
   element.insertAdjacentElement("afterend", host);
 
-  const prompt = panel.querySelector("textarea");
+  const prompt = panel.querySelector("input");
   const button = panel.querySelector("button");
   const status = panel.querySelector<HTMLElement>(".status");
   if (!prompt || !button || !status) return;
 
   const refreshLabel = () => {
-    button.textContent = readValue(element).trim()
+    const label = readValue(element).trim()
       ? "Regenerate answer"
       : "Generate answer";
+    button.setAttribute("aria-label", label);
+    button.setAttribute("title", label);
   };
   refreshLabel();
 
@@ -199,6 +252,7 @@ function mountOne(
 
   button.addEventListener("click", async () => {
     button.disabled = true;
+    button.dataset.loading = "true";
     prompt.disabled = true;
     status.classList.remove("error");
     status.textContent = readValue(element).trim()
@@ -236,6 +290,7 @@ function mountOne(
           : "ApplyProof could not generate this answer.";
     } finally {
       button.disabled = false;
+      delete button.dataset.loading;
       prompt.disabled = false;
       open();
     }
