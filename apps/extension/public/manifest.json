@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "ApplyProof",
+  "version": "0.1.0",
+  "description": "Grounded assistance for truthful job applications.",
+  "permissions": ["sidePanel"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open ApplyProof"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  }
+}

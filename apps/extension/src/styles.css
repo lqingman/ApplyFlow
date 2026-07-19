@@ -1,0 +1,165 @@
+:root {
+  color: #18241e;
+  background: #f4f7f3;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.panel-shell {
+  min-height: 100vh;
+  padding: 24px 18px 20px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  color: #fff;
+  background: #176b4d;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow: 0 7px 20px rgb(23 107 77 / 18%);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow {
+  color: #608071;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.intro {
+  display: flex;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid #cfe1d7;
+  border-radius: 16px;
+  background: linear-gradient(140deg, #fff 20%, #eaf4ee);
+}
+
+.intro h2 {
+  margin: 5px 0 8px;
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.intro p:last-child,
+.stage-card p {
+  color: #5c6b64;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.status-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  margin-top: 3px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #30a46c;
+  box-shadow: 0 0 0 2px #a6d8bd;
+}
+
+.stage-list {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage-card {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 11px;
+  padding: 15px;
+  border: 1px solid #dde5df;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.stage-number {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  color: #176b4d;
+  background: #e9f4ed;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.stage-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.stage-heading h3 {
+  font-size: 14px;
+}
+
+.stage-heading span {
+  color: #8a958f;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #718078;
+  font-size: 10px;
+}
