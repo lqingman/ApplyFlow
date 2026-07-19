@@ -3,7 +3,7 @@ import type {
   NormalizedField,
 } from "@applyproof/shared-types";
 
-import { findField } from "./scanner";
+import { findField, readCharacterLimit } from "./scanner";
 
 type OpenField = HTMLTextAreaElement | HTMLInputElement | HTMLElement;
 type Cleanup = () => void;
@@ -205,7 +205,15 @@ function mountOne(
       ? "Regenerating from verified profile evidence…"
       : "Generating from verified profile evidence…";
     try {
-      const { response, sources } = await requestDraft(field, prompt.value);
+      const liveLimit =
+        readCharacterLimit(element, document) ?? field.maxLength;
+      const currentField = liveLimit
+        ? { ...field, maxLength: liveLimit }
+        : field;
+      const { response, sources } = await requestDraft(
+        currentField,
+        prompt.value,
+      );
       if (!response.draft) {
         status.classList.add("error");
         status.textContent =

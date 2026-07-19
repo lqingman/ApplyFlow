@@ -4,6 +4,7 @@ from collections.abc import Generator
 import pytest
 from httpx import ASGITransport, AsyncClient, Response
 
+import app.main as main_module
 from app.contracts import AnswerDraftRequest, ProviderDraft
 from app.main import app
 from app.providers import FixtureProvider, GeminiProvider, OpenRouterProvider, configured_provider
@@ -186,6 +187,39 @@ def test_additional_prompt_is_accepted_as_an_instruction() -> None:
 
     assert response.status_code == 200
     assert response.json()["draft"]
+
+
+def test_overlong_provider_draft_is_retried_with_the_live_limit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class OverlongThenFittingProvider:
+        def __init__(self) -> None:
+            self.requests: list[AnswerDraftRequest] = []
+
+        def generate(self, request: AnswerDraftRequest) -> ProviderDraft:
+            self.requests.append(request)
+            draft = "x" * 51 if len(self.requests) == 1 else "A concise project draft."
+            return ProviderDraft(
+                field_id=request.field.id,
+                draft=draft,
+                evidence_ids=["project-campus-map"],
+                notes=[],
+                follow_up_question=None,
+            )
+
+    provider = OverlongThenFittingProvider()
+    monkeypatch.setattr(main_module, "configured_provider", lambda: provider)
+    body = request_body()
+    body["field"]["maxCharacters"] = 50  # type: ignore[index]
+
+    response = post_draft(body)
+
+    assert response.status_code == 200
+    assert response.json()["draft"] == "A concise project draft."
+    assert len(provider.requests) == 2
+    retry_prompt = provider.requests[1].additional_prompt
+    assert retry_prompt is not None
+    assert "no more than 50 characters" in retry_prompt
 
 
 def test_validation_rejects_unavailable_evidence_and_claims() -> None:

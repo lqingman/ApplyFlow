@@ -177,6 +177,47 @@ function normalizedValue(element: ScannableElement) {
   );
 }
 
+function limitFromText(text: string) {
+  const match = text.match(
+    /(?:maximum|max|limit(?:ed)?(?:\s+to)?|up to)\s*:?\s*(\d{1,5})\s*(?:characters?|chars?)|(\d{1,5})\s*(?:characters?|chars?)\s*(?:maximum|max|limit)/i,
+  );
+  const value = Number(match?.[1] ?? match?.[2]);
+  return Number.isInteger(value) && value > 0 ? value : undefined;
+}
+
+export function readCharacterLimit(
+  element: Element,
+  document: Document = element.ownerDocument,
+) {
+  const nativeLimit =
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement
+      ? element.maxLength
+      : Number(element.getAttribute("maxlength"));
+  if (Number.isInteger(nativeLimit) && nativeLimit > 0) return nativeLimit;
+
+  for (const attribute of [
+    "data-maxlength",
+    "data-max-length",
+    "data-character-limit",
+    "aria-maxlength",
+  ]) {
+    const value = Number(element.getAttribute(attribute));
+    if (Number.isInteger(value) && value > 0) return value;
+  }
+
+  const describedBy = (element.getAttribute("aria-describedby") ?? "")
+    .split(/\s+/)
+    .map((id) => document.getElementById(id)?.textContent ?? "")
+    .join(" ");
+  const nearby = [
+    describedBy,
+    element.nextElementSibling?.textContent ?? "",
+    element.parentElement?.textContent ?? "",
+  ].join(" ");
+  return limitFromText(nearby);
+}
+
 export function scanDocument(document: Document): NormalizedField[] {
   const candidates = Array.from(
     document.querySelectorAll<ScannableElement>(
@@ -246,13 +287,8 @@ export function scanDocument(document: Document): NormalizedField[] {
       options,
     };
 
-    const maxLength =
-      element instanceof HTMLInputElement ||
-      element instanceof HTMLTextAreaElement
-        ? element.maxLength
-        : Number(element.getAttribute("maxlength"));
-    if (Number.isInteger(maxLength) && maxLength > 0)
-      field.maxLength = maxLength;
+    const maxLength = readCharacterLimit(element, document);
+    if (maxLength) field.maxLength = maxLength;
 
     fields.push(field);
   });

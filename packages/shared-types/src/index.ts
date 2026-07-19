@@ -102,7 +102,7 @@ export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 export const answerDraftFieldSchema = z.object({
   id: z.string().min(1).max(120),
   question: z.string().trim().min(1).max(1000),
-  maxCharacters: z.number().int().min(50).max(5000).optional(),
+  maxCharacters: z.number().int().min(1).max(20000).optional(),
 });
 
 export const answerDraftJobSchema = z.object({

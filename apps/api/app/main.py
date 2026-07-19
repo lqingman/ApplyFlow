@@ -46,7 +46,18 @@ def health() -> HealthResponse:
 )
 def answer_draft(request: AnswerDraftRequest) -> AnswerDraftResponse:
     try:
-        candidate = configured_provider().generate(request)
+        provider = configured_provider()
+        candidate = provider.generate(request)
+        limit = request.field.max_characters
+        if limit is not None and len(candidate.draft.strip()) > limit:
+            instruction = (
+                f"The previous draft exceeded the field limit. Return no more than {limit} "
+                "characters, including spaces. Keep the strongest resume-grounded details."
+            )
+            if request.additional_prompt:
+                instruction = f"{request.additional_prompt}\n\n{instruction}"
+            retry_request = request.model_copy(update={"additional_prompt": instruction})
+            candidate = provider.generate(retry_request)
         if not candidate.draft.strip():
             candidate = resume_based_ai_fallback(request) or candidate
         return validate_draft(request, candidate)

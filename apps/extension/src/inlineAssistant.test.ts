@@ -26,7 +26,7 @@ describe("inline writing assistant", () => {
   it("mounts beside an open question and writes a grounded draft into the page", async () => {
     document.body.innerHTML = `
       <label for="project">Describe a relevant project.</label>
-      <textarea id="project"></textarea>
+      <textarea id="project" maxlength="120"></textarea>
     `;
     const response = {
       fieldId: "project",
@@ -72,7 +72,7 @@ describe("inline writing assistant", () => {
       expect.objectContaining({
         type: "APPLYPROOF_GENERATE_INLINE_DRAFT",
         additionalPrompt: "Use the campus map project from my resume",
-        field: expect.objectContaining({ id: "project" }),
+        field: expect.objectContaining({ id: "project", maxLength: 120 }),
       }),
     );
     expect(onInput).toHaveBeenCalledOnce();

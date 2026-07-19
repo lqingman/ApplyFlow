@@ -4,6 +4,7 @@ import {
   countBlockedFields,
   extractFieldLabel,
   findField,
+  readCharacterLimit,
   scanDocument,
 } from "./scanner";
 
@@ -39,7 +40,7 @@ describe("page scanner", () => {
   it("normalizes native controls and groups radio options", () => {
     document.body.innerHTML = `
       <label>Email address <input id="email" name="email" type="email" required value="maya@example.com"></label>
-      <label>Story <textarea id="story" maxlength="500"></textarea><small>Maximum 500 characters</small></label>
+      <label>Story <textarea id="story" aria-describedby="story-limit"></textarea><small id="story-limit">Maximum 500 characters</small></label>
       <label>Work authorization <select id="authorization" required>
         <option value="" disabled selected>Select one</option><option value="yes">Authorized</option>
       </select></label>
@@ -93,6 +94,18 @@ describe("page scanner", () => {
         options: [],
       },
     ]);
+  });
+
+  it("reads live limits from native, custom, and helper-text constraints", () => {
+    document.body.innerHTML = `
+      <textarea id="native" maxlength="300"></textarea>
+      <textarea id="custom" data-character-limit="420"></textarea>
+      <label>Answer <textarea id="helper"></textarea><small>250 character limit</small></label>
+    `;
+
+    expect(readCharacterLimit(document.getElementById("native")!)).toBe(300);
+    expect(readCharacterLimit(document.getElementById("custom")!)).toBe(420);
+    expect(readCharacterLimit(document.getElementById("helper")!)).toBe(250);
   });
 
   it("excludes blocked fields without losing safe controls", () => {
