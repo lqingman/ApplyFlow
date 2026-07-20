@@ -1,31 +1,8 @@
-export type ParsedEducation = {
-  school: string;
-  degree: string;
-  startDate?: string;
-  graduationDate?: string;
-};
+import type { ResumeExtraction } from "@applyproof/shared-types";
 
-export type ParsedExperience = {
-  company: string;
-  title: string;
-  location?: string;
-  startDate?: string;
-  endDate?: string;
-  description?: string;
-};
-
-export type ParsedResume = {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  location?: string;
-  portfolio?: string;
-  linkedin?: string;
-  education: ParsedEducation[];
-  experience: ParsedExperience[];
-  evidence: string[];
-};
+export type ParsedEducation = ResumeExtraction["education"][number];
+export type ParsedExperience = ResumeExtraction["experience"][number];
+export type ParsedResume = ResumeExtraction;
 
 const sectionHeadingPattern =
   /^(?:summary|profile|experience|work experience|professional experience|employment|education|projects?|skills?|certifications?|awards?|volunteering)$/i;
@@ -288,5 +265,7 @@ export function parseResumeText(text: string): ParsedResume {
     education,
     experience,
     evidence: usefulEvidence(lines, excluded),
+    reviews: [],
+    notes: ["Deterministic extraction completed locally."],
   };
 }

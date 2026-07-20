@@ -79,3 +79,39 @@ export async function enableInlineAssistants(fields: NormalizedField[]) {
     throw new Error("ApplyProof could not add writing tools to this page.");
   return (response as { mountedCount?: number }).mountedCount ?? 0;
 }
+
+function bytesToBase64(bytes: Uint8Array) {
+  let binary = "";
+  const chunkSize = 32_768;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(
+      ...bytes.subarray(offset, offset + chunkSize),
+    );
+  }
+  return btoa(binary);
+}
+
+export async function attachResumeToActivePage(file: File) {
+  const tabId = await activeTab();
+  await ensureScanner(tabId);
+  const data = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
+  const response: unknown = await chrome.tabs.sendMessage(tabId, {
+    type: "APPLYPROOF_ATTACH_RESUME",
+    file: {
+      name: file.name,
+      type: file.type,
+      lastModified: file.lastModified,
+      data,
+    },
+  });
+  const status = (response as { status?: string })?.status;
+  if (
+    status !== "attached" &&
+    status !== "not_found" &&
+    status !== "skipped_existing" &&
+    status !== "unsupported"
+  ) {
+    throw new Error("ApplyProof could not attach the saved resume.");
+  }
+  return status;
+}

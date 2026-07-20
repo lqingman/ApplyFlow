@@ -5,7 +5,12 @@ from typing import Any, Protocol
 
 import httpx
 
-from .contracts import AnswerDraftRequest, ProviderDraft
+from .contracts import (
+    AnswerDraftRequest,
+    ProviderDraft,
+    ResumeExtraction,
+    ResumeExtractionRequest,
+)
 
 GROUNDING_INSTRUCTIONS = (
     "Write a concise job-application draft using only supplied evidence for candidate "
@@ -24,6 +29,17 @@ GROUNDING_INSTRUCTIONS = (
 )
 
 AI_WORKFLOW_PATTERN = re.compile(r"\b(?:AI|artificial intelligence|copilot|LLM)\b", re.IGNORECASE)
+
+RESUME_EXTRACTION_INSTRUCTIONS = (
+    "Extract a candidate profile from the supplied resume text. Return every property in "
+    "the strict schema. Use null for missing scalar values and empty arrays when no records "
+    "exist. Preserve multiple education and experience records. Normalize web links to HTTP "
+    "or HTTPS and month-level education dates to YYYY-MM-01 when possible. Do not invent "
+    "facts. The deterministic baseline is a hint that may be corrected from the resume text. "
+    "For each populated or uncertain field, include a review item with its field path, exact "
+    "supporting source text, and confidence. Keep evidence items concise and directly quoted "
+    "or faithfully condensed from the resume."
+)
 
 
 def resume_based_ai_fallback(request: AnswerDraftRequest) -> ProviderDraft | None:
@@ -47,6 +63,8 @@ def resume_based_ai_fallback(request: AnswerDraftRequest) -> ProviderDraft | Non
 
 class AnswerDraftProvider(Protocol):
     def generate(self, request: AnswerDraftRequest) -> ProviderDraft: ...
+
+    def extract_resume(self, request: ResumeExtractionRequest) -> ResumeExtraction: ...
 
 
 class FixtureProvider:
@@ -131,6 +149,9 @@ class FixtureProvider:
             follow_up_question="What confirmed experience would you like to use for this answer?",
         )
 
+    def extract_resume(self, request: ResumeExtractionRequest) -> ResumeExtraction:
+        return request.baseline
+
 
 class OpenRouterProvider:
     def __init__(
@@ -185,6 +206,44 @@ class OpenRouterProvider:
                     if isinstance(text, str):
                         return ProviderDraft.model_validate_json(text)
         raise ValueError("OpenRouter did not return a usable structured draft")
+
+    def extract_resume(self, request: ResumeExtractionRequest) -> ResumeExtraction:
+        response = self.client.post(
+            f"{self.base_url}/responses",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://applyproof.local",
+                "X-Title": "ApplyProof",
+            },
+            json={
+                "model": self.model,
+                "instructions": RESUME_EXTRACTION_INSTRUCTIONS,
+                "input": json.dumps(request.model_dump(by_alias=True)),
+                "text": {
+                    "format": {
+                        "type": "json_schema",
+                        "name": "applyproof_resume_extraction",
+                        "strict": True,
+                        "schema": ResumeExtraction.model_json_schema(),
+                    }
+                },
+                "store": False,
+            },
+            timeout=30.0,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, dict):
+            for output in payload.get("output", []):
+                if not isinstance(output, dict) or output.get("type") != "message":
+                    continue
+                for content in output.get("content", []):
+                    if isinstance(content, dict) and content.get("type") == "output_text":
+                        text = content.get("text")
+                        if isinstance(text, str):
+                            return ResumeExtraction.model_validate_json(text)
+        raise ValueError("OpenRouter did not return a usable resume extraction")
 
 
 class GeminiProvider:
@@ -246,6 +305,48 @@ class GeminiProvider:
                     if isinstance(content, str):
                         return ProviderDraft.model_validate_json(content)
         raise ValueError("Gemini did not return a usable structured draft")
+
+    def extract_resume(self, request: ResumeExtractionRequest) -> ResumeExtraction:
+        response = self.client.post(
+            f"{self.base_url}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": RESUME_EXTRACTION_INSTRUCTIONS},
+                    {
+                        "role": "user",
+                        "content": json.dumps(request.model_dump(by_alias=True)),
+                    },
+                ],
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "applyproof_resume_extraction",
+                        "strict": True,
+                        "schema": ResumeExtraction.model_json_schema(),
+                    },
+                },
+                "reasoning_effort": "none",
+            },
+            timeout=30.0,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, dict):
+            choices = payload.get("choices")
+            if isinstance(choices, list) and choices:
+                choice = choices[0]
+                if isinstance(choice, dict):
+                    message = choice.get("message")
+                    if isinstance(message, dict):
+                        content = message.get("content")
+                        if isinstance(content, str):
+                            return ResumeExtraction.model_validate_json(content)
+        raise ValueError("Gemini did not return a usable resume extraction")
 
 
 def configured_provider() -> AnswerDraftProvider:

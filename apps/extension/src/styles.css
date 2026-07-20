@@ -168,6 +168,46 @@ select {
   justify-content: space-between;
 }
 
+.saved-resume {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 11px;
+  border: 1px solid #dce5df;
+  border-radius: 10px;
+  background: #fafcfb;
+}
+
+.saved-resume-heading,
+.saved-resume-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.saved-resume h3 {
+  margin: 2px 0 0;
+  color: #365347;
+  font-size: 12px;
+}
+
+.saved-resume > strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-resume > p:not(.field-help) {
+  color: #68786f;
+  font-size: 9px;
+}
+
+.saved-resume-actions .text-button {
+  margin-top: 2px;
+}
+
 .text-button.danger {
   color: #9b3b35;
 }
@@ -305,6 +345,28 @@ select {
   color: #3e6653;
   font-size: 9px;
   line-height: 1.5;
+}
+
+.import-reviews summary {
+  color: #3e6653;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.import-reviews ul {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding-left: 16px;
+  color: #596c62;
+  font-size: 9px;
+}
+
+.import-reviews li span {
+  display: block;
+  margin-top: 2px;
+  font-weight: 500;
 }
 
 .repeatable-heading,

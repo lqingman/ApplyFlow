@@ -1,3 +1,4 @@
+import re
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -60,6 +61,78 @@ class ProviderDraft(ApiModel):
     evidence_ids: list[str]
     notes: list[str]
     follow_up_question: str | None
+
+
+class ExtractedEducation(ApiModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    school: str = Field(min_length=1, max_length=300)
+    degree: str = Field(min_length=1, max_length=300)
+    start_date: str | None = Field(alias="startDate", max_length=50)
+    graduation_date: str | None = Field(alias="graduationDate", max_length=50)
+
+
+class ExtractedExperience(ApiModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    company: str = Field(min_length=1, max_length=300)
+    title: str = Field(min_length=1, max_length=300)
+    location: str | None = Field(max_length=300)
+    start_date: str | None = Field(alias="startDate", max_length=50)
+    end_date: str | None = Field(alias="endDate", max_length=50)
+    description: str | None = Field(max_length=3000)
+
+
+class ExtractionReview(ApiModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    field_path: str = Field(alias="fieldPath", min_length=1, max_length=200)
+    source_text: str = Field(alias="sourceText", min_length=1, max_length=1000)
+    confidence: Literal["high", "medium", "low"]
+
+
+class ResumeExtraction(ApiModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    first_name: str | None = Field(alias="firstName", max_length=120)
+    last_name: str | None = Field(alias="lastName", max_length=120)
+    email: str | None = Field(max_length=320)
+    phone: str | None = Field(max_length=80)
+    location: str | None = Field(max_length=300)
+    portfolio: str | None = Field(max_length=2000)
+    linkedin: str | None = Field(max_length=2000)
+    education: list[ExtractedEducation] = Field(max_length=20)
+    experience: list[ExtractedExperience] = Field(max_length=30)
+    evidence: list[str] = Field(max_length=30)
+    reviews: list[ExtractionReview] = Field(max_length=100)
+    notes: list[str] = Field(max_length=20)
+
+    @model_validator(mode="after")
+    def validate_and_deduplicate(self) -> "ResumeExtraction":
+        if self.email and not re.fullmatch(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", self.email):
+            raise ValueError("Extracted email is invalid")
+        for value in (self.portfolio, self.linkedin):
+            if value and not value.lower().startswith(("http://", "https://")):
+                raise ValueError("Extracted URLs must use HTTP or HTTPS")
+        self.education = list(
+            {
+                (entry.school.casefold(), entry.degree.casefold()): entry
+                for entry in self.education
+            }.values()
+        )
+        self.experience = list(
+            {
+                (entry.company.casefold(), entry.title.casefold()): entry
+                for entry in self.experience
+            }.values()
+        )
+        self.evidence = list(dict.fromkeys(item.strip() for item in self.evidence if item.strip()))
+        return self
+
+
+class ResumeExtractionRequest(ApiModel):
+    text: str = Field(min_length=1, max_length=120000)
+    baseline: ResumeExtraction
 
 
 def empty_response(request: AnswerDraftRequest, note: str) -> AnswerDraftResponse:

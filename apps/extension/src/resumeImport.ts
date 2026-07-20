@@ -1,4 +1,5 @@
 import { parseResumeText, type ParsedResume } from "./resumeTextParser";
+import { extractResumeWithAi } from "./resumeApi";
 
 const maxResumeBytes = 10 * 1024 * 1024;
 
@@ -85,5 +86,5 @@ export async function importResumeFile(file: File): Promise<ParsedResume> {
   } else {
     throw new Error("Choose a Word (.docx) or PDF (.pdf) resume.");
   }
-  return parseResumeText(text);
+  return extractResumeWithAi(text, parseResumeText(text));
 }

@@ -87,6 +87,91 @@ export const experienceRecordSchema = z.object({
 
 export type ExperienceRecord = z.infer<typeof experienceRecordSchema>;
 
+const nullableText = z
+  .string()
+  .trim()
+  .min(1)
+  .nullable()
+  .optional()
+  .transform((value) => value ?? undefined);
+
+export const resumeEducationSchema = z.object({
+  school: z.string().trim().min(1),
+  degree: z.string().trim().min(1),
+  startDate: nullableText,
+  graduationDate: nullableText,
+});
+
+export const resumeExperienceSchema = z.object({
+  company: z.string().trim().min(1),
+  title: z.string().trim().min(1),
+  location: nullableText,
+  startDate: nullableText,
+  endDate: nullableText,
+  description: nullableText,
+});
+
+export const resumeExtractionReviewSchema = z.object({
+  fieldPath: z.string().trim().min(1),
+  sourceText: z.string().trim().min(1),
+  confidence: z.enum(["high", "medium", "low"]),
+});
+
+export const resumeExtractionSchema = z.object({
+  firstName: nullableText,
+  lastName: nullableText,
+  email: nullableText.pipe(z.string().email().optional()),
+  phone: nullableText,
+  location: nullableText,
+  portfolio: nullableText.pipe(z.string().url().optional()),
+  linkedin: nullableText.pipe(z.string().url().optional()),
+  education: z.array(resumeEducationSchema).max(20),
+  experience: z.array(resumeExperienceSchema).max(30),
+  evidence: z.array(z.string().trim().min(1)).max(30),
+  reviews: z.array(resumeExtractionReviewSchema).max(100),
+  notes: z.array(z.string().trim().min(1)).max(20),
+});
+
+export type ResumeExtraction = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  portfolio?: string;
+  linkedin?: string;
+  education: Array<{
+    school: string;
+    degree: string;
+    startDate?: string;
+    graduationDate?: string;
+  }>;
+  experience: Array<{
+    company: string;
+    title: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    description?: string;
+  }>;
+  evidence: string[];
+  reviews: Array<{
+    fieldPath: string;
+    sourceText: string;
+    confidence: "high" | "medium" | "low";
+  }>;
+  notes: string[];
+};
+
+export const resumeExtractionRequestSchema = z.object({
+  text: z.string().min(1).max(120000),
+  baseline: resumeExtractionSchema,
+});
+
+export type ResumeExtractionRequest = z.infer<
+  typeof resumeExtractionRequestSchema
+>;
+
 const currentCandidateProfileSchema = z.object({
   id: z.string().min(1),
   displayName: z.string().min(1),

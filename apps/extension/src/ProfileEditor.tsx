@@ -9,6 +9,7 @@ import {
   candidateProfileSchema,
   type CandidateProfile,
   type EvidenceRecord,
+  type ResumeExtraction,
 } from "@applyproof/shared-types";
 
 import type { ParsedResume } from "./resumeTextParser";
@@ -17,7 +18,7 @@ type ProfileEditorProps = {
   profile: CandidateProfile | null;
   initialResumeFile?: File | null;
   onCancel: () => void;
-  onSave: (profile: CandidateProfile) => Promise<void>;
+  onSave: (profile: CandidateProfile, importedResume?: File) => Promise<void>;
 };
 
 type EducationDraft = {
@@ -281,6 +282,12 @@ export function ProfileEditor({
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState("");
+  const [importReviews, setImportReviews] = useState<
+    ResumeExtraction["reviews"]
+  >([]);
+  const [importedResumeFile, setImportedResumeFile] = useState<File | null>(
+    null,
+  );
   const initialImportStarted = useRef(false);
 
   function set<K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) {
@@ -310,7 +317,10 @@ export function ProfileEditor({
     setError("");
     setSaving(true);
     try {
-      await onSave(profileFromDraft(draft, profile));
+      await onSave(
+        profileFromDraft(draft, profile),
+        importedResumeFile ?? undefined,
+      );
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -324,18 +334,21 @@ export function ProfileEditor({
   async function importResume(file: File) {
     setError("");
     setImportMessage("");
+    setImportReviews([]);
     setImporting(true);
     try {
       const { importResumeFile } = await import("./resumeImport");
       const resume = await importResumeFile(file);
       setDraft((current) => mergeResume(current, resume));
+      setImportedResumeFile(file);
+      setImportReviews(resume.reviews);
       const factCount = Object.entries(resume).filter(
         ([key, value]) =>
           !["evidence", "education", "experience"].includes(key) &&
           Boolean(value),
       ).length;
       setImportMessage(
-        `Imported ${factCount} profile fields, ${resume.education.length} education entries, ${resume.experience.length} experience entries, and ${resume.evidence.length} evidence items from ${file.name}. Review every field before saving.`,
+        `Imported ${factCount} profile fields, ${resume.education.length} education entries, ${resume.experience.length} experience entries, and ${resume.evidence.length} evidence items from ${file.name}. ${resume.notes.at(-1) ?? "Extraction completed."} Saving My Profile will also replace My resume file. Review every field before saving.`,
       );
     } catch (cause) {
       setError(
@@ -375,8 +388,10 @@ export function ProfileEditor({
       <fieldset className="resume-import">
         <legend>Import resume</legend>
         <p className="field-help">
-          Extract a Word (.docx) or PDF (.pdf) resume locally. The file is not
-          saved or uploaded.
+          Import a Word (.docx) or text-based PDF (.pdf) resume. The original
+          file stays in local browser storage; extracted text is sent to the
+          configured AI provider and the editable results are shown below. OCR
+          is not used.
         </p>
         <label className={`file-button ${importing ? "is-disabled" : ""}`}>
           {importing ? "Reading resume…" : "Choose Word or PDF resume"}
@@ -391,6 +406,19 @@ export function ProfileEditor({
           <p className="import-status" role="status">
             {importMessage}
           </p>
+        )}
+        {importReviews.length > 0 && (
+          <details className="import-reviews">
+            <summary>Review AI extraction sources</summary>
+            <ul>
+              {importReviews.map((review, index) => (
+                <li key={`${review.fieldPath}-${index}`}>
+                  <strong>{review.fieldPath}</strong> · {review.confidence}
+                  <span>{review.sourceText}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
         )}
       </fieldset>
 

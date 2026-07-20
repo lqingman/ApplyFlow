@@ -9,6 +9,7 @@ import type {
 
 import { planAutofill, type FieldDecision } from "./autofill";
 import {
+  attachResumeToActivePage,
   enableInlineAssistants,
   fillActivePage,
   scanActivePage,
@@ -22,6 +23,13 @@ import {
   resetMyProfile,
   saveMyProfile,
 } from "./profileStorage";
+import {
+  deleteSavedResumeFile,
+  loadSavedResumeFile,
+  loadSavedResumeMetadata,
+  saveResumeFile,
+  type SavedResumeMetadata,
+} from "./resumeFileStorage";
 
 type WorkflowStatus = "idle" | "working" | "complete" | "error";
 
@@ -29,6 +37,12 @@ function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
     : "ApplyProof could not complete the workflow. Try again.";
+}
+
+function fileSize(size: number) {
+  return size < 1024 * 1024
+    ? `${Math.max(1, Math.round(size / 1024))} KB`
+    : `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function applyFillResults(decisions: FieldDecision[], results: FillResult[]) {
@@ -53,18 +67,27 @@ export function App() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
   const [initialResumeFile, setInitialResumeFile] = useState<File | null>(null);
+  const [savedResume, setSavedResume] = useState<SavedResumeMetadata | null>(
+    null,
+  );
   const [rememberedAnswers, setRememberedAnswers] = useState<
     RememberedAnswer[]
   >([]);
   const [status, setStatus] = useState<WorkflowStatus>("idle");
   const [message, setMessage] = useState("Loading My Profile…");
   const resumeInputRef = useRef<HTMLInputElement>(null);
+  const replaceResumeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    void Promise.all([loadMyProfile(), loadRememberedAnswers()])
-      .then(([saved, answers]) => {
+    void Promise.all([
+      loadMyProfile(),
+      loadRememberedAnswers(),
+      loadSavedResumeMetadata(),
+    ])
+      .then(([saved, answers, resume]) => {
         setProfile(saved);
         setRememberedAnswers(answers);
+        setSavedResume(resume);
         setMessage(
           saved
             ? "My Profile is ready for safe autofill."
@@ -78,10 +101,17 @@ export function App() {
       .finally(() => setProfileLoading(false));
   }, []);
 
-  async function handleProfileSave(updated: CandidateProfile) {
+  async function handleProfileSave(
+    updated: CandidateProfile,
+    importedResume?: File,
+  ) {
     const saved = await saveMyProfile(updated);
+    const resume = importedResume
+      ? await saveResumeFile(importedResume)
+      : savedResume;
     const answers = await loadRememberedAnswers();
     setProfile(saved);
+    setSavedResume(resume);
     setRememberedAnswers(answers);
     setEditingProfile(false);
     setInitialResumeFile(null);
@@ -108,13 +138,42 @@ export function App() {
 
   async function handleReset() {
     try {
-      await resetMyProfile();
+      await Promise.all([resetMyProfile(), deleteSavedResumeFile()]);
       setProfile(null);
+      setSavedResume(null);
       setRememberedAnswers([]);
       setEditingProfile(false);
       setInitialResumeFile(null);
       setStatus("idle");
       setMessage("Local profile data was deleted from this browser.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(errorMessage(error));
+    }
+  }
+
+  async function handleResumeFileReplacement(file: File) {
+    try {
+      const metadata = await saveResumeFile(file);
+      setSavedResume(metadata);
+      setStatus("idle");
+      setMessage(
+        `${file.name} replaced My resume file. Other profile details were not changed.`,
+      );
+    } catch (error) {
+      setStatus("error");
+      setMessage(errorMessage(error));
+    }
+  }
+
+  async function handleResumeFileDelete() {
+    try {
+      await deleteSavedResumeFile();
+      setSavedResume(null);
+      setStatus("idle");
+      setMessage(
+        "My resume file was deleted. Other profile details were not changed.",
+      );
     } catch (error) {
       setStatus("error");
       setMessage(errorMessage(error));
@@ -130,11 +189,29 @@ export function App() {
       const plan = planAutofill(profile, scan.fields, rememberedAnswers);
       const results = await fillActivePage(plan.fills);
       const completed = applyFillResults(plan.decisions, results);
+      let resumeNote = "";
+      if (savedResume) {
+        try {
+          const file = await loadSavedResumeFile();
+          if (file) {
+            const attachment = await attachResumeToActivePage(file);
+            resumeNote =
+              attachment === "attached"
+                ? " Saved resume attached."
+                : attachment === "skipped_existing"
+                  ? " Existing resume selection was preserved."
+                  : " Attach the saved resume manually if this application requires it.";
+          }
+        } catch {
+          resumeNote =
+            " Attach the saved resume manually if this application requires it.";
+        }
+      }
       const mountedCount = await enableInlineAssistants(scan.fields);
       setStatus("complete");
       const needsAttention = completed.some((item) => item.action === "review");
       setMessage(
-        `Autofill complete. ${needsAttention ? "Some fields still need your attention on the page. " : "Review the application on the page. "}${mountedCount ? `Blank open ${mountedCount === 1 ? "answer is" : "answers are"} generating now.` : ""}`,
+        `Autofill complete. ${needsAttention ? "Some fields still need your attention on the page. " : "Review the application on the page. "}${mountedCount ? `Blank open ${mountedCount === 1 ? "answer is" : "answers are"} generating now.` : ""}${resumeNote}`,
       );
     } catch (error) {
       setStatus("error");
@@ -244,6 +321,64 @@ export function App() {
                 ))}
               </ul>
             </details>
+            <section
+              className="saved-resume"
+              aria-labelledby="saved-resume-heading"
+            >
+              <div className="saved-resume-heading">
+                <div>
+                  <p className="eyebrow">Local file</p>
+                  <h3 id="saved-resume-heading">My resume file</h3>
+                </div>
+                {savedResume && <span className="selected-badge">Saved</span>}
+              </div>
+              {savedResume ? (
+                <>
+                  <strong>{savedResume.name}</strong>
+                  <p>
+                    {savedResume.name.split(".").pop()?.toUpperCase()} ·{" "}
+                    {fileSize(savedResume.size)} · Updated{" "}
+                    {new Date(savedResume.savedAt).toLocaleDateString()}
+                  </p>
+                </>
+              ) : (
+                <p>No original resume file is saved.</p>
+              )}
+              <p className="field-help">
+                Replacing this file does not parse it or change other profile
+                details. Use Import resume while editing to update both.
+              </p>
+              <div className="saved-resume-actions">
+                <button
+                  className="text-button"
+                  type="button"
+                  onClick={() => replaceResumeInputRef.current?.click()}
+                >
+                  {savedResume ? "Replace file" : "Upload file"}
+                </button>
+                {savedResume && (
+                  <button
+                    className="text-button danger"
+                    type="button"
+                    onClick={() => void handleResumeFileDelete()}
+                  >
+                    Delete file
+                  </button>
+                )}
+              </div>
+              <input
+                ref={replaceResumeInputRef}
+                aria-label="Replace My resume file"
+                type="file"
+                accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                hidden
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (file) void handleResumeFileReplacement(file);
+                }}
+              />
+            </section>
             <div className="profile-actions">
               <button
                 className="text-button"

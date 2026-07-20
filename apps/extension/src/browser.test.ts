@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  attachResumeToActivePage,
   enableInlineAssistants,
   fillActivePage,
   scanActivePage,
@@ -139,5 +140,36 @@ describe("extension browser bridge", () => {
         generateBlankFields: true,
       }),
     );
+  });
+
+  it("sends the saved resume to the active page after a user action", async () => {
+    const sendMessage = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ status: "attached" });
+    vi.stubGlobal("chrome", {
+      tabs: {
+        query: vi.fn().mockResolvedValue([{ id: 42 }]),
+        sendMessage,
+      },
+      scripting: { executeScript: vi.fn() },
+    });
+    const file = {
+      name: "maya.pdf",
+      type: "application/pdf",
+      lastModified: 123,
+      arrayBuffer: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3]).buffer),
+    } as unknown as File;
+
+    await expect(attachResumeToActivePage(file)).resolves.toBe("attached");
+    expect(sendMessage).toHaveBeenLastCalledWith(42, {
+      type: "APPLYPROOF_ATTACH_RESUME",
+      file: {
+        name: "maya.pdf",
+        type: "application/pdf",
+        lastModified: 123,
+        data: "AQID",
+      },
+    });
   });
 });

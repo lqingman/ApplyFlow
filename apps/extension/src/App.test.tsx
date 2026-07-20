@@ -11,6 +11,7 @@ import { App } from "./App";
 import { generateAnswerDraft } from "./answerApi";
 import { mayaProfile } from "@applyproof/sample-data";
 import {
+  attachResumeToActivePage,
   enableInlineAssistants,
   fillActivePage,
   scanActivePage,
@@ -22,10 +23,17 @@ import {
   saveMyProfile,
 } from "./profileStorage";
 import { importResumeFile } from "./resumeImport";
+import {
+  deleteSavedResumeFile,
+  loadSavedResumeFile,
+  loadSavedResumeMetadata,
+  saveResumeFile,
+} from "./resumeFileStorage";
 
 vi.mock("./answerApi", () => ({ generateAnswerDraft: vi.fn() }));
 
 vi.mock("./browser", () => ({
+  attachResumeToActivePage: vi.fn().mockResolvedValue("attached"),
   scanActivePage: vi.fn().mockResolvedValue({
     blockedCount: 1,
     fields: [
@@ -90,14 +98,30 @@ vi.mock("./profileStorage", () => ({
 }));
 
 vi.mock("./resumeImport", () => ({ importResumeFile: vi.fn() }));
+vi.mock("./resumeFileStorage", () => ({
+  deleteSavedResumeFile: vi.fn(),
+  loadSavedResumeFile: vi.fn(),
+  loadSavedResumeMetadata: vi.fn(),
+  saveResumeFile: vi.fn(),
+}));
 
 describe("profile-first autofill workflow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(loadMyProfile).mockResolvedValue(null);
     vi.mocked(loadRememberedAnswers).mockResolvedValue([]);
+    vi.mocked(loadSavedResumeMetadata).mockResolvedValue(null);
+    vi.mocked(loadSavedResumeFile).mockResolvedValue(null);
     vi.mocked(saveMyProfile).mockImplementation(async (profile) => profile);
     vi.mocked(resetMyProfile).mockResolvedValue(undefined);
+    vi.mocked(deleteSavedResumeFile).mockResolvedValue(undefined);
+    vi.mocked(saveResumeFile).mockImplementation(async (file) => ({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified,
+      savedAt: "2026-07-19T20:00:00.000Z",
+    }));
   });
   afterEach(() => {
     cleanup();
@@ -169,6 +193,32 @@ describe("profile-first autofill workflow", () => {
         { fieldId: "gender", value: "Woman" },
         { fieldId: "accuracyConfirmation", value: "true" },
       ]),
+    );
+  });
+
+  it("attaches the locally saved resume during user-initiated autofill", async () => {
+    const file = new File(["resume"], "maya.pdf", {
+      type: "application/pdf",
+    });
+    vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
+    vi.mocked(loadSavedResumeMetadata).mockResolvedValue({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified,
+      savedAt: "2026-07-19T20:00:00.000Z",
+    });
+    vi.mocked(loadSavedResumeFile).mockResolvedValue(file);
+    render(<App />);
+    await screen.findByText("maya.pdf");
+
+    fireEvent.click(screen.getByRole("button", { name: "Scan & Autofill" }));
+
+    await waitFor(() =>
+      expect(attachResumeToActivePage).toHaveBeenCalledWith(file),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Saved resume attached",
     );
   });
 
@@ -338,6 +388,8 @@ describe("profile-first autofill workflow", () => {
         },
       ],
       evidence: ["Built a tested TypeScript application."],
+      reviews: [],
+      notes: ["AI extraction completed."],
     });
     render(<App />);
 
@@ -379,6 +431,74 @@ describe("profile-first autofill workflow", () => {
     expect(
       screen.getByText(/Review every field before saving/),
     ).toHaveTextContent("Review every field before saving");
+  });
+
+  it("replaces My resume file without changing profile fields", async () => {
+    vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
+    render(<App />);
+    await screen.findByText("Saved");
+    const file = new File(["replacement"], "replacement.pdf", {
+      type: "application/pdf",
+    });
+
+    fireEvent.change(screen.getByLabelText("Replace My resume file"), {
+      target: { files: [file] },
+    });
+
+    await waitFor(() => expect(saveResumeFile).toHaveBeenCalledWith(file));
+    expect(saveMyProfile).not.toHaveBeenCalled();
+    expect(await screen.findByText("replacement.pdf")).toBeInTheDocument();
+    expect(screen.getByText("maya.chen@example.com")).toBeInTheDocument();
+  });
+
+  it("deletes My resume file without deleting parsed profile data", async () => {
+    vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
+    vi.mocked(loadSavedResumeMetadata).mockResolvedValue({
+      name: "maya.pdf",
+      type: "application/pdf",
+      size: 100,
+      lastModified: 123,
+      savedAt: "2026-07-19T20:00:00.000Z",
+    });
+    render(<App />);
+    await screen.findByText("maya.pdf");
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete file" }));
+
+    await waitFor(() => expect(deleteSavedResumeFile).toHaveBeenCalledOnce());
+    expect(
+      screen.getByText("No original resume file is saved."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("maya.chen@example.com")).toBeInTheDocument();
+    expect(saveMyProfile).not.toHaveBeenCalled();
+  });
+
+  it("saves an imported resume file only when the edited profile is saved", async () => {
+    vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
+    vi.mocked(importResumeFile).mockResolvedValue({
+      education: [],
+      experience: [],
+      evidence: [],
+      reviews: [],
+      notes: ["AI extraction completed."],
+    });
+    render(<App />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Edit profile" }),
+    );
+    const file = new File(["updated resume"], "updated.pdf", {
+      type: "application/pdf",
+    });
+
+    fireEvent.change(screen.getByLabelText("Choose Word or PDF resume"), {
+      target: { files: [file] },
+    });
+    await screen.findByText(/Saving My Profile will also replace/);
+    expect(saveResumeFile).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Save My Profile" }));
+
+    await waitFor(() => expect(saveResumeFile).toHaveBeenCalledWith(file));
+    expect(await screen.findByText("updated.pdf")).toBeInTheDocument();
   });
 
   it("deletes the locally saved profile through the reset control", async () => {

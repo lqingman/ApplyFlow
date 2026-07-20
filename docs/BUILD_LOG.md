@@ -253,6 +253,18 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** shared profile contracts; extension profile editor, storage, parser, autofill, page filling, and tests; Northstar demo form; sample data; `README.md`; roadmap, answer design, submission checklist, and build log.
 
+### 2026-07-19 — Local resume storage and AI extraction
+
+**Goal:** retain the applicant's original resume for later application uploads and improve structured profile import without adding OCR.
+
+**Human decision:** keep one original `.docx` or text-based `.pdf` in local IndexedDB; let `My resume file` replace or delete only that document; make `Import resume` update both the editable profile and saved original; send only locally extracted text—not the original binary—to the configured AI provider; and keep OCR out of scope.
+
+**Codex contribution:** added IndexedDB binary storage and metadata management; a strict shared extraction schema with source-review metadata; a FastAPI extraction endpoint for fixture, OpenRouter, and Gemini providers; deterministic fallback when AI is unavailable; editable import review; and user-initiated attachment of the saved file to supported ordinary resume upload fields without navigation or submission.
+
+**Verification:** automated tests cover file persistence, reconstruction, replacement, deletion, isolation from profile data, import-on-save behavior, strict provider requests, fallback extraction, ordinary upload attachment, existing-file protection, and no-submit boundaries. Formatting, linting, type checks, complete test suites, production builds, and diff checks pass before commit.
+
+**Artifacts:** shared extraction contracts; API contracts, endpoint, providers, and tests; extension resume storage, extraction client, import, attachment, profile UI, browser messaging, tests, `README.md`, and `docs/ROADMAP.md`.
+
 ## Entry template
 
 Copy this section for the next milestone:

@@ -6,6 +6,7 @@ import {
   normalizedFieldSchema,
   pageScanSchema,
   rememberedAnswerSchema,
+  resumeExtractionSchema,
 } from "./index";
 
 describe("shared contracts", () => {
@@ -87,5 +88,41 @@ describe("shared contracts", () => {
         timeDependent: false,
       }),
     ).toMatchObject({ scope: { country: "CA" } });
+  });
+
+  it("normalizes a strict AI resume extraction response", () => {
+    expect(
+      resumeExtractionSchema.parse({
+        firstName: "Maya",
+        lastName: "Chen",
+        email: "maya@example.com",
+        phone: null,
+        location: "Vancouver, BC",
+        portfolio: null,
+        linkedin: "https://linkedin.com/in/maya",
+        education: [
+          {
+            school: "University of British Columbia",
+            degree: "BSc Computer Science",
+            startDate: "2022-09-01",
+            graduationDate: "2026-05-01",
+          },
+        ],
+        experience: [],
+        evidence: [],
+        reviews: [
+          {
+            fieldPath: "location",
+            sourceText: "Vancouver, BC",
+            confidence: "high",
+          },
+        ],
+        notes: ["AI extraction completed."],
+      }),
+    ).toMatchObject({
+      firstName: "Maya",
+      phone: undefined,
+      education: [{ startDate: "2022-09-01" }],
+    });
   });
 });

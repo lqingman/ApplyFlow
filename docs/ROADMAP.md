@@ -155,18 +155,18 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Add create, inspect, edit, save, and local reset controls for that profile
 - [x] Keep “Load Maya demo data” as a demo seeding action, not a second selectable profile
 - [x] Add Word (`.docx`) and PDF resume import with editable extraction results
-- [ ] Upgrade `Import resume` from regex-only parsing to hybrid deterministic plus AI extraction for text-based `.docx` and `.pdf` files; OCR remains explicitly out of scope
-- [ ] Extract existing document text and layout locally, then send only the extracted resume content—not the original file—to the configured server-side AI provider after clear user disclosure
-- [ ] Require AI resume extraction to return a strict JSON Schema covering identity, contact details, links, multiple education records, multiple work-experience records, and evidence
+- [x] Upgrade `Import resume` from regex-only parsing to hybrid deterministic plus AI extraction for text-based `.docx` and `.pdf` files; OCR remains explicitly out of scope
+- [x] Extract existing document text and layout locally, then send only the extracted resume content—not the original file—to the configured server-side AI provider after clear user disclosure
+- [x] Require AI resume extraction to return a strict JSON Schema covering identity, contact details, links, multiple education records, multiple work-experience records, and evidence
 - [ ] Validate AI-extracted email addresses, URLs, dates, record boundaries, duplicates, and required fields with deterministic rules before showing results
-- [ ] Preserve source text and confidence or review metadata for extracted fields so uncertain values are visibly reviewable rather than silently accepted
-- [ ] Keep all AI-extracted profile values editable and require review before save
-- [ ] Return a clear unsupported-file message when a PDF has no readable text layer instead of attempting OCR
-- [ ] Persist one original Word or PDF resume file locally in extension-owned IndexedDB; never upload it to the ApplyProof API or model provider
-- [ ] Add a `My resume file` area to `My Profile` showing the saved filename, type, size, and last-updated time
-- [ ] Let the user delete or replace the saved resume file; deleting it must not delete or change extracted profile fields
-- [ ] Keep saved-file replacement separate from profile import: uploading in `My resume file` only replaces the local original and never parses, merges, or changes other profile data
-- [ ] Make `Import resume` the explicit parse-and-update action: it updates editable profile fields from the selected resume and also replaces the locally saved original file
+- [x] Preserve source text and confidence or review metadata for extracted fields so uncertain values are visibly reviewable rather than silently accepted
+- [x] Keep all AI-extracted profile values editable and require review before save
+- [x] Return a clear unsupported-file message when a PDF has no readable text layer instead of attempting OCR
+- [x] Persist one original Word or PDF resume file locally in extension-owned IndexedDB; never upload it to the ApplyProof API or model provider
+- [x] Add a `My resume file` area to `My Profile` showing the saved filename, type, size, and last-updated time
+- [x] Let the user delete or replace the saved resume file; deleting it must not delete or change extracted profile fields
+- [x] Keep saved-file replacement separate from profile import: uploading in `My resume file` only replaces the local original and never parses, merges, or changes other profile data
+- [x] Make `Import resume` the explicit parse-and-update action: it updates editable profile fields from the selected resume and also replaces the locally saved original file
 - [x] Support separate LinkedIn and portfolio links, multiple education entries, and work experience
 - [x] Store authorization and sponsorship as two explicit answers; keep demographic answers optional with `Prefer not to say`
 - [ ] Separate stable profile facts from reusable application preferences
@@ -182,7 +182,7 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Keep the side panel limited to profile controls, Scan & Autofill, and progress
 - [x] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
 - [x] Keep generated open-ended answers editable in their application fields
-- [ ] Let a user explicitly attach the locally saved resume to supported application file-upload controls, with a manual fallback for unsupported custom uploaders or cross-origin iframes
+- [x] Let a user explicitly attach the locally saved resume to supported application file-upload controls, with a manual fallback for unsupported custom uploaders or cross-origin iframes
 - [x] Preserve existing page values unless the user explicitly regenerates an open-ended answer
 - [x] Exclude denied sensitive fields from scanning without collecting or recording their values
 - [x] Detect character limits across supported ATS implementations
@@ -214,13 +214,13 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Denied sensitive fields have no workflow result and no captured value.
 - [x] Mapped confirmations may be checked, while navigation and submission remain manual.
 - [ ] A saved resume survives a browser restart and remains confined to the extension's local IndexedDB until the user replaces, deletes, resets, or uninstalls the extension.
-- [ ] Replacing a file through `My resume file` leaves every other profile value unchanged.
-- [ ] Importing through `Import resume` both replaces the saved original and updates the editable parsed profile.
+- [x] Replacing a file through `My resume file` leaves every other profile value unchanged.
+- [x] Importing through `Import resume` both replaces the saved original and updates the editable parsed profile.
 - [ ] AI resume import produces schema-valid, editable results for representative single-column and multi-column text-based Word/PDF fixtures without using OCR.
-- [ ] The original resume binary remains local during AI parsing; only disclosed extracted content reaches the ApplyProof API and configured model provider.
+- [x] The original resume binary remains local during AI parsing; only disclosed extracted content reaches the ApplyProof API and configured model provider.
 - [ ] Invalid, missing, duplicated, or low-confidence AI fields are rejected or marked for review before profile save.
-- [ ] Deleting the saved original leaves existing parsed profile data intact and prevents resume attachment until another file is saved.
-- [ ] Resume attachment remains user-initiated and never submits the application.
+- [x] Deleting the saved original leaves existing parsed profile data intact and prevents resume attachment until another file is saved.
+- [x] Resume attachment remains user-initiated and never submits the application.
 - [ ] Each advertised online site passes a repeatable scan, fill, inline-review, and no-submit test.
 
 ## Phase 6 — Submission and demo polish

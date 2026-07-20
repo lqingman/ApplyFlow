@@ -1,6 +1,7 @@
 import { countBlockedFields, findField, scanDocument } from "./scanner";
 import { fillDocument } from "./pageFill";
 import { mountInlineAssistants } from "./inlineAssistant";
+import { attachResumeFile } from "./resumeAttachment";
 import type { NormalizedField } from "@applyproof/shared-types";
 
 declare global {
@@ -39,6 +40,25 @@ function highlightField(fieldId: string) {
   return true;
 }
 
+function resumeFileFrom(message: unknown) {
+  const payload = message as {
+    name?: string;
+    type?: string;
+    lastModified?: number;
+    data?: string;
+  };
+  if (!payload.name || !payload.data) return null;
+  const binary = atob(payload.data);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return new File([bytes], payload.name, {
+    type: payload.type ?? "",
+    lastModified: payload.lastModified,
+  });
+}
+
 if (!window.__applyProofScannerReady) {
   window.__applyProofScannerReady = true;
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -66,6 +86,13 @@ if (!window.__applyProofScannerReady) {
           Array.isArray(message.fills) ? message.fills : [],
         ),
       });
+      return;
+    }
+    if (message?.type === "APPLYPROOF_ATTACH_RESUME") {
+      const file = resumeFileFrom(message.file);
+      sendResponse(
+        file ? attachResumeFile(document, file) : { status: "unsupported" },
+      );
       return;
     }
     if (message?.type === "APPLYPROOF_ENABLE_INLINE_ASSISTANTS") {

@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { extractRawText, getDocument, destroy } = vi.hoisted(() => ({
-  extractRawText: vi.fn(),
-  getDocument: vi.fn(),
-  destroy: vi.fn(),
-}));
+const { extractRawText, extractResumeWithAi, getDocument, destroy } =
+  vi.hoisted(() => ({
+    extractRawText: vi.fn(),
+    extractResumeWithAi: vi.fn((_text: string, baseline: unknown) => baseline),
+    getDocument: vi.fn(),
+    destroy: vi.fn(),
+  }));
 
 vi.mock("mammoth", () => ({ extractRawText }));
+vi.mock("./resumeApi", () => ({ extractResumeWithAi }));
 vi.mock("pdfjs-dist", () => ({
   GlobalWorkerOptions: {},
   VerbosityLevel: { ERRORS: 0 },
@@ -79,6 +82,10 @@ describe("resume file import", () => {
       lastName: "Lee",
       email: "jordan@example.com",
     });
+    expect(extractResumeWithAi).toHaveBeenCalledWith(
+      expect.stringContaining("Jordan Lee"),
+      expect.objectContaining({ firstName: "Jordan", lastName: "Lee" }),
+    );
     expect(getDocument).not.toHaveBeenCalled();
   });
 

@@ -4,7 +4,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from .contracts import AnswerDraftRequest, AnswerDraftResponse, empty_response
+from .contracts import (
+    AnswerDraftRequest,
+    AnswerDraftResponse,
+    ResumeExtraction,
+    ResumeExtractionRequest,
+    empty_response,
+)
 from .providers import configured_provider, resume_based_ai_fallback
 from .validation import validate_draft
 
@@ -66,4 +72,25 @@ def answer_draft(request: AnswerDraftRequest) -> AnswerDraftResponse:
         return empty_response(
             request,
             "Drafting is temporarily unavailable. You can still write this answer manually.",
+        )
+
+
+@app.post(
+    "/v1/resume-extractions",
+    response_model=ResumeExtraction,
+    response_model_by_alias=True,
+    tags=["resumes"],
+)
+def resume_extraction(request: ResumeExtractionRequest) -> ResumeExtraction:
+    try:
+        return configured_provider().extract_resume(request)
+    except Exception:
+        logger.exception("AI resume extraction failed; using deterministic baseline")
+        return request.baseline.model_copy(
+            update={
+                "notes": [
+                    *request.baseline.notes,
+                    "AI extraction was unavailable; deterministic extraction was used.",
+                ]
+            }
         )
