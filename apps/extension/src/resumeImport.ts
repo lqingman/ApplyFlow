@@ -11,14 +11,21 @@ async function textFromDocx(file: File) {
 }
 
 async function textFromPdf(file: File) {
-  const [{ getDocument, GlobalWorkerOptions }, { default: pdfWorkerUrl }] =
-    await Promise.all([
-      import("pdfjs-dist"),
-      import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
-    ]);
+  const [
+    { getDocument, GlobalWorkerOptions, VerbosityLevel },
+    { default: pdfWorkerUrl },
+  ] = await Promise.all([
+    import("pdfjs-dist"),
+    import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+  ]);
   GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
   const loadingTask = getDocument({
     data: new Uint8Array(await file.arrayBuffer()),
+    // Some otherwise readable PDFs contain unsupported TrueType hinting
+    // instructions. PDF.js can still extract their text, so keep those
+    // internal font warnings out of the extension error console while
+    // preserving rejected loading tasks as real import errors.
+    verbosity: VerbosityLevel.ERRORS,
   });
   const document = await loadingTask.promise;
   try {

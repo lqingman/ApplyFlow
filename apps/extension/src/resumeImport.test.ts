@@ -9,6 +9,7 @@ const { extractRawText, getDocument, destroy } = vi.hoisted(() => ({
 vi.mock("mammoth", () => ({ extractRawText }));
 vi.mock("pdfjs-dist", () => ({
   GlobalWorkerOptions: {},
+  VerbosityLevel: { ERRORS: 0 },
   getDocument,
 }));
 vi.mock("pdfjs-dist/build/pdf.worker.min.mjs?url", () => ({
@@ -84,7 +85,10 @@ describe("resume file import", () => {
   it("extracts every PDF page and destroys the worker task", async () => {
     const result = await importResumeFile(resumeFile("resume.pdf"));
 
-    expect(getDocument).toHaveBeenCalledWith({ data: expect.any(Uint8Array) });
+    expect(getDocument).toHaveBeenCalledWith({
+      data: expect.any(Uint8Array),
+      verbosity: 0,
+    });
     expect(result).toMatchObject({
       firstName: "Jordan",
       lastName: "Lee",
