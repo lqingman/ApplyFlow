@@ -58,4 +58,65 @@ describe("saved resume attachment", () => {
       ),
     ).toEqual({ status: "skipped_existing" });
   });
+
+  it("recognizes custom upload controls from nearby text", () => {
+    vi.stubGlobal("DataTransfer", TestDataTransfer);
+    document.body.innerHTML = `
+      <div class="uploader">
+        <button type="button">Upload your CV</button>
+        <input type="file" accept="application/pdf" hidden>
+      </div>
+    `;
+    const input =
+      document.querySelector<HTMLInputElement>('input[type="file"]');
+    let selectedFiles = [] as unknown as FileList;
+    Object.defineProperty(input, "files", {
+      configurable: true,
+      get: () => selectedFiles,
+      set: (value: FileList) => {
+        selectedFiles = value;
+      },
+    });
+    const file = new File(["resume"], "maya.pdf", { type: "application/pdf" });
+
+    expect(attachResumeFile(document, file)).toEqual({ status: "attached" });
+    expect(input?.files?.[0]).toBe(file);
+  });
+
+  it("uses one unambiguous PDF or DOCX upload without a visible label", () => {
+    vi.stubGlobal("DataTransfer", TestDataTransfer);
+    document.body.innerHTML = `<input type="file" accept=".pdf,.docx">`;
+    const input =
+      document.querySelector<HTMLInputElement>('input[type="file"]');
+    let selectedFiles = [] as unknown as FileList;
+    Object.defineProperty(input, "files", {
+      configurable: true,
+      get: () => selectedFiles,
+      set: (value: FileList) => {
+        selectedFiles = value;
+      },
+    });
+
+    expect(
+      attachResumeFile(
+        document,
+        new File(["resume"], "maya.pdf", { type: "application/pdf" }),
+      ),
+    ).toEqual({ status: "attached" });
+  });
+
+  it("does not guess when multiple unlabeled document uploads exist", () => {
+    vi.stubGlobal("DataTransfer", TestDataTransfer);
+    document.body.innerHTML = `
+      <input type="file" accept=".pdf,.docx">
+      <input type="file" accept=".pdf,.docx">
+    `;
+
+    expect(
+      attachResumeFile(
+        document,
+        new File(["resume"], "maya.pdf", { type: "application/pdf" }),
+      ),
+    ).toEqual({ status: "not_found" });
+  });
 });
