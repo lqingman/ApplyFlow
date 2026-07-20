@@ -168,46 +168,6 @@ select {
   justify-content: space-between;
 }
 
-.saved-resume {
-  display: grid;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 11px;
-  border: 1px solid #dce5df;
-  border-radius: 10px;
-  background: #fafcfb;
-}
-
-.saved-resume-heading,
-.saved-resume-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.saved-resume h3 {
-  margin: 2px 0 0;
-  color: #365347;
-  font-size: 12px;
-}
-
-.saved-resume > strong {
-  overflow: hidden;
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.saved-resume > p:not(.field-help) {
-  color: #68786f;
-  font-size: 9px;
-}
-
-.saved-resume-actions .text-button {
-  margin-top: 2px;
-}
-
 .text-button.danger {
   color: #9b3b35;
 }
@@ -220,6 +180,67 @@ select {
 .profile-editor {
   display: grid;
   gap: 16px;
+}
+
+.resume-file-fieldset {
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.resume-file-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #d5dfd9;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.resume-file-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 7px;
+  color: #617168;
+  background: #eef3f0;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.resume-file-icon.is-pdf {
+  color: #a33e38;
+  background: #f9e9e7;
+}
+
+.resume-file-icon.is-word {
+  color: #2f5f9d;
+  background: #e8f0fa;
+  font-size: 15px;
+}
+
+.resume-file-details {
+  min-width: 0;
+}
+
+.resume-file-details strong {
+  display: block;
+  overflow: hidden;
+  color: #2f4137;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resume-file-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.resume-file-details .text-button {
+  margin-top: 5px;
 }
 
 .editor-heading {

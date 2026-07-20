@@ -39,12 +39,6 @@ function errorMessage(error: unknown) {
     : "ApplyProof could not complete the workflow. Try again.";
 }
 
-function fileSize(size: number) {
-  return size < 1024 * 1024
-    ? `${Math.max(1, Math.round(size / 1024))} KB`
-    : `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 function applyFillResults(decisions: FieldDecision[], results: FillResult[]) {
   const byField = new Map(results.map((result) => [result.fieldId, result]));
   return decisions.map((decision): FieldDecision => {
@@ -76,7 +70,6 @@ export function App() {
   const [status, setStatus] = useState<WorkflowStatus>("idle");
   const [message, setMessage] = useState("Loading My Profile…");
   const resumeInputRef = useRef<HTMLInputElement>(null);
-  const replaceResumeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     void Promise.all([
@@ -137,6 +130,7 @@ export function App() {
     } catch (error) {
       setStatus("error");
       setMessage(errorMessage(error));
+      throw error;
     }
   }
 
@@ -153,6 +147,7 @@ export function App() {
     } catch (error) {
       setStatus("error");
       setMessage(errorMessage(error));
+      throw error;
     }
   }
 
@@ -283,10 +278,13 @@ export function App() {
           <ProfileEditor
             profile={profile}
             initialResumeFile={initialResumeFile}
+            savedResume={savedResume}
             onCancel={() => {
               setEditingProfile(false);
               setInitialResumeFile(null);
             }}
+            onResumeFileDelete={handleResumeFileDelete}
+            onResumeFileReplace={handleResumeFileReplacement}
             onSave={handleProfileSave}
           />
         ) : profile ? (
@@ -303,64 +301,6 @@ export function App() {
               </div>
               <span className="selected-badge">Saved</span>
             </div>
-            <section
-              className="saved-resume"
-              aria-labelledby="saved-resume-heading"
-            >
-              <div className="saved-resume-heading">
-                <div>
-                  <p className="eyebrow">Local file</p>
-                  <h3 id="saved-resume-heading">My resume file</h3>
-                </div>
-                {savedResume && <span className="selected-badge">Saved</span>}
-              </div>
-              {savedResume ? (
-                <>
-                  <strong>{savedResume.name}</strong>
-                  <p>
-                    {savedResume.name.split(".").pop()?.toUpperCase()} ·{" "}
-                    {fileSize(savedResume.size)} · Updated{" "}
-                    {new Date(savedResume.savedAt).toLocaleDateString()}
-                  </p>
-                </>
-              ) : (
-                <p>No original resume file is saved.</p>
-              )}
-              <p className="field-help">
-                Replacing this file does not parse it or change other profile
-                details. Use Import resume while editing to update both.
-              </p>
-              <div className="saved-resume-actions">
-                <button
-                  className="text-button"
-                  type="button"
-                  onClick={() => replaceResumeInputRef.current?.click()}
-                >
-                  {savedResume ? "Replace file" : "Upload file"}
-                </button>
-                {savedResume && (
-                  <button
-                    className="text-button danger"
-                    type="button"
-                    onClick={() => void handleResumeFileDelete()}
-                  >
-                    Delete file
-                  </button>
-                )}
-              </div>
-              <input
-                ref={replaceResumeInputRef}
-                aria-label="Replace My resume file"
-                type="file"
-                accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                hidden
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  if (file) void handleResumeFileReplacement(file);
-                }}
-              />
-            </section>
             <div className="profile-facts">
               <span>{profile.identity.email}</span>
               {profile.education[0]?.degree && (

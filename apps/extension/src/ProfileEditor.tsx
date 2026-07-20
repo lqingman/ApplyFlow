@@ -13,11 +13,15 @@ import {
 } from "@applyproof/shared-types";
 
 import type { ParsedResume } from "./resumeTextParser";
+import type { SavedResumeMetadata } from "./resumeFileStorage";
 
 type ProfileEditorProps = {
   profile: CandidateProfile | null;
   initialResumeFile?: File | null;
+  savedResume: SavedResumeMetadata | null;
   onCancel: () => void;
+  onResumeFileDelete: () => Promise<void>;
+  onResumeFileReplace: (file: File) => Promise<void>;
   onSave: (profile: CandidateProfile, importedResume?: File) => Promise<void>;
 };
 
@@ -67,6 +71,10 @@ let entrySequence = 0;
 function entryId(prefix: string) {
   entrySequence += 1;
   return `${prefix}-${entrySequence}`;
+}
+
+function resumeFileKind(name: string) {
+  return name.toLowerCase().endsWith(".pdf") ? "PDF" : "W";
 }
 
 function blankEducation(): EducationDraft {
@@ -250,7 +258,10 @@ function mergeResume(draft: ProfileDraft, resume: ParsedResume): ProfileDraft {
 export function ProfileEditor({
   profile,
   initialResumeFile,
+  savedResume,
   onCancel,
+  onResumeFileDelete,
+  onResumeFileReplace,
   onSave,
 }: ProfileEditorProps) {
   const [draft, setDraft] = useState(() => draftFrom(profile));
@@ -265,6 +276,8 @@ export function ProfileEditor({
     null,
   );
   const initialImportStarted = useRef(false);
+  const replaceResumeInputRef = useRef<HTMLInputElement>(null);
+  const resumeFileName = importedResumeFile?.name ?? savedResume?.name;
 
   function set<K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -343,6 +356,34 @@ export function ProfileEditor({
     if (file) void importResume(file);
   }
 
+  async function replaceResumeFile(file: File) {
+    setError("");
+    try {
+      await onResumeFileReplace(file);
+      setImportedResumeFile(null);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "The resume could not be saved.",
+      );
+    }
+  }
+
+  async function removeResumeFile() {
+    setError("");
+    try {
+      await onResumeFileDelete();
+      setImportedResumeFile(null);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "The resume could not be deleted.",
+      );
+    }
+  }
+
   useEffect(() => {
     if (!initialResumeFile || initialImportStarted.current) return;
     initialImportStarted.current = true;
@@ -360,6 +401,67 @@ export function ProfileEditor({
           Cancel
         </button>
       </div>
+
+      <fieldset className="resume-file-fieldset">
+        <legend>My resume file</legend>
+        {resumeFileName ? (
+          <div className="resume-file-row">
+            <span
+              className={`resume-file-icon ${resumeFileKind(resumeFileName) === "PDF" ? "is-pdf" : "is-word"}`}
+              aria-hidden="true"
+            >
+              {resumeFileKind(resumeFileName)}
+            </span>
+            <div className="resume-file-details">
+              <strong>{resumeFileName}</strong>
+              <div className="resume-file-actions">
+                <button
+                  className="text-button"
+                  type="button"
+                  onClick={() => replaceResumeInputRef.current?.click()}
+                >
+                  Replace
+                </button>
+                <button
+                  className="text-button danger"
+                  type="button"
+                  onClick={() => void removeResumeFile()}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="resume-file-row is-empty">
+            <span className="resume-file-icon" aria-hidden="true">
+              +
+            </span>
+            <div className="resume-file-details">
+              <strong>No resume uploaded</strong>
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => replaceResumeInputRef.current?.click()}
+              >
+                Upload file
+              </button>
+            </div>
+          </div>
+        )}
+        <input
+          ref={replaceResumeInputRef}
+          aria-label="Replace My resume file"
+          type="file"
+          accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = "";
+            if (file) void replaceResumeFile(file);
+          }}
+        />
+      </fieldset>
 
       <fieldset className="resume-import">
         <legend>Import resume</legend>

@@ -210,7 +210,8 @@ describe("profile-first autofill workflow", () => {
     });
     vi.mocked(loadSavedResumeFile).mockResolvedValue(file);
     render(<App />);
-    await screen.findByText("maya.pdf");
+    await screen.findByText("Saved");
+    expect(screen.queryByText("maya.pdf")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Scan & Autofill" }));
 
@@ -280,7 +281,9 @@ describe("profile-first autofill workflow", () => {
     });
     vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
     render(<App />);
-    await screen.findByText("Saved");
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Edit profile" }),
+    );
     await waitFor(() => expect(addListener).toHaveBeenCalled());
     const listener = addListener.mock.calls[0]?.[0] as (
       message: unknown,
@@ -491,7 +494,9 @@ describe("profile-first autofill workflow", () => {
   it("replaces My resume file without changing profile fields", async () => {
     vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
     render(<App />);
-    await screen.findByText("Saved");
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Edit profile" }),
+    );
     const file = new File(["replacement"], "replacement.pdf", {
       type: "application/pdf",
     });
@@ -503,7 +508,7 @@ describe("profile-first autofill workflow", () => {
     await waitFor(() => expect(saveResumeFile).toHaveBeenCalledWith(file));
     expect(saveMyProfile).not.toHaveBeenCalled();
     expect(await screen.findByText("replacement.pdf")).toBeInTheDocument();
-    expect(screen.getByText("maya.chen@example.com")).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toHaveValue("maya.chen@example.com");
   });
 
   it("deletes My resume file without deleting parsed profile data", async () => {
@@ -516,15 +521,17 @@ describe("profile-first autofill workflow", () => {
       savedAt: "2026-07-19T20:00:00.000Z",
     });
     render(<App />);
+    expect(screen.queryByText("maya.pdf")).not.toBeInTheDocument();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Edit profile" }),
+    );
     await screen.findByText("maya.pdf");
 
-    fireEvent.click(screen.getByRole("button", { name: "Delete file" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
 
     await waitFor(() => expect(deleteSavedResumeFile).toHaveBeenCalledOnce());
-    expect(
-      screen.getByText("No original resume file is saved."),
-    ).toBeInTheDocument();
-    expect(screen.getByText("maya.chen@example.com")).toBeInTheDocument();
+    expect(screen.getByText("No resume uploaded")).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toHaveValue("maya.chen@example.com");
     expect(saveMyProfile).not.toHaveBeenCalled();
   });
 
@@ -553,6 +560,8 @@ describe("profile-first autofill workflow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save My Profile" }));
 
     await waitFor(() => expect(saveResumeFile).toHaveBeenCalledWith(file));
+    expect(screen.queryByText("updated.pdf")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Edit profile" }));
     expect(await screen.findByText("updated.pdf")).toBeInTheDocument();
   });
 
