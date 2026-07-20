@@ -254,7 +254,7 @@ export function App() {
             </section>
 
             <section
-              className="form-section"
+              className="form-section voluntary-section"
               aria-labelledby="voluntary-heading"
             >
               <div className="section-heading">

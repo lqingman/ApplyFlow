@@ -311,6 +311,14 @@ legend {
   font-size: 13px;
 }
 
+.voluntary-section fieldset + fieldset {
+  margin-top: 28px;
+}
+
+.voluntary-section legend {
+  margin-bottom: 14px;
+}
+
 .safety-fixture {
   display: grid;
   grid-template-columns: 1fr 1fr;
