@@ -84,4 +84,18 @@ describe("safe autofill planning", () => {
 
     expect(fills).toEqual([{ fieldId: "gender", value: "decline" }]);
   });
+
+  it("autofills an explicit prefer-not-to-say authorization choice", () => {
+    const profile = {
+      ...mayaProfile,
+      workAuthorization: { canada: "decline" as const },
+    };
+    const { fills } = planAutofill(profile, [
+      field("work-authorization", { kind: "select" }),
+    ]);
+
+    expect(fills).toEqual([
+      { fieldId: "work-authorization", value: "Prefer not to say" },
+    ]);
+  });
 });

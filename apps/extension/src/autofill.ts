@@ -16,6 +16,7 @@ function profileValue(profile: CandidateProfile, fieldId: string) {
     authorized: "Authorized to work in Canada",
     requires_sponsorship: "Require sponsorship now or in the future",
     prefer_discuss: "Prefer to discuss",
+    decline: "Prefer not to say",
   } as const;
   const values: Record<string, string> = {
     "first-name": profile.identity.firstName,

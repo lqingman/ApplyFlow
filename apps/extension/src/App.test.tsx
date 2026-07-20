@@ -9,11 +9,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 import { generateAnswerDraft } from "./answerApi";
+import { mayaProfile } from "@applyproof/sample-data";
 import {
   enableInlineAssistants,
   fillActivePage,
   scanActivePage,
 } from "./browser";
+import { loadMyProfile, resetMyProfile, saveMyProfile } from "./profileStorage";
 
 vi.mock("./answerApi", () => ({ generateAnswerDraft: vi.fn() }));
 
@@ -65,34 +67,51 @@ vi.mock("./browser", () => ({
   focusField: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("./profileStorage", () => ({
+  loadMyProfile: vi.fn(),
+  saveMyProfile: vi.fn(),
+  resetMyProfile: vi.fn(),
+}));
+
 describe("profile-first autofill workflow", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(loadMyProfile).mockResolvedValue(null);
+    vi.mocked(saveMyProfile).mockImplementation(async (profile) => profile);
+    vi.mocked(resetMyProfile).mockResolvedValue(undefined);
+  });
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
   });
 
-  it("requires profile selection before autofill", () => {
+  it("loads demo data into the single persistent profile before autofill", async () => {
     render(<App />);
 
     expect(
       screen.getByRole("button", { name: "Scan & Autofill" }),
     ).toBeDisabled();
     fireEvent.click(
-      screen.getByRole("button", { name: "Use Maya demo profile" }),
+      await screen.findByRole("button", { name: "Load Maya demo data" }),
+    );
+    await waitFor(() =>
+      expect(saveMyProfile).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "my-profile", displayName: "Maya Chen" }),
+      ),
     );
     expect(
       screen.getByRole("button", { name: "Scan & Autofill" }),
     ).toBeEnabled();
-    expect(screen.getByText("Selected")).toBeInTheDocument();
+    expect(screen.getByText("Saved")).toBeInTheDocument();
   });
 
   it("keeps the completed workflow compact after autofill", async () => {
     render(<App />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Use Maya demo profile" }),
+      await screen.findByRole("button", { name: "Load Maya demo data" }),
     );
+    await screen.findByText("Saved");
     fireEvent.click(screen.getByRole("button", { name: "Scan & Autofill" }));
 
     await waitFor(() =>
@@ -139,8 +158,9 @@ describe("profile-first autofill workflow", () => {
     render(<App />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Use Maya demo profile" }),
+      await screen.findByRole("button", { name: "Load Maya demo data" }),
     );
+    await screen.findByText("Saved");
     fireEvent.click(screen.getByRole("button", { name: "Scan & Autofill" }));
     await waitFor(() =>
       expect(enableInlineAssistants).toHaveBeenCalledWith(
@@ -174,7 +194,9 @@ describe("profile-first autofill workflow", () => {
       characterCount: 26,
       fitsLimit: true,
     });
+    vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
     render(<App />);
+    await screen.findByText("Saved");
     const listener = addListener.mock.calls[0]?.[0] as (
       message: unknown,
       sender: unknown,
@@ -212,5 +234,53 @@ describe("profile-first autofill workflow", () => {
         expect.objectContaining({ ok: true }),
       ),
     );
+  });
+
+  it("edits and saves My Profile for subsequent fills", async () => {
+    vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
+    render(<App />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Edit profile" }),
+    );
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "new.email@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save My Profile" }));
+
+    await waitFor(() =>
+      expect(saveMyProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: "my-profile",
+          identity: expect.objectContaining({ email: "new.email@example.com" }),
+        }),
+      ),
+    );
+    expect(
+      await screen.findByText("new.email@example.com"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Scan & Autofill" }));
+    await waitFor(() =>
+      expect(fillActivePage).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          { fieldId: "email", value: "new.email@example.com" },
+        ]),
+      ),
+    );
+  });
+
+  it("deletes the locally saved profile through the reset control", async () => {
+    vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
+    render(<App />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Reset local data" }),
+    );
+
+    await waitFor(() => expect(resetMyProfile).toHaveBeenCalledOnce());
+    expect(
+      screen.getByRole("button", { name: "Create My Profile" }),
+    ).toBeInTheDocument();
   });
 });

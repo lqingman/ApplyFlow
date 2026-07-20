@@ -171,6 +171,20 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** `README.md`, `docs/ROADMAP.md`, `docs/SUBMISSION_CHECKLIST.md`, and `docs/BUILD_LOG.md`.
 
+### 2026-07-19 — Phase 5A persistent My Profile foundation
+
+**Goal:** begin product workflow expansion by replacing the demo-only profile picker with one applicant-owned profile that survives side-panel restarts.
+
+**Human decision:** store one schema-validated `My Profile` in Chrome local extension storage; make Maya a seeding action for that same profile; require explicit Canadian work-authorization and gender choices, including `Prefer not to say`; and keep profile management in the compact side panel.
+
+**Codex contribution:** added versioned profile storage and the Manifest V3 storage permission; built create, inspect, edit, save, demo-seed, and local-reset states; connected the persisted profile to deterministic autofill and inline answer evidence; preserved stable evidence identifiers while editing unchanged evidence; and added migration-focused UI and storage tests.
+
+**Why GPT-5.6 helped:** the change required coordinating schema validation, browser persistence, form accessibility, existing autofill behavior, evidence continuity, privacy controls, and the removal of the old profile-selection state without weakening the no-overwrite and no-submit boundaries.
+
+**Verification:** repository formatting, linting, TypeScript and Python type checks, all tests, production builds, and `git diff --check` pass. Extension tests verify empty storage, validated save/load, malformed-data rejection, key-scoped reset, automatic returning-user readiness, Maya seeding, profile edits affecting subsequent deterministic fills, and local deletion. Reloading the unpacked extension remains the final manual Chrome check.
+
+**Artifacts:** extension manifest; `apps/extension/src/profileStorage.ts`, `ProfileEditor.tsx`, `App.tsx`, styles, and tests; shared profile choices; `README.md`; `docs/ROADMAP.md`; and `docs/SUBMISSION_CHECKLIST.md`.
+
 ## Entry template
 
 Copy this section for the next milestone:

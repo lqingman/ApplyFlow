@@ -18,7 +18,7 @@ This roadmap turns the product plan into a demo-first build sequence. Every mile
 | 2. Page scanning                  | Complete    |
 | 3. Demo profile and safe autofill | Complete    |
 | 4. Inline grounded answers        | Complete    |
-| 5. Product workflow expansion     | Not started |
+| 5. Product workflow expansion     | In progress |
 | 6. Submission and demo polish     | Not started |
 
 ## Definition of the first demo
@@ -151,11 +151,11 @@ These items build on the stable controlled prototype and must be completed befor
 
 ### 5A — Single editable profile and answer memory
 
-- [ ] Replace profile selection with one persistent `My Profile`
-- [ ] Add create, inspect, edit, save, and local reset controls for that profile
-- [ ] Keep “Load Maya demo data” as a demo seeding action, not a second selectable profile
+- [x] Replace profile selection with one persistent `My Profile`
+- [x] Add create, inspect, edit, save, and local reset controls for that profile
+- [x] Keep “Load Maya demo data” as a demo seeding action, not a second selectable profile
 - [ ] Add plain-text and PDF resume import with editable extraction results
-- [ ] Require explicit work-authorization and gender choices during profile setup, including `Prefer not to say`
+- [x] Require explicit work-authorization and gender choices during profile setup, including `Prefer not to say`
 - [ ] Separate stable profile facts from reusable application preferences
 - [ ] Store reusable answers under canonical keys such as `work_authorization.canada`
 - [ ] Record the answer source, confirmation time, and applicable country or scope
@@ -193,8 +193,8 @@ These items build on the stable controlled prototype and must be completed befor
 
 ### Acceptance criteria
 
-- [ ] Returning users can autofill without selecting a profile on every application.
-- [ ] Editing `My Profile` changes subsequent deterministic fills.
+- [x] Returning users can autofill without selecting a profile on every application.
+- [x] Editing `My Profile` changes subsequent deterministic fills.
 - [ ] A saved work-authorization answer fills semantically equivalent questions within its recorded country scope.
 - [ ] Existing page values are never silently overwritten.
 - [ ] Denied sensitive fields have no workflow result and no captured value.

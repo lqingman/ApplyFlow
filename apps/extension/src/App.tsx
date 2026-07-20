@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { mayaProfile } from "@applyproof/sample-data";
-import type { FillResult, NormalizedField } from "@applyproof/shared-types";
+import type {
+  CandidateProfile,
+  FillResult,
+  NormalizedField,
+} from "@applyproof/shared-types";
 
 import { planAutofill, type FieldDecision } from "./autofill";
 import {
@@ -10,6 +14,8 @@ import {
 } from "./browser";
 import { generateAnswerDraft } from "./answerApi";
 import { buildDraftRequest } from "./evidence";
+import { ProfileEditor } from "./ProfileEditor";
+import { loadMyProfile, resetMyProfile, saveMyProfile } from "./profileStorage";
 
 type WorkflowStatus = "idle" | "working" | "complete" | "error";
 const genderLabels = {
@@ -43,26 +49,66 @@ function applyFillResults(decisions: FieldDecision[], results: FillResult[]) {
 }
 
 export function App() {
-  const [profileSelected, setProfileSelected] = useState(false);
-  const profile = mayaProfile;
+  const [profile, setProfile] = useState<CandidateProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [editingProfile, setEditingProfile] = useState(false);
   const [status, setStatus] = useState<WorkflowStatus>("idle");
-  const [message, setMessage] = useState(
-    "Choose a trusted profile before scanning this application.",
-  );
+  const [message, setMessage] = useState("Loading My Profile…");
 
-  function selectProfile() {
-    setProfileSelected(true);
-    setMessage("Maya's verified profile is ready for safe autofill.");
+  useEffect(() => {
+    void loadMyProfile()
+      .then((saved) => {
+        setProfile(saved);
+        setMessage(
+          saved
+            ? "My Profile is ready for safe autofill."
+            : "Create My Profile or load Maya demo data to begin.",
+        );
+      })
+      .catch((error) => {
+        setStatus("error");
+        setMessage(errorMessage(error));
+      })
+      .finally(() => setProfileLoading(false));
+  }, []);
+
+  async function handleProfileSave(updated: CandidateProfile) {
+    const saved = await saveMyProfile(updated);
+    setProfile(saved);
+    setEditingProfile(false);
+    setStatus("idle");
+    setMessage("My Profile was saved locally and is ready for autofill.");
   }
 
-  function clearProfile() {
-    setProfileSelected(false);
-    setStatus("idle");
-    setMessage("Choose a trusted profile before scanning this application.");
+  async function loadDemoData() {
+    setStatus("working");
+    try {
+      const saved = await saveMyProfile({ ...mayaProfile, id: "my-profile" });
+      setProfile(saved);
+      setEditingProfile(false);
+      setStatus("idle");
+      setMessage("Maya demo data was loaded into My Profile.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(errorMessage(error));
+    }
+  }
+
+  async function handleReset() {
+    try {
+      await resetMyProfile();
+      setProfile(null);
+      setEditingProfile(false);
+      setStatus("idle");
+      setMessage("Local profile data was deleted from this browser.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(errorMessage(error));
+    }
   }
 
   async function handleAutofill() {
-    if (!profileSelected) return;
+    if (!profile) return;
     setStatus("working");
     setMessage("Scanning fields and applying verified profile data…");
     try {
@@ -83,6 +129,7 @@ export function App() {
   }
 
   useEffect(() => {
+    if (!profile) return;
     if (typeof chrome === "undefined" || !chrome.runtime?.onMessage) return;
     const listener = (
       message: unknown,
@@ -134,23 +181,29 @@ export function App() {
       </header>
 
       <section
-        className={`profile-card ${profileSelected ? "is-selected" : ""}`}
+        className={`profile-card ${profile ? "is-selected" : ""}`}
         aria-labelledby="profile-heading"
       >
-        <div className="profile-heading">
-          <span className="avatar" aria-hidden="true">
-            MC
-          </span>
-          <div>
-            <p className="eyebrow">1 · Trusted profile</p>
-            <h2 id="profile-heading">{profile.displayName}</h2>
-            <p>{profile.headline}</p>
-          </div>
-          {profileSelected && <span className="selected-badge">Selected</span>}
-        </div>
-
-        {profileSelected ? (
+        {editingProfile ? (
+          <ProfileEditor
+            profile={profile}
+            onCancel={() => setEditingProfile(false)}
+            onSave={handleProfileSave}
+          />
+        ) : profile ? (
           <>
+            <div className="profile-heading">
+              <span className="avatar" aria-hidden="true">
+                {profile.identity.firstName.charAt(0)}
+                {profile.identity.lastName.charAt(0)}
+              </span>
+              <div>
+                <p className="eyebrow">1 · My Profile</p>
+                <h2 id="profile-heading">{profile.displayName}</h2>
+                <p>{profile.headline}</p>
+              </div>
+              <span className="selected-badge">Saved</span>
+            </div>
             <div className="profile-facts">
               <span>{profile.identity.email}</span>
               <span>{profile.education.degree}</span>
@@ -172,22 +225,52 @@ export function App() {
                 ))}
               </ul>
             </details>
-            <button
-              className="text-button"
-              type="button"
-              onClick={clearProfile}
-            >
-              Change profile
-            </button>
+            <div className="profile-actions">
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => setEditingProfile(true)}
+              >
+                Edit profile
+              </button>
+              <button
+                className="text-button danger"
+                type="button"
+                onClick={() => void handleReset()}
+              >
+                Reset local data
+              </button>
+            </div>
           </>
         ) : (
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={selectProfile}
-          >
-            Use Maya demo profile
-          </button>
+          <div className="empty-profile">
+            <div className="profile-heading">
+              <span className="avatar" aria-hidden="true">
+                +
+              </span>
+              <div>
+                <p className="eyebrow">1 · My Profile</p>
+                <h2 id="profile-heading">Set up your profile</h2>
+                <p>Saved only in this browser.</p>
+              </div>
+            </div>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => setEditingProfile(true)}
+              disabled={profileLoading}
+            >
+              Create My Profile
+            </button>
+            <button
+              className="text-button demo-seed-button"
+              type="button"
+              onClick={() => void loadDemoData()}
+              disabled={profileLoading || status === "working"}
+            >
+              Load Maya demo data
+            </button>
+          </div>
         )}
       </section>
 
@@ -207,7 +290,7 @@ export function App() {
           className="primary-button"
           type="button"
           onClick={handleAutofill}
-          disabled={!profileSelected || status === "working"}
+          disabled={!profile || editingProfile || status === "working"}
         >
           {status === "working"
             ? "Scanning & filling…"
@@ -225,7 +308,7 @@ export function App() {
       </section>
 
       <footer>
-        <span>Local demo mode</span>
+        <span>Profile data stays local</span>
       </footer>
     </main>
   );

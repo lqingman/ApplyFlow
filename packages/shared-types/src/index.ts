@@ -89,7 +89,12 @@ export const candidateProfileSchema = z.object({
     relocation: z.enum(["yes", "no"]),
   }),
   workAuthorization: z.object({
-    canada: z.enum(["authorized", "requires_sponsorship", "prefer_discuss"]),
+    canada: z.enum([
+      "authorized",
+      "requires_sponsorship",
+      "prefer_discuss",
+      "decline",
+    ]),
   }),
   demographics: z.object({
     genderIdentity: z.enum(["woman", "man", "nonbinary", "decline"]),

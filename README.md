@@ -4,7 +4,7 @@ ApplyProof is a Chrome extension that helps people complete job applications wit
 
 Traditional autofill handles contact details. Generic AI can write polished answers, but may exaggerate or invent experience. ApplyProof combines deterministic profile autofill with resume-grounded drafts that are generated and reviewed directly on the application page.
 
-> **Project status:** Phase 4 inline answer generation complete. One Scan & Autofill action fills saved profile fields and checkboxes, then generates blank open-ended answers on the page. Hover or focus reveals an optional instruction and Regenerate action.
+> **Project status:** Phase 5 is in progress. The extension now persists one editable `My Profile` locally, can seed it with Maya demo data, and uses it for Scan & Autofill and inline grounded answers.
 
 The current build is a controlled local demo. The confirmed product direction is one editable applicant profile, page-native review, and gradual validation on real application sites after the local workflow is stable.
 
@@ -47,7 +47,7 @@ The demo uses:
 ### Target demo flow
 
 1. Open the Northstar Labs mock application.
-2. Open the ApplyProof side panel and choose Maya's demo profile.
+2. Open the ApplyProof side panel and load Maya data into `My Profile`.
 3. Run Scan & Autofill to detect the page and insert verified profile fields in one action.
 4. See saved authorization, gender, and confirmation choices filled with the other profile fields.
 5. See blank open-ended answers generate directly on the application page.
@@ -62,7 +62,8 @@ The demo is successful when a judge can complete this flow locally without an ac
 
 - Chrome Manifest V3 extension with a side panel
 - Local mock job application
-- Built-in fictional candidate profile and evidence records
+- One locally persisted, editable `My Profile`
+- Built-in fictional candidate data for seeding `My Profile`
 - Detection of common inputs, textareas, selects, radio buttons, and accessible labels
 - Deterministic mapping for confirmed profile fields
 - Safe insertion with existing-value protection
@@ -74,7 +75,7 @@ The demo is successful when a judge can complete this flow locally without an ac
 ### Deferred until the demo works
 
 - Resume PDF upload and extraction
-- A persistent, editable `My Profile` and local answer memory
+- Local answer memory
 - Validated online forms and selected ATS integrations
 - Broad third-party ATS compatibility
 - Authentication or multi-user persistence
@@ -116,7 +117,7 @@ The demo should remain useful without a model key where practical. Deterministic
 
 ## Page-native workflow
 
-The side panel is intentionally compact: it selects the profile, starts Scan & Autofill, and reports progress. It does not duplicate an outcome summary, review queue, or complete field inventory.
+The side panel is intentionally compact: it creates, edits, or seeds the single local `My Profile`, starts Scan & Autofill, and reports progress. It does not duplicate an outcome summary, review queue, or complete field inventory.
 
 Deterministic values and mapped checkboxes are inserted after the user initiates autofill. Blank textareas receive resume-grounded drafts. Existing deterministic and open-ended values are preserved. Generated answers are reviewed and edited in the page itself, and explicit Regenerate may replace the current open-ended answer.
 
@@ -244,8 +245,8 @@ For Chrome, build the extension with `npm run build --workspace @applyproof/exte
 `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select
 `apps/extension/dist`. Click the ApplyProof toolbar action to open its side panel.
 
-With the Northstar Labs application active, select **Use Maya demo profile**, then click **Scan &
-Autofill**. ApplyProof fills saved profile values, work authorization, gender, and the accuracy
+With the Northstar Labs application active, choose **Load Maya demo data** if `My Profile` is empty,
+then click **Scan & Autofill**. ApplyProof fills saved profile values, work authorization, gender, and the accuracy
 confirmation; preserves existing answers; blocks the password fixture; and starts generating blank
 open-ended fields directly on the page. Hover or focus an open-ended field to add an optional
 instruction and regenerate it. The side panel remains compact and does not duplicate a summary,
