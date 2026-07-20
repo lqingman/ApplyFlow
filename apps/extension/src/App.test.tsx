@@ -21,6 +21,7 @@ import {
   resetMyProfile,
   saveMyProfile,
 } from "./profileStorage";
+import { importResumeFile } from "./resumeImport";
 
 vi.mock("./answerApi", () => ({ generateAnswerDraft: vi.fn() }));
 
@@ -78,6 +79,8 @@ vi.mock("./profileStorage", () => ({
   saveMyProfile: vi.fn(),
   resetMyProfile: vi.fn(),
 }));
+
+vi.mock("./resumeImport", () => ({ importResumeFile: vi.fn() }));
 
 describe("profile-first autofill workflow", () => {
   beforeEach(() => {
@@ -275,6 +278,47 @@ describe("profile-first autofill workflow", () => {
         ]),
       ),
     );
+  });
+
+  it("imports editable profile fields from a Word resume", async () => {
+    vi.mocked(importResumeFile).mockResolvedValue({
+      firstName: "Jordan",
+      lastName: "Lee",
+      headline: "Software Developer",
+      email: "jordan@example.com",
+      phone: "+1 604 555 0100",
+      location: "Vancouver, BC",
+      portfolio: "https://github.com/jordanlee",
+      school: "University of British Columbia",
+      degree: "BSc Computer Science",
+      graduationDate: "2026-05-01",
+      evidence: ["Built a tested TypeScript application."],
+    });
+    render(<App />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Create My Profile" }),
+    );
+    const file = new File(["docx bytes"], "jordan-resume.docx", {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    fireEvent.change(screen.getByLabelText("Choose Word or PDF resume"), {
+      target: { files: [file] },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Email")).toHaveValue("jordan@example.com"),
+    );
+    expect(screen.getByLabelText("First name")).toHaveValue("Jordan");
+    expect(screen.getByLabelText("One verified fact per line")).toHaveValue(
+      "Built a tested TypeScript application.",
+    );
+    expect(screen.getByLabelText("Canadian work authorization")).toHaveValue(
+      "",
+    );
+    expect(
+      screen.getByText(/Review every field before saving/),
+    ).toHaveTextContent("Review every field before saving");
   });
 
   it("deletes the locally saved profile through the reset control", async () => {

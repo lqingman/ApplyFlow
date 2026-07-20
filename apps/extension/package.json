@@ -12,6 +12,8 @@
   "dependencies": {
     "@applyproof/sample-data": "*",
     "@applyproof/shared-types": "*",
+    "mammoth": "^1.12.0",
+    "pdfjs-dist": "^6.1.200",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

@@ -211,6 +211,20 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** shared contracts; extension scanner, evidence, and inline-assistant code; API contracts, retry, and validation code; Northstar fixture; tests; `README.md`; `docs/ANSWER_GENERATION_DESIGN.md`; and `docs/ROADMAP.md`.
 
+### 2026-07-19 — Local Word and PDF resume import
+
+**Goal:** let an applicant seed or update `My Profile` from a resume without sending the source file to a server.
+
+**Human decision:** support Word `.docx` and text-based `.pdf` files up to 10 MB; keep extraction entirely inside the extension; make every extracted value editable before save; and never infer work authorization, gender, relocation, or other explicit application choices from resume text. Legacy `.doc` and scanned image-only PDF OCR remain out of scope.
+
+**Codex contribution:** integrated Mammoth and PDF.js behind an on-demand browser bundle; implemented multi-page text extraction, file validation, deterministic profile and evidence parsing, editable merge behavior, progress and error states, and regression coverage for DOCX/PDF routing, cleanup, parser safety, and UI updates. A test exposed an email-domain/portfolio collision, which was fixed by excluding URL candidates embedded in email addresses.
+
+**Why GPT-5.6 helped:** resume extraction required balancing imperfect document text order, conservative field recognition, evidence usefulness, privacy boundaries, browser-extension bundle size, accessibility, and explicit-choice safety without introducing a backend upload workflow.
+
+**Verification:** extension type checks, parser and import tests, UI workflow tests, and production builds pass. The parser libraries are loaded only after file selection, keeping the main side-panel bundle small. Full repository verification and manual unpacked-extension testing are recorded before milestone completion.
+
+**Artifacts:** `apps/extension/src/resumeImport.ts`, `resumeTextParser.ts`, `ProfileEditor.tsx`, styles and tests; extension dependencies; `README.md`; and `docs/ROADMAP.md`.
+
 ## Entry template
 
 Copy this section for the next milestone:

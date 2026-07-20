@@ -1,9 +1,11 @@
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import {
   candidateProfileSchema,
   type CandidateProfile,
   type EvidenceRecord,
 } from "@applyproof/shared-types";
+
+import type { ParsedResume } from "./resumeTextParser";
 
 type ProfileEditorProps = {
   profile: CandidateProfile | null;
@@ -101,6 +103,28 @@ function profileFromDraft(
   });
 }
 
+function mergeResume(draft: ProfileDraft, resume: ParsedResume): ProfileDraft {
+  const importedEvidence = resume.evidence.filter(
+    (line) => !draft.evidenceText.split("\n").includes(line),
+  );
+  return {
+    ...draft,
+    firstName: resume.firstName ?? draft.firstName,
+    lastName: resume.lastName ?? draft.lastName,
+    headline: resume.headline ?? draft.headline,
+    email: resume.email ?? draft.email,
+    phone: resume.phone ?? draft.phone,
+    location: resume.location ?? draft.location,
+    portfolio: resume.portfolio ?? draft.portfolio,
+    school: resume.school ?? draft.school,
+    degree: resume.degree ?? draft.degree,
+    graduationDate: resume.graduationDate ?? draft.graduationDate,
+    evidenceText: [draft.evidenceText.trim(), ...importedEvidence]
+      .filter(Boolean)
+      .join("\n"),
+  };
+}
+
 export function ProfileEditor({
   profile,
   onCancel,
@@ -109,6 +133,8 @@ export function ProfileEditor({
   const [draft, setDraft] = useState(() => draftFrom(profile));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
 
   function set<K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -130,6 +156,34 @@ export function ProfileEditor({
     }
   }
 
+  async function handleResumeImport(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setError("");
+    setImportMessage("");
+    setImporting(true);
+    try {
+      const { importResumeFile } = await import("./resumeImport");
+      const resume = await importResumeFile(file);
+      setDraft((current) => mergeResume(current, resume));
+      const factCount = Object.entries(resume).filter(
+        ([key, value]) => key !== "evidence" && Boolean(value),
+      ).length;
+      setImportMessage(
+        `Imported ${factCount} profile fields and ${resume.evidence.length} evidence ${resume.evidence.length === 1 ? "item" : "items"} from ${file.name}. Review every field before saving.`,
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "This resume could not be read.",
+      );
+    } finally {
+      setImporting(false);
+    }
+  }
+
   return (
     <form className="profile-editor" onSubmit={submit}>
       <div className="editor-heading">
@@ -141,6 +195,28 @@ export function ProfileEditor({
           Cancel
         </button>
       </div>
+
+      <fieldset className="resume-import">
+        <legend>Import resume</legend>
+        <p className="field-help">
+          Extract a Word (.docx) or PDF (.pdf) resume locally. The file is not
+          saved or uploaded.
+        </p>
+        <label className={`file-button ${importing ? "is-disabled" : ""}`}>
+          {importing ? "Reading resume…" : "Choose Word or PDF resume"}
+          <input
+            type="file"
+            accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            disabled={importing}
+            onChange={(event) => void handleResumeImport(event)}
+          />
+        </label>
+        {importMessage && (
+          <p className="import-status" role="status">
+            {importMessage}
+          </p>
+        )}
+      </fieldset>
 
       <fieldset>
         <legend>Identity and contact</legend>

@@ -154,7 +154,7 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Replace profile selection with one persistent `My Profile`
 - [x] Add create, inspect, edit, save, and local reset controls for that profile
 - [x] Keep “Load Maya demo data” as a demo seeding action, not a second selectable profile
-- [ ] Add plain-text and PDF resume import with editable extraction results
+- [x] Add Word (`.docx`) and PDF resume import with editable extraction results
 - [x] Require explicit work-authorization and gender choices during profile setup, including `Prefer not to say`
 - [ ] Separate stable profile facts from reusable application preferences
 - [x] Store reusable answers under canonical keys such as `work_authorization.canada`

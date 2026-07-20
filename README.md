@@ -64,6 +64,8 @@ The demo is successful when a judge can complete this flow locally without an ac
 - Local mock job application
 - One locally persisted, editable `My Profile`
 - Built-in fictional candidate data for seeding `My Profile`
+- Local Word (`.docx`) and text-based PDF resume import with editable extraction results
+- Scoped local work-authorization answer memory
 - Detection of common inputs, textareas, selects, radio buttons, and accessible labels
 - Deterministic mapping for confirmed profile fields
 - Safe insertion with existing-value protection
@@ -74,8 +76,6 @@ The demo is successful when a judge can complete this flow locally without an ac
 
 ### Deferred until the demo works
 
-- Resume PDF upload and extraction
-- Local answer memory
 - Validated online forms and selected ATS integrations
 - Broad third-party ATS compatibility
 - Authentication or multi-user persistence
@@ -122,6 +122,8 @@ The side panel is intentionally compact: it creates, edits, or seeds the single 
 Deterministic values and mapped checkboxes are inserted after the user initiates autofill. Blank textareas receive resume-grounded drafts. Existing deterministic and open-ended values are preserved. Generated answers are reviewed and edited in the page itself, and explicit Regenerate may replace the current open-ended answer.
 
 The complete open-ended-question workflow, API contract, evidence rules, fixture mode, OpenRouter mode, memory policy, and failure behavior are defined in [the grounded answer generation design](docs/ANSWER_GENERATION_DESIGN.md).
+
+Resume files are parsed locally in the extension and are not uploaded or retained. Import supports Word `.docx` and text-based `.pdf` files up to 10 MB. Extracted identity, contact, education, and evidence values remain editable before saving. Legacy `.doc`, encrypted PDFs, and scanned image-only PDFs without a text layer are not supported; explicit application choices are never inferred from resume text.
 
 ## Planned product workflow before final demo polish
 
