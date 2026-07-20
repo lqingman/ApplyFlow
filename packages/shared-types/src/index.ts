@@ -22,6 +22,14 @@ export const normalizedFieldSchema = z.object({
   value: z.string(),
   options: z.array(z.string()).default([]),
   maxLength: z.number().int().positive().optional(),
+  metadata: z
+    .object({
+      name: z.string().min(1).optional(),
+      autocomplete: z.string().min(1).optional(),
+      inputType: z.string().min(1).optional(),
+      questionText: z.string().min(1).max(500).optional(),
+    })
+    .optional(),
 });
 
 export type NormalizedField = z.infer<typeof normalizedFieldSchema>;

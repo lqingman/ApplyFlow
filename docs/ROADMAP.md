@@ -190,17 +190,17 @@ These items build on the stable controlled prototype and must be completed befor
 
 ### 5C — Online application pilot
 
-- [ ] Preserve least-privilege, user-initiated access to the active application tab
+- [x] Preserve least-privilege, user-initiated access to the active application tab
 - [ ] Validate ordinary online HTML forms before claiming third-party site support
 - [ ] Pilot one selected ATS, then add platforms individually using regression fixtures
-- [ ] Improve semantic field classification using labels, names, IDs, autocomplete metadata, types, options, and surrounding question text
+- [x] Improve semantic field classification using labels, names, IDs, autocomplete metadata, types, options, and surrounding question text
 - [ ] Add more robust accessible custom-control, dynamic-form, multi-step, and iframe support
-- [ ] Document an explicit supported-site matrix and known limitations
-- [ ] Do not claim universal ATS support without compatibility evidence
+- [x] Document an explicit supported-site matrix and known limitations
+- [x] Do not claim universal ATS support without compatibility evidence
 
 ### 5D — Operational readiness
 
-- [ ] Field-classification compatibility fixtures
+- [x] Field-classification compatibility fixtures
 - [ ] Model-provider configuration, observability, cost controls, and failure handling
 - [ ] Security and privacy review
 - [ ] Chrome Web Store readiness

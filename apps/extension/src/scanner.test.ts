@@ -59,6 +59,7 @@ describe("page scanner", () => {
         required: true,
         value: "maya@example.com",
         options: [],
+        metadata: { name: "email", inputType: "email" },
       },
       {
         id: "story",
@@ -84,6 +85,11 @@ describe("page scanner", () => {
         required: false,
         value: "no",
         options: ["Yes", "No"],
+        metadata: {
+          name: "relocation",
+          inputType: "radio",
+          questionText: "Open to relocating? Yes No",
+        },
       },
       {
         id: "confirmation",
@@ -92,6 +98,7 @@ describe("page scanner", () => {
         required: true,
         value: "",
         options: [],
+        metadata: { name: "confirmation", inputType: "checkbox" },
       },
     ]);
   });
@@ -113,15 +120,16 @@ describe("page scanner", () => {
       <label>Password <input id="password" type="password" value="secret-password"></label>
       <label>Social insurance number <input id="sin" value="123-456-789"></label>
       <label>Bank account <input name="bankAccount" value="00012345"></label>
+      <div class="question">Government ID number <label>Answer <input id="opaque-sensitive" value="private-id"></label></div>
       <label>First name <input id="first-name"></label>
     `;
 
     expect(scanDocument(document).map((field) => field.id)).toEqual([
       "first-name",
     ]);
-    expect(countBlockedFields(document)).toBe(3);
+    expect(countBlockedFields(document)).toBe(4);
     expect(JSON.stringify(scanDocument(document))).not.toMatch(
-      /secret-password|123-456-789|00012345/,
+      /secret-password|123-456-789|00012345|private-id/,
     );
   });
 

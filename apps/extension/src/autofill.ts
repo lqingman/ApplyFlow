@@ -39,9 +39,83 @@ const raceLabels = {
   decline: "Prefer not to say",
 } as const;
 
+function semanticFingerprint(field: NormalizedField) {
+  return [
+    field.id,
+    field.label,
+    field.metadata?.name,
+    field.metadata?.autocomplete,
+    field.metadata?.inputType,
+    field.metadata?.questionText,
+    ...field.options,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function semanticProfileValue(
+  profile: CandidateProfile,
+  field: NormalizedField,
+) {
+  const primaryEducation = profile.education[0];
+  const autocomplete = field.metadata?.autocomplete?.toLowerCase() ?? "";
+  const fingerprint = semanticFingerprint(field);
+  const matches = (pattern: RegExp) => pattern.test(fingerprint);
+
+  if (autocomplete.split(/\s+/).includes("given-name"))
+    return profile.identity.firstName;
+  if (autocomplete.split(/\s+/).includes("family-name"))
+    return profile.identity.lastName;
+  if (autocomplete.split(/\s+/).includes("name"))
+    return `${profile.identity.firstName} ${profile.identity.lastName}`;
+  if (autocomplete.split(/\s+/).includes("email"))
+    return profile.identity.email;
+  if (autocomplete.split(/\s+/).includes("tel")) return profile.identity.phone;
+  if (autocomplete.split(/\s+/).includes("address-level2"))
+    return profile.identity.location;
+  if (autocomplete.split(/\s+/).includes("url")) return profile.links.portfolio;
+
+  if (matches(/\b(?:(?:first|given)[-_\s]*name|forename)\b/i))
+    return profile.identity.firstName;
+  if (matches(/\b(?:last|family|sur)[-_\s]*name\b/i))
+    return profile.identity.lastName;
+  if (matches(/\b(?:e-?mail|email address)\b/i)) return profile.identity.email;
+  if (matches(/\b(?:phone|mobile|telephone|tel)[-_\s]*(?:number)?\b/i))
+    return profile.identity.phone;
+  if (matches(/\blinked\s*in\b/i)) return profile.links.linkedin;
+  if (matches(/\b(?:portfolio|personal website|website url|github)\b/i))
+    return profile.links.portfolio;
+  if (
+    matches(
+      /\b(?:current )?(?:city|location|city and (?:province|state))\b/i,
+    ) &&
+    !matches(/\b(?:preferred|desired|job) location\b/i)
+  )
+    return profile.identity.location;
+  if (matches(/\b(?:school|college|university|institution)\b/i))
+    return primaryEducation?.school;
+  if (matches(/\b(?:degree|qualification)\b/i)) return primaryEducation?.degree;
+  if (
+    matches(
+      /\b(?:education|school|college|university).{0,40}\bstart(?:ed)?\b/i,
+    ) ||
+    matches(
+      /\bstart(?:ed)?\b.{0,40}\b(?:education|school|college|university)\b/i,
+    )
+  )
+    return primaryEducation?.startDate;
+  if (matches(/\b(?:graduation|graduate|degree end|education end)\b/i))
+    return primaryEducation?.graduationDate;
+  if (matches(/\b(?:available|availability|start work|earliest start)\b/i))
+    return profile.availability.startDate;
+  if (matches(/\brelocat(?:e|ion|ing)\b/i))
+    return profile.availability.relocation;
+  return undefined;
+}
+
 function profileValue(profile: CandidateProfile, field: NormalizedField) {
   const primaryEducation = profile.education[0];
-  const { id, label } = field;
+  const { id } = field;
   const values: Record<string, string | undefined> = {
     "first-name": profile.identity.firstName,
     "last-name": profile.identity.lastName,
@@ -60,7 +134,10 @@ function profileValue(profile: CandidateProfile, field: NormalizedField) {
   };
   if (values[id] !== undefined) return values[id];
 
-  const fingerprint = `${id} ${label}`;
+  const semanticValue = semanticProfileValue(profile, field);
+  if (semanticValue !== undefined) return semanticValue;
+
+  const fingerprint = semanticFingerprint(field);
   const authorization = profile.workAuthorization.canada;
   if (
     id === "work-authorization" ||
@@ -123,7 +200,7 @@ function reviewReason(field: NormalizedField) {
 }
 
 function rememberedValue(field: NormalizedField, answers: RememberedAnswer[]) {
-  const fingerprint = `${field.label} ${field.options.join(" ")}`;
+  const fingerprint = semanticFingerprint(field);
   const isCanadianAuthorization =
     /\b(?:canada|canadian)\b/i.test(fingerprint) &&
     /\b(?:authori[sz](?:ed|ation)|legally eligible|work permit|sponsorship)\b/i.test(

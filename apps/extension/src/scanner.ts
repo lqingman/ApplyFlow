@@ -54,6 +54,22 @@ function nearbyText(element: Element) {
   return normalizeText(legend?.textContent);
 }
 
+function questionText(element: Element, label: string) {
+  const container = element.closest(
+    "fieldset, [role='group'], [role='radiogroup'], [data-question], .question, .field, .form-field",
+  );
+  if (!container) return undefined;
+  const clone = container.cloneNode(true) as HTMLElement;
+  clone
+    .querySelectorAll(
+      "input, textarea, select, option, button, script, style, [aria-hidden='true']",
+    )
+    .forEach((node) => node.remove());
+  const text = normalizeText(clone.textContent);
+  if (!text || text === label) return undefined;
+  return text.slice(0, 500);
+}
+
 export function extractFieldLabel(element: Element, document: Document) {
   if (
     element instanceof HTMLInputElement ||
@@ -118,6 +134,7 @@ function isSensitive(element: Element, label: string) {
     return true;
   const fingerprint = [
     label,
+    questionText(element, label),
     element.id,
     element.getAttribute("name"),
     element.getAttribute("autocomplete"),
@@ -175,6 +192,24 @@ function normalizedValue(element: ScannableElement) {
   return normalizeText(
     element.getAttribute("aria-valuetext") || element.textContent,
   );
+}
+
+function fieldMetadata(element: ScannableElement, label: string) {
+  const name = normalizeText(element.getAttribute("name")) || undefined;
+  const autocomplete =
+    normalizeText(element.getAttribute("autocomplete")) || undefined;
+  const inputType =
+    element instanceof HTMLInputElement
+      ? element.type.toLowerCase()
+      : undefined;
+  const context = questionText(element, label);
+  if (!name && !autocomplete && !inputType && !context) return undefined;
+  return {
+    ...(name ? { name } : {}),
+    ...(autocomplete ? { autocomplete } : {}),
+    ...(inputType ? { inputType } : {}),
+    ...(context ? { questionText: context } : {}),
+  };
 }
 
 function characterLimitFromText(text: string) {
@@ -259,6 +294,7 @@ export function scanDocument(document: Document): NormalizedField[] {
         element.closest("fieldset")?.querySelector("legend")?.textContent,
       );
       label = legend || label;
+      const metadata = fieldMetadata(element, label);
       fields.push({
         id: element.name,
         label,
@@ -266,6 +302,7 @@ export function scanDocument(document: Document): NormalizedField[] {
         required: group.some((radio) => radio.required),
         value: group.find((radio) => radio.checked)?.value ?? "",
         options: group.map((radio) => optionLabel(radio, document)),
+        ...(metadata ? { metadata } : {}),
       });
       return;
     }
@@ -279,6 +316,7 @@ export function scanDocument(document: Document): NormalizedField[] {
           ? customOptions(element)
           : [];
 
+    const metadata = fieldMetadata(element, label);
     const field: NormalizedField = {
       id: identifier(element, index),
       label,
@@ -288,6 +326,7 @@ export function scanDocument(document: Document): NormalizedField[] {
         element.getAttribute("aria-required") === "true",
       value: normalizedValue(element),
       options,
+      ...(metadata ? { metadata } : {}),
     };
 
     const maxLength = readCharacterLimit(element, document);

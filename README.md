@@ -143,6 +143,8 @@ The supported and tested environment today is the local Northstar Labs applicati
 
 Online support will be introduced as a compatibility pilot: validate ordinary HTML forms first, then selected ATS platforms one at a time. Each advertised site must pass repeatable tests covering semantic field classification, custom controls, dynamic and multi-step forms, iframe boundaries, existing-value protection, inline drafting, live limits, and the guarantee that ApplyProof never submits automatically. Universal ATS support remains out of scope.
 
+See the [site compatibility matrix](docs/SITE_COMPATIBILITY.md) for the tested baseline, unsupported platforms, access model, known limitations, and pilot exit criteria.
+
 ## Safety boundaries
 
 ApplyProof must not:

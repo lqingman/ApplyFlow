@@ -265,6 +265,20 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** shared extraction contracts; API contracts, endpoint, providers, and tests; extension resume storage, extraction client, import, attachment, profile UI, browser messaging, tests, `README.md`, and `docs/ROADMAP.md`.
 
+### 2026-07-20 — Phase 5C online-form compatibility baseline
+
+**Goal:** begin online-application support without broadening extension access or advertising an untested ATS integration.
+
+**Human decision:** preserve user-initiated `activeTab` injection with no persistent online-site host permission; validate common semantic HTML patterns before selecting a named ATS; use only bounded question-container text as classification metadata; and keep iframes and complex site-owned widgets explicitly unsupported until a site pilot proves them.
+
+**Codex contribution:** extended normalized field metadata with names, `autocomplete`, input types, and bounded surrounding question text; added conservative semantic mappings for common identity, contact, location, link, education, availability, relocation, and Canadian authorization questions; applied the sensitive-field denylist to the new context signal; added opaque-ID and client-rendered-step compatibility fixtures; added a least-privilege manifest regression test; and documented the supported-site and capability matrices with pilot exit criteria.
+
+**Why GPT-5.6 helped:** the work required balancing broader semantic recognition against false-positive autofill, sensitive-data exclusion, minimum page access, generated ATS identifiers, dynamic form behavior, and evidence strong enough to distinguish a compatibility baseline from an advertised integration.
+
+**Verification:** `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check` pass. The extension suite now has 65 passing tests, including ordinary semantic HTML, later-step rescanning, sensitive context blocking, active-tab injection, no persistent online host access, existing-value protection, and no-submit behavior. The ordinary HTML fixture remains a local compatibility baseline; no named online ATS is marked supported.
+
+**Artifacts:** shared normalized-field contract; extension scanner and autofill classifier; compatibility, scanner, and manifest tests; `docs/SITE_COMPATIBILITY.md`; `README.md`; and `docs/ROADMAP.md`.
+
 ### 2026-07-20 — Fix online-tab access from the side panel
 
 **Goal:** make the least-privilege online-tab workflow actually inject ApplyProof after the user clicks its toolbar action.
