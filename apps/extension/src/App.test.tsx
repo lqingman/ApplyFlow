@@ -437,6 +437,57 @@ describe("profile-first autofill workflow", () => {
     ).toHaveTextContent("Review every field before saving");
   });
 
+  it("replaces existing education with the latest AI resume extraction", async () => {
+    vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
+    vi.mocked(importResumeFile).mockResolvedValue({
+      education: [
+        {
+          school: "Simon Fraser University",
+          degree: "Master of Applied Science",
+          startDate: "2025-09-01",
+          graduationDate: "2027-05-01",
+        },
+      ],
+      experience: [],
+      evidence: [],
+      reviews: [
+        {
+          fieldPath: "education.0.school",
+          sourceText: "Simon Fraser University",
+          confidence: "high",
+        },
+      ],
+      notes: ["AI extraction completed."],
+    });
+    render(<App />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Edit profile" }),
+    );
+
+    fireEvent.change(screen.getByLabelText("Choose Word or PDF resume"), {
+      target: {
+        files: [
+          new File(["updated resume"], "updated.pdf", {
+            type: "application/pdf",
+          }),
+        ],
+      },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("School")).toHaveValue(
+        "Simon Fraser University",
+      ),
+    );
+    expect(screen.getAllByLabelText("School")).toHaveLength(1);
+    expect(screen.getByLabelText("Degree or program")).toHaveValue(
+      "Master of Applied Science",
+    );
+    expect(
+      screen.queryByDisplayValue("University of British Columbia"),
+    ).not.toBeInTheDocument();
+  });
+
   it("replaces My resume file without changing profile fields", async () => {
     vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
     render(<App />);

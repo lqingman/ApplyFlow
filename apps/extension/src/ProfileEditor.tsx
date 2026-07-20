@@ -206,46 +206,23 @@ function profileFromDraft(
   });
 }
 
-function hasEducation(entry: EducationDraft) {
-  return Boolean(entry.school.trim() || entry.degree.trim());
-}
-
 function mergeResume(draft: ProfileDraft, resume: ParsedResume): ProfileDraft {
-  const existingEducation = draft.education.filter(hasEducation);
-  const importedEducation = resume.education
-    .filter(
-      (entry) =>
-        !existingEducation.some(
-          (current) =>
-            current.school.toLowerCase() === entry.school.toLowerCase() &&
-            current.degree.toLowerCase() === entry.degree.toLowerCase(),
-        ),
-    )
-    .map((entry) => ({
-      id: entryId("education"),
-      school: entry.school,
-      degree: entry.degree,
-      startDate: entry.startDate ?? "",
-      graduationDate: entry.graduationDate ?? "",
-    }));
-  const importedExperience = resume.experience
-    .filter(
-      (entry) =>
-        !draft.experience.some(
-          (current) =>
-            current.company.toLowerCase() === entry.company.toLowerCase() &&
-            current.title.toLowerCase() === entry.title.toLowerCase(),
-        ),
-    )
-    .map((entry) => ({
-      id: entryId("experience"),
-      company: entry.company,
-      title: entry.title,
-      location: entry.location ?? "",
-      startDate: entry.startDate ?? "",
-      endDate: entry.endDate ?? "",
-      description: entry.description ?? "",
-    }));
+  const importedEducation = resume.education.map((entry) => ({
+    id: entryId("education"),
+    school: entry.school,
+    degree: entry.degree,
+    startDate: entry.startDate ?? "",
+    graduationDate: entry.graduationDate ?? "",
+  }));
+  const importedExperience = resume.experience.map((entry) => ({
+    id: entryId("experience"),
+    company: entry.company,
+    title: entry.title,
+    location: entry.location ?? "",
+    startDate: entry.startDate ?? "",
+    endDate: entry.endDate ?? "",
+    description: entry.description ?? "",
+  }));
   const currentEvidence = draft.evidenceText
     .split("\n")
     .map((line) => line.trim())
@@ -262,11 +239,10 @@ function mergeResume(draft: ProfileDraft, resume: ParsedResume): ProfileDraft {
     location: resume.location ?? draft.location,
     portfolio: resume.portfolio ?? draft.portfolio,
     linkedin: resume.linkedin ?? draft.linkedin,
-    education:
-      existingEducation.length || importedEducation.length
-        ? [...existingEducation, ...importedEducation]
-        : draft.education,
-    experience: [...draft.experience, ...importedExperience],
+    education: importedEducation.length ? importedEducation : draft.education,
+    experience: importedExperience.length
+      ? importedExperience
+      : draft.experience,
     evidenceText: [...currentEvidence, ...importedEvidence].join("\n"),
   };
 }
