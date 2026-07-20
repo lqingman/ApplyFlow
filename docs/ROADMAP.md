@@ -155,6 +155,11 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Add create, inspect, edit, save, and local reset controls for that profile
 - [x] Keep “Load Maya demo data” as a demo seeding action, not a second selectable profile
 - [x] Add Word (`.docx`) and PDF resume import with editable extraction results
+- [ ] Persist one original Word or PDF resume file locally in extension-owned IndexedDB; never upload it to the ApplyProof API or model provider
+- [ ] Add a `My resume file` area to `My Profile` showing the saved filename, type, size, and last-updated time
+- [ ] Let the user delete or replace the saved resume file; deleting it must not delete or change extracted profile fields
+- [ ] Keep saved-file replacement separate from profile import: uploading in `My resume file` only replaces the local original and never parses, merges, or changes other profile data
+- [ ] Make `Import resume` the explicit parse-and-update action: it updates editable profile fields from the selected resume and also replaces the locally saved original file
 - [x] Support separate LinkedIn and portfolio links, multiple education entries, and work experience
 - [x] Store authorization and sponsorship as two explicit answers; keep demographic answers optional with `Prefer not to say`
 - [ ] Separate stable profile facts from reusable application preferences
@@ -170,6 +175,7 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Keep the side panel limited to profile controls, Scan & Autofill, and progress
 - [x] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
 - [x] Keep generated open-ended answers editable in their application fields
+- [ ] Let a user explicitly attach the locally saved resume to supported application file-upload controls, with a manual fallback for unsupported custom uploaders or cross-origin iframes
 - [x] Preserve existing page values unless the user explicitly regenerates an open-ended answer
 - [x] Exclude denied sensitive fields from scanning without collecting or recording their values
 - [x] Detect character limits across supported ATS implementations
@@ -200,6 +206,11 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Existing page values are never silently overwritten.
 - [x] Denied sensitive fields have no workflow result and no captured value.
 - [x] Mapped confirmations may be checked, while navigation and submission remain manual.
+- [ ] A saved resume survives a browser restart and remains confined to the extension's local IndexedDB until the user replaces, deletes, resets, or uninstalls the extension.
+- [ ] Replacing a file through `My resume file` leaves every other profile value unchanged.
+- [ ] Importing through `Import resume` both replaces the saved original and updates the editable parsed profile.
+- [ ] Deleting the saved original leaves existing parsed profile data intact and prevents resume attachment until another file is saved.
+- [ ] Resume attachment remains user-initiated and never submits the application.
 - [ ] Each advertised online site passes a repeatable scan, fill, inline-review, and no-submit test.
 
 ## Phase 6 — Submission and demo polish
