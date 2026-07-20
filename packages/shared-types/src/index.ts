@@ -22,7 +22,6 @@ export const normalizedFieldSchema = z.object({
   value: z.string(),
   options: z.array(z.string()).default([]),
   maxLength: z.number().int().positive().optional(),
-  maxWords: z.number().int().positive().optional(),
 });
 
 export type NormalizedField = z.infer<typeof normalizedFieldSchema>;
@@ -125,7 +124,6 @@ export const answerDraftFieldSchema = z.object({
   id: z.string().min(1).max(120),
   question: z.string().trim().min(1).max(1000),
   maxCharacters: z.number().int().min(1).max(20000).optional(),
-  maxWords: z.number().int().min(1).max(5000).optional(),
 });
 
 export const answerDraftJobSchema = z.object({

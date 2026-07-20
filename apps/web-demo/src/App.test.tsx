@@ -52,7 +52,6 @@ describe("Northstar Labs application", () => {
     });
     expect(fields.find((field) => field.id === "strengths")).toMatchObject({
       maxLength: 500,
-      maxWords: 80,
     });
   });
 

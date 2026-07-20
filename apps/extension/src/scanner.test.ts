@@ -5,7 +5,6 @@ import {
   extractFieldLabel,
   findField,
   readCharacterLimit,
-  readWordLimit,
   scanDocument,
 } from "./scanner";
 
@@ -97,20 +96,16 @@ describe("page scanner", () => {
     ]);
   });
 
-  it("reads live character and word limits from custom and helper constraints", () => {
+  it("reads live character limits from native, custom, and helper constraints", () => {
     document.body.innerHTML = `
       <textarea id="native" maxlength="300"></textarea>
       <textarea id="custom" data-character-limit="420"></textarea>
       <label>Answer <textarea id="helper"></textarea><small>250 character limit</small></label>
-      <label>Essay <textarea id="words" data-max-words="125"></textarea><small>Maximum 100 words</small></label>
-      <label>Statement <textarea id="word-helper" aria-describedby="word-help"></textarea><small id="word-help">Up to 80 words</small></label>
     `;
 
     expect(readCharacterLimit(document.getElementById("native")!)).toBe(300);
     expect(readCharacterLimit(document.getElementById("custom")!)).toBe(420);
     expect(readCharacterLimit(document.getElementById("helper")!)).toBe(250);
-    expect(readWordLimit(document.getElementById("words")!)).toBe(125);
-    expect(readWordLimit(document.getElementById("word-helper")!)).toBe(80);
   });
 
   it("excludes blocked fields without losing safe controls", () => {

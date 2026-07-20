@@ -73,7 +73,6 @@ export function buildDraftRequest(
       id: field.id,
       question: field.label,
       ...(field.maxLength ? { maxCharacters: field.maxLength } : {}),
-      ...(field.maxWords ? { maxWords: field.maxWords } : {}),
     },
     job: northstarJob,
     evidence: selectEvidence(profile, field, instruction),

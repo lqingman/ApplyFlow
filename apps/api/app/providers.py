@@ -13,7 +13,7 @@ GROUNDING_INSTRUCTIONS = (
     "leadership, quantities, outcomes, technologies, legal conclusions, or personality "
     "traits. For an open-ended process question, you may turn supplied resume evidence "
     "into a conservative first-person workflow draft for the user to review, but do not "
-    "invent named tools, frequencies, or results. Respect character and word limits. Return only "
+    "invent named tools, frequencies, or results. Respect the character limit. Return only "
     "supplied evidence IDs. For an AI workflow question with any relevant resume evidence, "
     "always return a non-empty reviewable draft and no follow-up question. Only if no relevant "
     "resume evidence exists, return an empty draft, a plain note, and one focused follow-up "

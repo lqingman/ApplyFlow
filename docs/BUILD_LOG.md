@@ -189,15 +189,27 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Goal:** complete the page-native workflow guarantees before expanding to online application pilots.
 
-**Human decision:** keep the side panel limited to profile management, the user-initiated Scan & Autofill action, and progress; allow only country-scoped, high-confidence remembered answers to join deterministic profile fills; preserve all existing page values; and enforce both character and word limits without taking navigation or submission actions.
+**Human decision:** keep the side panel limited to profile management, the user-initiated Scan & Autofill action, and progress; allow only country-scoped, high-confidence remembered answers to join deterministic profile fills; preserve all existing page values; and enforce character limits without taking navigation or submission actions.
 
-**Codex contribution:** added a separate schema-validated reusable-answer store with canonical keys, source, confirmation time, scope, and time-dependence metadata; implemented conservative Canadian work-authorization equivalence mapping; added word-limit detection for custom attributes, ARIA descriptions, helper text, and combined character/word messages; carried live limits through the extension and API; and added one-retry plus final server validation for word limits.
+**Codex contribution:** added a separate schema-validated reusable-answer store with canonical keys, source, confirmation time, scope, and time-dependence metadata; implemented conservative Canadian work-authorization equivalence mapping; preserved the existing live character-limit pipeline across custom attributes, ARIA descriptions, helper text, the extension, and the API; and strengthened regression coverage for the page-native safety boundaries.
 
 **Why GPT-5.6 helped:** the work required distinguishing safe semantic equivalence from broad field guessing while coordinating browser metadata extraction, local privacy boundaries, option polarity, cross-language request contracts, provider retries, and deterministic rejection behavior.
 
-**Verification:** automated coverage confirms country-scoped reuse, no cross-country reuse, existing-value preservation, sensitive values absent from scan results, navigation and submission controls excluded from scanning, combined character/word limit discovery, live word-limit refresh, API retry, and final over-limit rejection. Repository formatting, linting, type checks, tests, production builds, and diff checks pass; manual unpacked-extension verification remains pending.
+**Verification:** automated coverage confirms country-scoped reuse, no cross-country reuse, existing-value preservation, sensitive values absent from scan results, navigation and submission controls excluded from scanning, live character-limit discovery, API retry, and final over-limit rejection. Repository formatting, linting, type checks, tests, production builds, and diff checks pass; manual unpacked-extension verification remains pending.
 
-**Artifacts:** shared remembered-answer and limit contracts; extension storage, autofill, scanner, evidence, and inline-assistant code and tests; API contracts, retry, validation, and tests; Northstar word-limit fixture; `README.md`; `docs/ANSWER_GENERATION_DESIGN.md`; and `docs/ROADMAP.md`.
+**Artifacts:** shared remembered-answer contracts; extension storage, autofill, scanner, evidence, and inline-assistant code and tests; API contracts, retry, validation, and tests; `README.md`; `docs/ANSWER_GENERATION_DESIGN.md`; and `docs/ROADMAP.md`.
+
+### 2026-07-19 — Keep application limits character-only
+
+**Goal:** keep the supported limit behavior aligned with the actual Northstar demo and current product scope.
+
+**Human decision:** support character limits only. Word-limit parsing and enforcement are not required for the current workflow.
+
+**Codex contribution:** removed the word-limit fields and logic from the shared contracts, scanner, inline assistant, API retry and validation layers, fixtures, tests, roadmap, and design documentation while preserving all character-limit behavior.
+
+**Verification:** formatting, linting, type checks, tests, production builds, and diff checks pass after the removal.
+
+**Artifacts:** shared contracts; extension scanner, evidence, and inline-assistant code; API contracts, retry, and validation code; Northstar fixture; tests; `README.md`; `docs/ANSWER_GENERATION_DESIGN.md`; and `docs/ROADMAP.md`.
 
 ## Entry template
 

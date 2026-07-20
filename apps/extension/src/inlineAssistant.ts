@@ -3,7 +3,7 @@ import type {
   NormalizedField,
 } from "@applyproof/shared-types";
 
-import { findField, readCharacterLimit, readWordLimit } from "./scanner";
+import { findField, readCharacterLimit } from "./scanner";
 
 type OpenField = HTMLTextAreaElement | HTMLInputElement | HTMLElement;
 type Cleanup = () => void;
@@ -261,12 +261,9 @@ function mountOne(
     try {
       const liveLimit =
         readCharacterLimit(element, document) ?? field.maxLength;
-      const liveWordLimit = readWordLimit(element, document) ?? field.maxWords;
-      const currentField = {
-        ...field,
-        ...(liveLimit ? { maxLength: liveLimit } : {}),
-        ...(liveWordLimit ? { maxWords: liveWordLimit } : {}),
-      };
+      const currentField = liveLimit
+        ? { ...field, maxLength: liveLimit }
+        : field;
       const { response, sources } = await requestDraft(
         currentField,
         prompt.value,

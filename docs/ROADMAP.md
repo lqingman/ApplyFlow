@@ -171,7 +171,7 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Keep generated open-ended answers editable in their application fields
 - [x] Preserve existing page values unless the user explicitly regenerates an open-ended answer
 - [x] Exclude denied sensitive fields from scanning without collecting or recording their values
-- [x] Detect character and word limits across supported ATS implementations
+- [x] Detect character limits across supported ATS implementations
 - [x] Keep Continue, Next, and Submit as user actions
 
 ### 5C — Online application pilot

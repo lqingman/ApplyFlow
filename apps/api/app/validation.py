@@ -67,11 +67,6 @@ def validate_draft(request: AnswerDraftRequest, candidate: ProviderDraft) -> Ans
     )
     if not fits_characters:
         return empty_response(request, "The generated draft exceeded this field's character limit.")
-    word_count = len(re.findall(r"\S+", draft))
-    fits_words = request.field.max_words is None or word_count <= request.field.max_words
-    if not fits_words:
-        return empty_response(request, "The generated draft exceeded this field's word limit.")
-
     return AnswerDraftResponse(
         fieldId=request.field.id,
         draft=draft,

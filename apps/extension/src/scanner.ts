@@ -185,14 +185,6 @@ function characterLimitFromText(text: string) {
   return Number.isInteger(value) && value > 0 ? value : undefined;
 }
 
-function wordLimitFromText(text: string) {
-  const match = text.match(
-    /(?:maximum|max|limit(?:ed)?(?:\s+to)?|up to)\s*:?\s*(\d{1,5})\s*words?|(?:\b(\d{1,5})\s*words?\s*(?:maximum|max|limit)\b)|(?:\b(?:and|,)\s*(\d{1,5})\s*words?\b)/i,
-  );
-  const value = Number(match?.[1] ?? match?.[2] ?? match?.[3]);
-  return Number.isInteger(value) && value > 0 ? value : undefined;
-}
-
 function limitContext(element: Element, document: Document) {
   const describedBy = (element.getAttribute("aria-describedby") ?? "")
     .split(/\s+/)
@@ -227,22 +219,6 @@ export function readCharacterLimit(
   }
 
   return characterLimitFromText(limitContext(element, document));
-}
-
-export function readWordLimit(
-  element: Element,
-  document: Document = element.ownerDocument,
-) {
-  for (const attribute of [
-    "data-maxwords",
-    "data-max-words",
-    "data-word-limit",
-    "aria-maxwords",
-  ]) {
-    const value = Number(element.getAttribute(attribute));
-    if (Number.isInteger(value) && value > 0) return value;
-  }
-  return wordLimitFromText(limitContext(element, document));
 }
 
 export function scanDocument(document: Document): NormalizedField[] {
@@ -316,8 +292,6 @@ export function scanDocument(document: Document): NormalizedField[] {
 
     const maxLength = readCharacterLimit(element, document);
     if (maxLength) field.maxLength = maxLength;
-    const maxWords = readWordLimit(element, document);
-    if (maxWords) field.maxWords = maxWords;
 
     fields.push(field);
   });

@@ -52,7 +52,7 @@ The demo uses:
 4. See saved authorization, gender, and confirmation choices filled with the other profile fields.
 5. See blank open-ended answers generate directly on the application page.
 6. Hover or focus an answer, add an optional instruction, and regenerate it in place.
-7. Confirm character and word limits are respected and edit the generated text before continuing.
+7. Confirm character limits are respected and edit the generated text before continuing.
 
 The demo is successful when a judge can complete this flow locally without an account or personal data.
 
@@ -69,7 +69,7 @@ The demo is successful when a judge can complete this flow locally without an ac
 - Safe insertion with existing-value protection
 - Grounded answers for open-ended questions
 - Inline Generate and Regenerate controls with optional instructions
-- Live character- and word-limit discovery, validation, and automatic over-limit retry
+- Live character-limit discovery, validation, and automatic over-limit retry
 - Sensitive-field blocking
 
 ### Deferred until the demo works
@@ -255,8 +255,8 @@ reload button on `chrome://extensions` and refresh the application page before r
 
 Start the API in keyless fixture mode for deterministic demo answers. The AI-workflow question uses
 resume project, skill, testing, and accessibility evidence to produce a conservative starting draft
-for user review; it does not require a separate confirmation flow. Character and word constraints
-are read from native attributes, custom attributes, ARIA/helper text, and the live field before each request.
+for user review; it does not require a separate confirmation flow. Character constraints are read
+from native attributes, custom attributes, ARIA/helper text, and the live field before each request.
 If a provider still exceeds a known limit, the API retries once with the exact maximum.
 
 For live OpenRouter generation, set `ANSWER_GENERATION_MODE=openrouter` and provide
