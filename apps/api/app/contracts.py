@@ -80,7 +80,14 @@ class ExtractedExperience(ApiModel):
     location: str | None = Field(max_length=300)
     start_date: str | None = Field(alias="startDate", max_length=50)
     end_date: str | None = Field(alias="endDate", max_length=50)
-    description: str | None = Field(max_length=3000)
+    description: str | None = Field(
+        max_length=12000,
+        description=(
+            "The complete work-description or bullet text copied from the resume without "
+            "summarizing, rephrasing, polishing, or adding facts. Preserve the original "
+            "wording and bullet order, separated by newlines."
+        ),
+    )
 
 
 class ExtractionReview(ApiModel):

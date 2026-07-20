@@ -12,7 +12,7 @@ from .contracts import (
     empty_response,
 )
 from .providers import configured_provider, resume_based_ai_fallback
-from .validation import validate_draft
+from .validation import preserve_verbatim_experience_descriptions, validate_draft
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,8 @@ def answer_draft(request: AnswerDraftRequest) -> AnswerDraftResponse:
 )
 def resume_extraction(request: ResumeExtractionRequest) -> ResumeExtraction:
     try:
-        return configured_provider().extract_resume(request)
+        candidate = configured_provider().extract_resume(request)
+        return preserve_verbatim_experience_descriptions(request, candidate)
     except Exception:
         logger.exception("AI resume extraction failed; using deterministic baseline")
         return request.baseline.model_copy(

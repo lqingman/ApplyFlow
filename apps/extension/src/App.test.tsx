@@ -417,6 +417,10 @@ describe("profile-first autofill workflow", () => {
       "Software Developer",
     );
     expect(screen.getByLabelText("Company")).toHaveValue("Example Labs");
+    expect(screen.getByLabelText("Description")).toHaveValue(
+      "Built a tested TypeScript application.",
+    );
+    expect(screen.queryByLabelText("Summary")).not.toBeInTheDocument();
     expect(screen.getByLabelText("One verified fact per line")).toHaveValue(
       "Built a tested TypeScript application.",
     );

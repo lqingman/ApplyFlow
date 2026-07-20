@@ -663,7 +663,7 @@ export function ProfileEditor({
               </label>
             </div>
             <label>
-              Summary
+              Description
               <textarea
                 rows={3}
                 value={entry.description}

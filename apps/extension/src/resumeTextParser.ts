@@ -186,7 +186,7 @@ function parseExperience(lines: string[]): ParsedExperience[] {
         ...(location ? { location } : {}),
         ...splitDateRange(source[dateIndex]),
         ...(descriptionLines.length
-          ? { description: descriptionLines.join(" ") }
+          ? { description: descriptionLines.join("\n") }
           : {}),
       };
     })
