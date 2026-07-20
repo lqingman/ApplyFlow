@@ -157,22 +157,22 @@ These items build on the stable controlled prototype and must be completed befor
 - [ ] Add plain-text and PDF resume import with editable extraction results
 - [x] Require explicit work-authorization and gender choices during profile setup, including `Prefer not to say`
 - [ ] Separate stable profile facts from reusable application preferences
-- [ ] Store reusable answers under canonical keys such as `work_authorization.canada`
-- [ ] Record the answer source, confirmation time, and applicable country or scope
-- [ ] Reuse a saved answer only when the new question maps to the same canonical meaning with high confidence
+- [x] Store reusable answers under canonical keys such as `work_authorization.canada`
+- [x] Record the answer source, confirmation time, and applicable country or scope
+- [x] Reuse a saved answer only when the new question maps to the same canonical meaning with high confidence
 - [ ] Re-review time-dependent preferences such as start date, salary, and relocation when context changes
-- [ ] Never remember or autofill passwords, verification codes, government identifiers, or financial data
+- [x] Never remember or autofill passwords, verification codes, government identifiers, or financial data
 - [ ] Add local privacy controls for viewing, editing, exporting, and deleting saved data
 
 ### 5B — Page-native field workflow
 
-- [ ] Keep the side panel limited to profile controls, Scan & Autofill, and progress
-- [ ] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
-- [ ] Keep generated open-ended answers editable in their application fields
-- [ ] Preserve existing page values unless the user explicitly regenerates an open-ended answer
-- [ ] Exclude denied sensitive fields from scanning without collecting or recording their values
-- [ ] Detect character and word limits across supported ATS implementations
-- [ ] Keep Continue, Next, and Submit as user actions
+- [x] Keep the side panel limited to profile controls, Scan & Autofill, and progress
+- [x] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
+- [x] Keep generated open-ended answers editable in their application fields
+- [x] Preserve existing page values unless the user explicitly regenerates an open-ended answer
+- [x] Exclude denied sensitive fields from scanning without collecting or recording their values
+- [x] Detect character and word limits across supported ATS implementations
+- [x] Keep Continue, Next, and Submit as user actions
 
 ### 5C — Online application pilot
 
@@ -195,10 +195,10 @@ These items build on the stable controlled prototype and must be completed befor
 
 - [x] Returning users can autofill without selecting a profile on every application.
 - [x] Editing `My Profile` changes subsequent deterministic fills.
-- [ ] A saved work-authorization answer fills semantically equivalent questions within its recorded country scope.
-- [ ] Existing page values are never silently overwritten.
-- [ ] Denied sensitive fields have no workflow result and no captured value.
-- [ ] Mapped confirmations may be checked, while navigation and submission remain manual.
+- [x] A saved work-authorization answer fills semantically equivalent questions within its recorded country scope.
+- [x] Existing page values are never silently overwritten.
+- [x] Denied sensitive fields have no workflow result and no captured value.
+- [x] Mapped confirmations may be checked, while navigation and submission remain manual.
 - [ ] Each advertised online site passes a repeatable scan, fill, inline-review, and no-submit test.
 
 ## Phase 6 — Submission and demo polish

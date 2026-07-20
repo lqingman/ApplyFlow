@@ -1,4 +1,5 @@
 import logging
+import re
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +10,10 @@ from .providers import configured_provider, resume_based_ai_fallback
 from .validation import validate_draft
 
 logger = logging.getLogger(__name__)
+
+
+def word_count(value: str) -> int:
+    return len(re.findall(r"\S+", value.strip()))
 
 
 class HealthResponse(BaseModel):
@@ -48,11 +53,27 @@ def answer_draft(request: AnswerDraftRequest) -> AnswerDraftResponse:
     try:
         provider = configured_provider()
         candidate = provider.generate(request)
-        limit = request.field.max_characters
-        if limit is not None and len(candidate.draft.strip()) > limit:
+        character_limit = request.field.max_characters
+        word_limit = request.field.max_words
+        exceeds_characters = (
+            character_limit is not None
+            and len(candidate.draft.strip()) > character_limit
+        )
+        exceeds_words = (
+            word_limit is not None and word_count(candidate.draft) > word_limit
+        )
+        if exceeds_characters or exceeds_words:
+            constraints: list[str] = []
+            if character_limit is not None:
+                constraints.append(
+                    f"no more than {character_limit} characters, including spaces"
+                )
+            if word_limit is not None:
+                constraints.append(f"no more than {word_limit} words")
             instruction = (
-                f"The previous draft exceeded the field limit. Return no more than {limit} "
-                "characters, including spaces. Keep the strongest resume-grounded details."
+                "The previous draft exceeded the field limit. Return "
+                f"{' and '.join(constraints)}. "
+                "Keep the strongest resume-grounded details."
             )
             if request.additional_prompt:
                 instruction = f"{request.additional_prompt}\n\n{instruction}"

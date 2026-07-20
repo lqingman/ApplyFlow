@@ -5,6 +5,7 @@ import {
   extractFieldLabel,
   findField,
   readCharacterLimit,
+  readWordLimit,
   scanDocument,
 } from "./scanner";
 
@@ -96,23 +97,27 @@ describe("page scanner", () => {
     ]);
   });
 
-  it("reads live limits from native, custom, and helper-text constraints", () => {
+  it("reads live character and word limits from custom and helper constraints", () => {
     document.body.innerHTML = `
       <textarea id="native" maxlength="300"></textarea>
       <textarea id="custom" data-character-limit="420"></textarea>
       <label>Answer <textarea id="helper"></textarea><small>250 character limit</small></label>
+      <label>Essay <textarea id="words" data-max-words="125"></textarea><small>Maximum 100 words</small></label>
+      <label>Statement <textarea id="word-helper" aria-describedby="word-help"></textarea><small id="word-help">Up to 80 words</small></label>
     `;
 
     expect(readCharacterLimit(document.getElementById("native")!)).toBe(300);
     expect(readCharacterLimit(document.getElementById("custom")!)).toBe(420);
     expect(readCharacterLimit(document.getElementById("helper")!)).toBe(250);
+    expect(readWordLimit(document.getElementById("words")!)).toBe(125);
+    expect(readWordLimit(document.getElementById("word-helper")!)).toBe(80);
   });
 
   it("excludes blocked fields without losing safe controls", () => {
     document.body.innerHTML = `
-      <label>Password <input id="password" type="password"></label>
-      <label>Social insurance number <input id="sin"></label>
-      <label>Bank account <input name="bankAccount"></label>
+      <label>Password <input id="password" type="password" value="secret-password"></label>
+      <label>Social insurance number <input id="sin" value="123-456-789"></label>
+      <label>Bank account <input name="bankAccount" value="00012345"></label>
       <label>First name <input id="first-name"></label>
     `;
 
@@ -120,6 +125,22 @@ describe("page scanner", () => {
       "first-name",
     ]);
     expect(countBlockedFields(document)).toBe(3);
+    expect(JSON.stringify(scanDocument(document))).not.toMatch(
+      /secret-password|123-456-789|00012345/,
+    );
+  });
+
+  it("does not scan navigation or submission controls", () => {
+    document.body.innerHTML = `
+      <label>First name <input id="first-name"></label>
+      <input type="button" id="next" value="Next">
+      <input type="submit" id="submit" value="Submit application">
+      <button id="continue">Continue</button>
+    `;
+
+    expect(scanDocument(document).map((field) => field.id)).toEqual([
+      "first-name",
+    ]);
   });
 
   it("supports practical ARIA custom controls", () => {

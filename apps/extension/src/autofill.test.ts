@@ -98,4 +98,39 @@ describe("safe autofill planning", () => {
       { fieldId: "work-authorization", value: "Prefer not to say" },
     ]);
   });
+
+  it("reuses a scoped answer only for a high-confidence equivalent question", () => {
+    const remembered = [
+      {
+        canonicalKey: "work_authorization.canada",
+        value: "Authorized to work in Canada",
+        source: "explicit_profile_choice" as const,
+        confirmedAt: "2026-07-19T20:00:00.000Z",
+        scope: { country: "CA" },
+        timeDependent: false,
+      },
+    ];
+    const { fills } = planAutofill(
+      mayaProfile,
+      [
+        field("eligibility-question", {
+          label: "Are you legally authorized to work in Canada?",
+          kind: "select",
+          options: ["Yes", "No"],
+        }),
+        field("us-eligibility", {
+          label: "Are you legally authorized to work in the United States?",
+          kind: "select",
+        }),
+      ],
+      remembered,
+    );
+
+    expect(fills).toEqual([
+      {
+        fieldId: "eligibility-question",
+        value: "Yes",
+      },
+    ]);
+  });
 });

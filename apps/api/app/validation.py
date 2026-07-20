@@ -61,9 +61,16 @@ def validate_draft(request: AnswerDraftRequest, candidate: ProviderDraft) -> Ans
         return empty_response(request, "The draft included a technology absent from the evidence.")
 
     count = len(draft)
-    fits = request.field.max_characters is None or count <= request.field.max_characters
-    if not fits:
+    fits_characters = (
+        request.field.max_characters is None
+        or count <= request.field.max_characters
+    )
+    if not fits_characters:
         return empty_response(request, "The generated draft exceeded this field's character limit.")
+    word_count = len(re.findall(r"\S+", draft))
+    fits_words = request.field.max_words is None or word_count <= request.field.max_words
+    if not fits_words:
+        return empty_response(request, "The generated draft exceeded this field's word limit.")
 
     return AnswerDraftResponse(
         fieldId=request.field.id,

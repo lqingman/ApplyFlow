@@ -152,4 +152,45 @@ describe("inline writing assistant", () => {
       "My existing answer",
     );
   });
+
+  it("refreshes a live word limit before regeneration", async () => {
+    document.body.innerHTML = `
+      <textarea id="project" aria-describedby="project-limit">Existing answer</textarea>
+      <small id="project-limit">Maximum 60 words</small>
+    `;
+    const sendMessage = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        response: {
+          fieldId: "project",
+          draft: "A concise grounded answer.",
+          evidenceIds: ["project-campus-map"],
+          notes: [],
+          followUpQuestion: null,
+          characterCount: 26,
+          fitsLimit: true,
+        },
+        sources: [],
+      })
+      .mockResolvedValueOnce(undefined);
+    vi.stubGlobal("chrome", { runtime: { sendMessage } });
+
+    mountInlineAssistants(document, [field]);
+    document
+      .querySelector<HTMLElement>(
+        '[data-applyproof-inline-assistant="project"]',
+      )
+      ?.shadowRoot?.querySelector<HTMLButtonElement>("button")
+      ?.click();
+
+    await vi.waitFor(() =>
+      expect(sendMessage).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          field: expect.objectContaining({ maxWords: 60 }),
+        }),
+      ),
+    );
+  });
 });

@@ -22,6 +22,7 @@ export const normalizedFieldSchema = z.object({
   value: z.string(),
   options: z.array(z.string()).default([]),
   maxLength: z.number().int().positive().optional(),
+  maxWords: z.number().int().positive().optional(),
 });
 
 export type NormalizedField = z.infer<typeof normalizedFieldSchema>;
@@ -104,10 +105,27 @@ export const candidateProfileSchema = z.object({
 
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 
+export const rememberedAnswerSchema = z.object({
+  canonicalKey: z.string().regex(/^[a-z][a-z0-9_.-]+$/),
+  value: z.string().min(1),
+  source: z.enum(["explicit_profile_choice", "user_confirmed"]),
+  confirmedAt: z.string().datetime(),
+  scope: z.object({
+    country: z.string().length(2).optional(),
+    context: z.string().min(1).optional(),
+  }),
+  timeDependent: z.boolean(),
+});
+
+export type RememberedAnswer = z.infer<typeof rememberedAnswerSchema>;
+
+export const rememberedAnswersSchema = z.array(rememberedAnswerSchema).max(100);
+
 export const answerDraftFieldSchema = z.object({
   id: z.string().min(1).max(120),
   question: z.string().trim().min(1).max(1000),
   maxCharacters: z.number().int().min(1).max(20000).optional(),
+  maxWords: z.number().int().min(1).max(5000).optional(),
 });
 
 export const answerDraftJobSchema = z.object({

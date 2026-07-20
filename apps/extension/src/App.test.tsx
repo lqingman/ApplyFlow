@@ -15,7 +15,12 @@ import {
   fillActivePage,
   scanActivePage,
 } from "./browser";
-import { loadMyProfile, resetMyProfile, saveMyProfile } from "./profileStorage";
+import {
+  loadMyProfile,
+  loadRememberedAnswers,
+  resetMyProfile,
+  saveMyProfile,
+} from "./profileStorage";
 
 vi.mock("./answerApi", () => ({ generateAnswerDraft: vi.fn() }));
 
@@ -69,6 +74,7 @@ vi.mock("./browser", () => ({
 
 vi.mock("./profileStorage", () => ({
   loadMyProfile: vi.fn(),
+  loadRememberedAnswers: vi.fn(),
   saveMyProfile: vi.fn(),
   resetMyProfile: vi.fn(),
 }));
@@ -77,6 +83,7 @@ describe("profile-first autofill workflow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(loadMyProfile).mockResolvedValue(null);
+    vi.mocked(loadRememberedAnswers).mockResolvedValue([]);
     vi.mocked(saveMyProfile).mockImplementation(async (profile) => profile);
     vi.mocked(resetMyProfile).mockResolvedValue(undefined);
   });
@@ -282,5 +289,20 @@ describe("profile-first autofill workflow", () => {
     expect(
       screen.getByRole("button", { name: "Create My Profile" }),
     ).toBeInTheDocument();
+  });
+
+  it("offers recovery when saved local data is unreadable", async () => {
+    vi.mocked(loadRememberedAnswers).mockRejectedValue(
+      new Error("Saved application preferences could not be read."),
+    );
+    render(<App />);
+
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Delete unreadable local data",
+      }),
+    );
+
+    await waitFor(() => expect(resetMyProfile).toHaveBeenCalledOnce());
   });
 });

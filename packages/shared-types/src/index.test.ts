@@ -5,6 +5,7 @@ import {
   answerDraftResponseSchema,
   normalizedFieldSchema,
   pageScanSchema,
+  rememberedAnswerSchema,
 } from "./index";
 
 describe("shared contracts", () => {
@@ -73,5 +74,18 @@ describe("shared contracts", () => {
         },
       ],
     });
+  });
+
+  it("validates canonical, scoped reusable answers", () => {
+    expect(
+      rememberedAnswerSchema.parse({
+        canonicalKey: "work_authorization.canada",
+        value: "Authorized to work in Canada",
+        source: "explicit_profile_choice",
+        confirmedAt: "2026-07-19T20:00:00.000Z",
+        scope: { country: "CA" },
+        timeDependent: false,
+      }),
+    ).toMatchObject({ scope: { country: "CA" } });
   });
 });

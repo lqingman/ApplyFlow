@@ -50,6 +50,10 @@ describe("Northstar Labs application", () => {
       kind: "textarea",
       maxLength: 500,
     });
+    expect(fields.find((field) => field.id === "strengths")).toMatchObject({
+      maxLength: 500,
+      maxWords: 80,
+    });
   });
 
   it("safely autofills the complete deterministic Phase 3 mapping", () => {
@@ -72,5 +76,8 @@ describe("Northstar Labs application", () => {
     );
     expect(screen.getByLabelText("Woman")).toBeChecked();
     expect(screen.getByLabelText(/I confirm that I reviewed/)).toBeChecked();
+    expect(
+      screen.getByRole("button", { name: "Submit application" }),
+    ).not.toBeDisabled();
   });
 });

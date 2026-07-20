@@ -103,9 +103,9 @@ AI-workflow questions no longer require a separate `confirmed-ai-workflow` recor
 
 When the user supplies an extra instruction, the request may include up to twenty verified profile evidence records so the provider can follow instructions such as “use the campus map project.” The backend still rejects returned evidence IDs that were not supplied.
 
-## Character-limit handling
+## Character- and word-limit handling
 
-Character constraints are enforced at three layers.
+Character and word constraints are enforced at three layers.
 
 ### 1. Scan-time discovery
 
@@ -113,22 +113,21 @@ The scanner reads limits from:
 
 - native `maxlength`;
 - custom attributes such as `data-maxlength`, `data-max-length`, `data-character-limit`, and `aria-maxlength`;
+- word-limit attributes such as `data-maxwords`, `data-max-words`, `data-word-limit`, and `aria-maxwords`;
 - `aria-describedby` text;
-- nearby helper text such as “Maximum 500 characters” or “250 character limit.”
+- nearby helper text such as “Maximum 500 characters,” “250 character limit,” or “Maximum 80 words.”
 
 ### 2. Generate-time refresh
 
 Every Generate or Regenerate action re-reads the current field rather than relying only on the initial scan. This supports dynamic ATS forms that reveal or change a limit after interaction.
 
-The live value is sent as `field.maxCharacters`. Supported API limits are 1–20,000 characters.
+Live values are sent as `field.maxCharacters` and `field.maxWords`. Supported API limits are 1–20,000 characters and 1–5,000 words.
 
 ### 3. Backend validation and retry
 
-The backend recalculates the returned draft length. If the provider exceeds the known limit, ApplyProof retries once with an explicit instruction containing the exact maximum and asks it to retain only the strongest grounded details.
+The backend recalculates the returned character and word counts. If the provider exceeds a known limit, ApplyProof retries once with an explicit instruction containing every exact maximum and asks it to retain only the strongest grounded details.
 
 If the second result is still too long, validation returns an empty draft and an explanatory note. The content script does not insert an over-limit result.
-
-Word limits are not yet parsed; the current implementation handles character limits.
 
 ## Additional prompt behavior
 
@@ -256,8 +255,8 @@ The backend validates every provider result:
 2. Every evidence ID was supplied by the extension.
 3. Company names do not drift to another employer.
 4. Leadership, numerical, and technology claims are supported.
-5. Character count is recalculated.
-6. A known character limit is respected, with one retry when needed.
+5. Character and word counts are recalculated.
+6. Known character and word limits are respected, with one retry when needed.
 7. Invalid structured output is rejected.
 
 Resume-based process answers may conservatively describe review, testing, and verification practices, but should not introduce named tools, frequencies, or results unsupported by the profile.
@@ -292,7 +291,7 @@ Automated tests cover:
 - true DOM checkbox selection and framework events;
 - inline assistant mounting, automatic first generation, regeneration, and existing-value preservation;
 - optional prompt propagation and expanded evidence selection;
-- native, custom-attribute, ARIA, and helper-text character limits;
+- native, custom-attribute, ARIA, and helper-text character and word limits;
 - live-limit refresh immediately before generation;
 - one backend retry for an over-limit provider result;
 - strict provider schemas and evidence-ID validation;
@@ -307,7 +306,7 @@ Automated tests cover:
 - Hover or focus reveals an inline Regenerate control and optional instruction.
 - Generated drafts are editable in the real application field.
 - AI-workflow questions receive a resume-based draft rather than requiring a profile follow-up flow.
-- Known character limits are sent to the provider and enforced with one retry.
+- Known character and word limits are sent to the provider and enforced with one retry.
 - Work authorization, gender, and accuracy confirmation fill from the current profile/workflow rules.
 - The side panel does not duplicate field summaries or review queues.
 - Continue, Next, and Submit remain user actions.

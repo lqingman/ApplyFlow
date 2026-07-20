@@ -222,7 +222,7 @@ export function App() {
                 <label>
                   What makes you a strong candidate?
                   <textarea id="strengths" name="strengths" maxLength={500} />
-                  <small>Maximum 500 characters</small>
+                  <small>Maximum 500 characters and 80 words</small>
                 </label>
               </div>
             </section>

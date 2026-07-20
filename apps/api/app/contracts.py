@@ -11,6 +11,7 @@ class DraftField(ApiModel):
     id: str = Field(min_length=1, max_length=120)
     question: str = Field(min_length=1, max_length=1000)
     max_characters: int | None = Field(default=None, alias="maxCharacters", ge=1, le=20000)
+    max_words: int | None = Field(default=None, alias="maxWords", ge=1, le=5000)
 
 
 class JobContext(ApiModel):

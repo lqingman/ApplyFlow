@@ -2,6 +2,7 @@ import type {
   CandidateProfile,
   FieldFill,
   NormalizedField,
+  RememberedAnswer,
 } from "@applyproof/shared-types";
 
 export type FieldDecision = {
@@ -43,12 +44,53 @@ function reviewReason(field: NormalizedField) {
   return "No verified profile mapping is available for this required field.";
 }
 
+function rememberedValue(field: NormalizedField, answers: RememberedAnswer[]) {
+  const fingerprint = `${field.label} ${field.options.join(" ")}`;
+  const isCanadianAuthorization =
+    /\b(?:canada|canadian)\b/i.test(fingerprint) &&
+    /\b(?:authori[sz](?:ed|ation)|legally eligible|work permit|sponsorship)\b/i.test(
+      fingerprint,
+    );
+  if (!isCanadianAuthorization) return undefined;
+  const answer = answers.find(
+    (answer) =>
+      answer.canonicalKey === "work_authorization.canada" &&
+      answer.scope.country === "CA" &&
+      !answer.timeDependent,
+  );
+  if (!answer) return undefined;
+
+  const exactOption = field.options.find(
+    (option) => option.toLowerCase() === answer.value.toLowerCase(),
+  );
+  if (exactOption) return exactOption;
+
+  const option = (...candidates: string[]) =>
+    field.options.find((item) =>
+      candidates.some(
+        (candidate) => item.trim().toLowerCase() === candidate.toLowerCase(),
+      ),
+    );
+  if (/\bsponsorship\b/i.test(field.label)) {
+    if (answer.value === "Authorized to work in Canada")
+      return option("No", "No sponsorship required");
+    if (answer.value === "Require sponsorship now or in the future")
+      return option("Yes", "Sponsorship required");
+  }
+  if (answer.value === "Authorized to work in Canada")
+    return option("Yes", "I am authorized");
+  return undefined;
+}
+
 export function planAutofill(
   profile: CandidateProfile,
   fields: NormalizedField[],
+  rememberedAnswers: RememberedAnswer[] = [],
 ) {
   const decisions: FieldDecision[] = fields.map((field) => {
-    const value = profileValue(profile, field.id);
+    const value =
+      profileValue(profile, field.id) ??
+      rememberedValue(field, rememberedAnswers);
     if (value !== undefined) {
       if (field.value.trim()) {
         return {

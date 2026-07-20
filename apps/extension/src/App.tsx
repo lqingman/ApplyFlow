@@ -4,6 +4,7 @@ import type {
   CandidateProfile,
   FillResult,
   NormalizedField,
+  RememberedAnswer,
 } from "@applyproof/shared-types";
 
 import { planAutofill, type FieldDecision } from "./autofill";
@@ -15,7 +16,12 @@ import {
 import { generateAnswerDraft } from "./answerApi";
 import { buildDraftRequest } from "./evidence";
 import { ProfileEditor } from "./ProfileEditor";
-import { loadMyProfile, resetMyProfile, saveMyProfile } from "./profileStorage";
+import {
+  loadMyProfile,
+  loadRememberedAnswers,
+  resetMyProfile,
+  saveMyProfile,
+} from "./profileStorage";
 
 type WorkflowStatus = "idle" | "working" | "complete" | "error";
 const genderLabels = {
@@ -52,13 +58,17 @@ export function App() {
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [rememberedAnswers, setRememberedAnswers] = useState<
+    RememberedAnswer[]
+  >([]);
   const [status, setStatus] = useState<WorkflowStatus>("idle");
   const [message, setMessage] = useState("Loading My Profile…");
 
   useEffect(() => {
-    void loadMyProfile()
-      .then((saved) => {
+    void Promise.all([loadMyProfile(), loadRememberedAnswers()])
+      .then(([saved, answers]) => {
         setProfile(saved);
+        setRememberedAnswers(answers);
         setMessage(
           saved
             ? "My Profile is ready for safe autofill."
@@ -74,7 +84,9 @@ export function App() {
 
   async function handleProfileSave(updated: CandidateProfile) {
     const saved = await saveMyProfile(updated);
+    const answers = await loadRememberedAnswers();
     setProfile(saved);
+    setRememberedAnswers(answers);
     setEditingProfile(false);
     setStatus("idle");
     setMessage("My Profile was saved locally and is ready for autofill.");
@@ -84,7 +96,9 @@ export function App() {
     setStatus("working");
     try {
       const saved = await saveMyProfile({ ...mayaProfile, id: "my-profile" });
+      const answers = await loadRememberedAnswers();
       setProfile(saved);
+      setRememberedAnswers(answers);
       setEditingProfile(false);
       setStatus("idle");
       setMessage("Maya demo data was loaded into My Profile.");
@@ -98,6 +112,7 @@ export function App() {
     try {
       await resetMyProfile();
       setProfile(null);
+      setRememberedAnswers([]);
       setEditingProfile(false);
       setStatus("idle");
       setMessage("Local profile data was deleted from this browser.");
@@ -113,7 +128,7 @@ export function App() {
     setMessage("Scanning fields and applying verified profile data…");
     try {
       const scan = await scanActivePage();
-      const plan = planAutofill(profile, scan.fields);
+      const plan = planAutofill(profile, scan.fields, rememberedAnswers);
       const results = await fillActivePage(plan.fills);
       const completed = applyFillResults(plan.decisions, results);
       const mountedCount = await enableInlineAssistants(scan.fields);
@@ -270,6 +285,15 @@ export function App() {
             >
               Load Maya demo data
             </button>
+            {status === "error" && (
+              <button
+                className="text-button danger demo-seed-button"
+                type="button"
+                onClick={() => void handleReset()}
+              >
+                Delete unreadable local data
+              </button>
+            )}
           </div>
         )}
       </section>

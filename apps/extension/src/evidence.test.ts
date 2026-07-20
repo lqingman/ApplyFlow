@@ -15,11 +15,12 @@ const field = {
 
 describe("answer evidence selection", () => {
   it("selects only the relevant project record and limited job context", () => {
-    const request = buildDraftRequest(mayaProfile, field);
+    const request = buildDraftRequest(mayaProfile, { ...field, maxWords: 90 });
     expect(request.evidence.map((record) => record.id)).toEqual([
       "project-campus-map",
     ]);
     expect(request.field.maxCharacters).toBe(700);
+    expect(request.field.maxWords).toBe(90);
     expect(request.job).toMatchObject({
       company: "Northstar Labs",
       role: "Junior Software Engineer",
