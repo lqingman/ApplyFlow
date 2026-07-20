@@ -123,7 +123,7 @@ Deterministic values and mapped checkboxes are inserted after the user initiates
 
 The complete open-ended-question workflow, API contract, evidence rules, fixture mode, OpenRouter mode, memory policy, and failure behavior are defined in [the grounded answer generation design](docs/ANSWER_GENERATION_DESIGN.md).
 
-Resume files are parsed locally in the extension and are not uploaded or retained. Import supports Word `.docx` and text-based `.pdf` files up to 10 MB. Extracted identity, contact, education, and evidence values remain editable before saving. Legacy `.doc`, encrypted PDFs, and scanned image-only PDFs without a text layer are not supported; explicit application choices are never inferred from resume text.
+Resume files are parsed locally in the extension and are not uploaded or retained. Import supports Word `.docx` and text-based `.pdf` files up to 10 MB. Extracted identity, city/region, separate portfolio and LinkedIn links, multiple education records, work experience, and evidence remain editable before saving. Profile setup does not ask for a headline. Legacy `.doc`, encrypted PDFs, and scanned image-only PDFs without a text layer are not supported; explicit application choices are never inferred from resume text.
 
 ## Planned product workflow before final demo polish
 

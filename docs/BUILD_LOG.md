@@ -225,6 +225,20 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** `apps/extension/src/resumeImport.ts`, `resumeTextParser.ts`, `ProfileEditor.tsx`, styles and tests; extension dependencies; `README.md`; and `docs/ROADMAP.md`.
 
+### 2026-07-19 — Expand parsed profile structure
+
+**Goal:** correct the first resume-import model after testing it with real profile expectations.
+
+**Human decision:** remove the headline field; store LinkedIn separately from portfolio/GitHub; support multiple education records and multiple work-experience records; and treat location as city/region rather than an arbitrary comma-containing resume line.
+
+**Codex contribution:** migrated the shared profile schema while retaining compatibility with previously saved single-education profiles; rebuilt the Profile editor with repeatable education and experience cards; added LinkedIn; updated deterministic autofill to use primary education; reconstructed PDF lines from text coordinates before parsing; narrowed name and header-location recognition; and parsed repeated education and experience sections into editable records.
+
+**Why GPT-5.6 helped:** the correction required connecting UI feedback to underlying schema limitations, document-coordinate behavior, migration safety, repeated-section parsing, autofill compatibility, and conservative location extraction rather than patching individual labels.
+
+**Verification:** tests cover legacy profile migration, coordinate-based PDF name reconstruction, separate LinkedIn extraction, city/region extraction, two education records, two work-experience records, editable imported fields, and explicit-choice non-inference. Full repository checks and the production extension build pass before completion.
+
+**Artifacts:** shared profile contracts; Maya fixture; extension profile editor, parser, PDF import, autofill, styles, and tests; `README.md`; and `docs/ROADMAP.md`.
+
 ## Entry template
 
 Copy this section for the next milestone:

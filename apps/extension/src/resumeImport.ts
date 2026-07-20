@@ -26,12 +26,38 @@ async function textFromPdf(file: File) {
     for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
       const page = await document.getPage(pageNumber);
       const content = await page.getTextContent();
-      let pageText = "";
-      for (const item of content.items) {
-        if (!("str" in item)) continue;
-        pageText += `${item.str}${item.hasEOL ? "\n" : " "}`;
-      }
-      pages.push(pageText.trim());
+      const positioned = content.items
+        .filter(
+          (item): item is typeof item & { str: string; transform: number[] } =>
+            "str" in item &&
+            "transform" in item &&
+            Array.isArray(item.transform),
+        )
+        .map((item) => ({
+          text: item.str.trim(),
+          x: item.transform[4] ?? 0,
+          y: item.transform[5] ?? 0,
+        }))
+        .filter((item) => item.text);
+      const rows: Array<{ y: number; items: typeof positioned }> = [];
+      positioned.forEach((item) => {
+        const row = rows.find(
+          (candidate) => Math.abs(candidate.y - item.y) < 2,
+        );
+        if (row) row.items.push(item);
+        else rows.push({ y: item.y, items: [item] });
+      });
+      pages.push(
+        rows
+          .sort((left, right) => right.y - left.y)
+          .map((row) =>
+            row.items
+              .sort((left, right) => left.x - right.x)
+              .map((item) => item.text)
+              .join(" "),
+          )
+          .join("\n"),
+      );
     }
     return pages.join("\n");
   } finally {

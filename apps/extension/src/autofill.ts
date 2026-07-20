@@ -13,22 +13,24 @@ export type FieldDecision = {
 };
 
 function profileValue(profile: CandidateProfile, fieldId: string) {
+  const primaryEducation = profile.education[0];
   const workAuthorization = {
     authorized: "Authorized to work in Canada",
     requires_sponsorship: "Require sponsorship now or in the future",
     prefer_discuss: "Prefer to discuss",
     decline: "Prefer not to say",
   } as const;
-  const values: Record<string, string> = {
+  const values: Record<string, string | undefined> = {
     "first-name": profile.identity.firstName,
     "last-name": profile.identity.lastName,
     email: profile.identity.email,
     phone: profile.identity.phone,
     location: profile.identity.location,
     portfolio: profile.links.portfolio,
-    school: profile.education.school,
-    degree: profile.education.degree,
-    "graduation-date": profile.education.graduationDate,
+    linkedin: profile.links.linkedin,
+    school: primaryEducation?.school,
+    degree: primaryEducation?.degree,
+    "graduation-date": primaryEducation?.graduationDate,
     "start-date": profile.availability.startDate,
     relocation: profile.availability.relocation,
     "work-authorization": workAuthorization[profile.workAuthorization.canada],

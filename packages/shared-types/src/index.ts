@@ -65,10 +65,30 @@ export const evidenceRecordSchema = z.object({
 
 export type EvidenceRecord = z.infer<typeof evidenceRecordSchema>;
 
-export const candidateProfileSchema = z.object({
+export const educationRecordSchema = z.object({
+  id: z.string().min(1),
+  school: z.string().min(1),
+  degree: z.string().min(1),
+  graduationDate: z.string().min(1).optional(),
+});
+
+export type EducationRecord = z.infer<typeof educationRecordSchema>;
+
+export const experienceRecordSchema = z.object({
+  id: z.string().min(1),
+  company: z.string().min(1),
+  title: z.string().min(1),
+  location: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export type ExperienceRecord = z.infer<typeof experienceRecordSchema>;
+
+const currentCandidateProfileSchema = z.object({
   id: z.string().min(1),
   displayName: z.string().min(1),
-  headline: z.string().min(1),
   identity: z.object({
     firstName: z.string().min(1),
     lastName: z.string().min(1),
@@ -77,13 +97,11 @@ export const candidateProfileSchema = z.object({
     location: z.string().min(1),
   }),
   links: z.object({
-    portfolio: z.string().url(),
+    portfolio: z.string().url().optional(),
+    linkedin: z.string().url().optional(),
   }),
-  education: z.object({
-    school: z.string().min(1),
-    degree: z.string().min(1),
-    graduationDate: z.string().min(1),
-  }),
+  education: z.array(educationRecordSchema).min(1),
+  experience: z.array(experienceRecordSchema).default([]),
   availability: z.object({
     startDate: z.string().min(1),
     relocation: z.enum(["yes", "no"]),
@@ -101,6 +119,20 @@ export const candidateProfileSchema = z.object({
   }),
   evidence: z.array(evidenceRecordSchema),
 });
+
+export const candidateProfileSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object") return value;
+  const candidate = value as Record<string, unknown>;
+  const education = candidate.education;
+  if (education && typeof education === "object" && !Array.isArray(education)) {
+    return {
+      ...candidate,
+      education: [{ id: "education-1", ...education }],
+      experience: candidate.experience ?? [],
+    };
+  }
+  return value;
+}, currentCandidateProfileSchema);
 
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 

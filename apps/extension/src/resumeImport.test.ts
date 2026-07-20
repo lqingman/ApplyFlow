@@ -38,9 +38,27 @@ describe("resume file import", () => {
         getPage: vi.fn().mockResolvedValue({
           getTextContent: vi.fn().mockResolvedValue({
             items: [
-              { str: "Jordan Lee", hasEOL: true },
-              { str: "Software Developer", hasEOL: true },
-              { str: "jordan@example.com", hasEOL: false },
+              { str: "Lee", hasEOL: false, transform: [1, 0, 0, 1, 100, 700] },
+              {
+                str: "jordan@example.com",
+                hasEOL: false,
+                transform: [1, 0, 0, 1, 50, 660],
+              },
+              {
+                str: "Jordan",
+                hasEOL: false,
+                transform: [1, 0, 0, 1, 50, 700],
+              },
+              {
+                str: "Software Developer",
+                hasEOL: false,
+                transform: [1, 0, 0, 1, 50, 680],
+              },
+              {
+                str: "Vancouver, BC",
+                hasEOL: false,
+                transform: [1, 0, 0, 1, 50, 640],
+              },
             ],
           }),
         }),
@@ -71,6 +89,7 @@ describe("resume file import", () => {
       firstName: "Jordan",
       lastName: "Lee",
       email: "jordan@example.com",
+      location: "Vancouver, BC",
     });
     expect(destroy).toHaveBeenCalledOnce();
   });

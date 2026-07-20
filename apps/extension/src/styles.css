@@ -295,6 +295,33 @@ select {
   line-height: 1.5;
 }
 
+.repeatable-heading,
+.repeatable-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.repeatable-heading .text-button,
+.repeatable-card-heading .text-button {
+  margin: 0;
+}
+
+.repeatable-card {
+  display: grid;
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid #dce5df;
+  border-radius: 10px;
+  background: #fafcfb;
+}
+
+.repeatable-card-heading strong {
+  color: #405a4d;
+  font-size: 10px;
+}
+
 .brand-mark {
   display: grid;
   width: 42px;

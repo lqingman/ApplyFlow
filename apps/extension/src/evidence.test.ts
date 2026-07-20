@@ -48,4 +48,22 @@ describe("answer evidence selection", () => {
     );
     expect(request.evidence).toEqual(mayaProfile.evidence);
   });
+
+  it("uses dynamically imported resume evidence when demo record IDs are absent", () => {
+    const importedProfile = {
+      ...mayaProfile,
+      evidence: [
+        {
+          id: "profile-evidence-1",
+          category: "profile" as const,
+          text: "Designed and shipped a customer dashboard in React.",
+          source: "Imported resume",
+        },
+      ],
+    };
+
+    expect(selectEvidence(importedProfile, field)).toEqual(
+      importedProfile.evidence,
+    );
+  });
 });

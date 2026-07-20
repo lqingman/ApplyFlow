@@ -36,12 +36,16 @@ export function selectEvidence(
       "experience-coop",
       "skills-stack",
     ]);
-    return profile.evidence.filter((record) => resumeIds.has(record.id));
+    const selected = profile.evidence.filter((record) =>
+      resumeIds.has(record.id),
+    );
+    if (selected.length > 0) return selected;
   }
   if (selectedIds) {
-    return selectedIds
+    const selected = selectedIds
       .map((id) => profile.evidence.find((record) => record.id === id))
       .filter((record): record is EvidenceRecord => record !== undefined);
+    if (selected.length > 0) return selected;
   }
 
   const words = new Set(
@@ -49,7 +53,7 @@ export function selectEvidence(
       .toLowerCase()
       .match(/[a-z]{3,}/g) ?? [],
   );
-  return profile.evidence
+  const ranked = profile.evidence
     .map((record) => ({
       record,
       score: (record.text.toLowerCase().match(/[a-z]{3,}/g) ?? []).filter(
@@ -60,6 +64,7 @@ export function selectEvidence(
     .sort((left, right) => right.score - left.score)
     .slice(0, 4)
     .map((item) => item.record);
+  return ranked.length > 0 ? ranked : profile.evidence.slice(0, 4);
 }
 
 export function buildDraftRequest(

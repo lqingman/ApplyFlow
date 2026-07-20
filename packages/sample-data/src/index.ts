@@ -3,7 +3,6 @@ import { candidateProfileSchema } from "@applyproof/shared-types";
 export const mayaProfile = candidateProfileSchema.parse({
   id: "maya-chen-demo",
   displayName: "Maya Chen",
-  headline: "New-grad software engineer · Vancouver, BC",
   identity: {
     firstName: "Maya",
     lastName: "Chen",
@@ -13,12 +12,28 @@ export const mayaProfile = candidateProfileSchema.parse({
   },
   links: {
     portfolio: "https://github.com/mayachen-demo",
+    linkedin: "https://www.linkedin.com/in/mayachen-demo",
   },
-  education: {
-    school: "University of British Columbia",
-    degree: "BSc in Computer Science",
-    graduationDate: "2026-05-15",
-  },
+  education: [
+    {
+      id: "education-ubc",
+      school: "University of British Columbia",
+      degree: "BSc in Computer Science",
+      graduationDate: "2026-05-15",
+    },
+  ],
+  experience: [
+    {
+      id: "experience-coop",
+      company: "Harbour Systems",
+      title: "Software Engineering Co-op",
+      location: "Vancouver, BC",
+      startDate: "2025-05-01",
+      endDate: "2025-08-31",
+      description:
+        "Shipped tested product improvements during a software engineering co-op.",
+    },
+  ],
   availability: {
     startDate: "2026-08-03",
     relocation: "yes",

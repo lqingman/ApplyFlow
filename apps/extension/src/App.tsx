@@ -215,13 +215,17 @@ export function App() {
               <div>
                 <p className="eyebrow">1 · My Profile</p>
                 <h2 id="profile-heading">{profile.displayName}</h2>
-                <p>{profile.headline}</p>
+                <p>{profile.identity.location}</p>
               </div>
               <span className="selected-badge">Saved</span>
             </div>
             <div className="profile-facts">
               <span>{profile.identity.email}</span>
-              <span>{profile.education.degree}</span>
+              {profile.education[0]?.degree && (
+                <span>{profile.education[0].degree}</span>
+              )}
+              <span>{profile.education.length} education entries</span>
+              <span>{profile.experience.length} experience entries</span>
               {profile.workAuthorization?.canada === "authorized" && (
                 <span>Authorized to work in Canada</span>
               )}

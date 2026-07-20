@@ -10,6 +10,9 @@ describe("Maya Chen demo profile", () => {
     expect(mayaProfile.evidence.map((record) => record.id)).toContain(
       "interest-accessible-products",
     );
+    expect(mayaProfile.links.linkedin).toContain("linkedin.com/in/");
+    expect(mayaProfile.education).toHaveLength(1);
+    expect(mayaProfile.experience).toHaveLength(1);
   });
 
   it("stores user-confirmed authorization and demographic profile values", () => {

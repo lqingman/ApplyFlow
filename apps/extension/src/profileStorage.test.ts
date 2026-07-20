@@ -53,6 +53,28 @@ describe("local My Profile storage", () => {
     await expect(loadMyProfile()).rejects.toThrow("could not be read");
   });
 
+  it("migrates the previous single-education profile shape", async () => {
+    const legacy = {
+      ...mayaProfile,
+      headline: "Legacy headline",
+      education: mayaProfile.education[0],
+    } as Record<string, unknown>;
+    delete legacy.experience;
+    get.mockResolvedValue({
+      "applyproof.myProfile.v1": legacy,
+    });
+
+    await expect(loadMyProfile()).resolves.toMatchObject({
+      education: [
+        {
+          school: "University of British Columbia",
+          degree: "BSc in Computer Science",
+        },
+      ],
+      experience: [],
+    });
+  });
+
   it("removes only the versioned ApplyProof data keys", async () => {
     remove.mockResolvedValue(undefined);
     await resetMyProfile();

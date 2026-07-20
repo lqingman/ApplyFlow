@@ -13,17 +13,33 @@ type ProfileEditorProps = {
   onSave: (profile: CandidateProfile) => Promise<void>;
 };
 
+type EducationDraft = {
+  id: string;
+  school: string;
+  degree: string;
+  graduationDate: string;
+};
+
+type ExperienceDraft = {
+  id: string;
+  company: string;
+  title: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+};
+
 type ProfileDraft = {
-  headline: string;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   location: string;
   portfolio: string;
-  school: string;
-  degree: string;
-  graduationDate: string;
+  linkedin: string;
+  education: EducationDraft[];
+  experience: ExperienceDraft[];
   startDate: string;
   relocation: "" | "yes" | "no";
   workAuthorization: "" | CandidateProfile["workAuthorization"]["canada"];
@@ -31,18 +47,54 @@ type ProfileDraft = {
   evidenceText: string;
 };
 
+let entrySequence = 0;
+function entryId(prefix: string) {
+  entrySequence += 1;
+  return `${prefix}-${entrySequence}`;
+}
+
+function blankEducation(): EducationDraft {
+  return {
+    id: entryId("education"),
+    school: "",
+    degree: "",
+    graduationDate: "",
+  };
+}
+
+function blankExperience(): ExperienceDraft {
+  return {
+    id: entryId("experience"),
+    company: "",
+    title: "",
+    location: "",
+    startDate: "",
+    endDate: "",
+    description: "",
+  };
+}
+
 function draftFrom(profile: CandidateProfile | null): ProfileDraft {
   return {
-    headline: profile?.headline ?? "",
     firstName: profile?.identity.firstName ?? "",
     lastName: profile?.identity.lastName ?? "",
     email: profile?.identity.email ?? "",
     phone: profile?.identity.phone ?? "",
     location: profile?.identity.location ?? "",
     portfolio: profile?.links.portfolio ?? "",
-    school: profile?.education.school ?? "",
-    degree: profile?.education.degree ?? "",
-    graduationDate: profile?.education.graduationDate ?? "",
+    linkedin: profile?.links.linkedin ?? "",
+    education: profile?.education.map((entry) => ({
+      ...entry,
+      graduationDate: entry.graduationDate ?? "",
+    })) ?? [blankEducation()],
+    experience:
+      profile?.experience.map((entry) => ({
+        ...entry,
+        location: entry.location ?? "",
+        startDate: entry.startDate ?? "",
+        endDate: entry.endDate ?? "",
+        description: entry.description ?? "",
+      })) ?? [],
     startDate: profile?.availability.startDate ?? "",
     relocation: profile?.availability.relocation ?? "",
     workAuthorization: profile?.workAuthorization.canada ?? "",
@@ -79,7 +131,6 @@ function profileFromDraft(
   return candidateProfileSchema.parse({
     id: "my-profile",
     displayName: `${draft.firstName.trim()} ${draft.lastName.trim()}`.trim(),
-    headline: draft.headline.trim(),
     identity: {
       firstName: draft.firstName.trim(),
       lastName: draft.lastName.trim(),
@@ -87,12 +138,27 @@ function profileFromDraft(
       phone: draft.phone.trim(),
       location: draft.location.trim(),
     },
-    links: { portfolio: draft.portfolio.trim() },
-    education: {
-      school: draft.school.trim(),
-      degree: draft.degree.trim(),
-      graduationDate: draft.graduationDate,
+    links: {
+      ...(draft.portfolio.trim() ? { portfolio: draft.portfolio.trim() } : {}),
+      ...(draft.linkedin.trim() ? { linkedin: draft.linkedin.trim() } : {}),
     },
+    education: draft.education.map((entry) => ({
+      id: entry.id,
+      school: entry.school.trim(),
+      degree: entry.degree.trim(),
+      ...(entry.graduationDate ? { graduationDate: entry.graduationDate } : {}),
+    })),
+    experience: draft.experience.map((entry) => ({
+      id: entry.id,
+      company: entry.company.trim(),
+      title: entry.title.trim(),
+      ...(entry.location.trim() ? { location: entry.location.trim() } : {}),
+      ...(entry.startDate.trim() ? { startDate: entry.startDate.trim() } : {}),
+      ...(entry.endDate.trim() ? { endDate: entry.endDate.trim() } : {}),
+      ...(entry.description.trim()
+        ? { description: entry.description.trim() }
+        : {}),
+    })),
     availability: {
       startDate: draft.startDate,
       relocation: draft.relocation,
@@ -103,25 +169,67 @@ function profileFromDraft(
   });
 }
 
+function hasEducation(entry: EducationDraft) {
+  return Boolean(entry.school.trim() || entry.degree.trim());
+}
+
 function mergeResume(draft: ProfileDraft, resume: ParsedResume): ProfileDraft {
+  const existingEducation = draft.education.filter(hasEducation);
+  const importedEducation = resume.education
+    .filter(
+      (entry) =>
+        !existingEducation.some(
+          (current) =>
+            current.school.toLowerCase() === entry.school.toLowerCase() &&
+            current.degree.toLowerCase() === entry.degree.toLowerCase(),
+        ),
+    )
+    .map((entry) => ({
+      id: entryId("education"),
+      school: entry.school,
+      degree: entry.degree,
+      graduationDate: entry.graduationDate ?? "",
+    }));
+  const importedExperience = resume.experience
+    .filter(
+      (entry) =>
+        !draft.experience.some(
+          (current) =>
+            current.company.toLowerCase() === entry.company.toLowerCase() &&
+            current.title.toLowerCase() === entry.title.toLowerCase(),
+        ),
+    )
+    .map((entry) => ({
+      id: entryId("experience"),
+      company: entry.company,
+      title: entry.title,
+      location: entry.location ?? "",
+      startDate: entry.startDate ?? "",
+      endDate: entry.endDate ?? "",
+      description: entry.description ?? "",
+    }));
+  const currentEvidence = draft.evidenceText
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
   const importedEvidence = resume.evidence.filter(
-    (line) => !draft.evidenceText.split("\n").includes(line),
+    (line) => !currentEvidence.includes(line),
   );
   return {
     ...draft,
     firstName: resume.firstName ?? draft.firstName,
     lastName: resume.lastName ?? draft.lastName,
-    headline: resume.headline ?? draft.headline,
     email: resume.email ?? draft.email,
     phone: resume.phone ?? draft.phone,
     location: resume.location ?? draft.location,
     portfolio: resume.portfolio ?? draft.portfolio,
-    school: resume.school ?? draft.school,
-    degree: resume.degree ?? draft.degree,
-    graduationDate: resume.graduationDate ?? draft.graduationDate,
-    evidenceText: [draft.evidenceText.trim(), ...importedEvidence]
-      .filter(Boolean)
-      .join("\n"),
+    linkedin: resume.linkedin ?? draft.linkedin,
+    education:
+      existingEducation.length || importedEducation.length
+        ? [...existingEducation, ...importedEducation]
+        : draft.education,
+    experience: [...draft.experience, ...importedExperience],
+    evidenceText: [...currentEvidence, ...importedEvidence].join("\n"),
   };
 }
 
@@ -138,6 +246,24 @@ export function ProfileEditor({
 
   function set<K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function setEducation(id: string, update: Partial<EducationDraft>) {
+    setDraft((current) => ({
+      ...current,
+      education: current.education.map((entry) =>
+        entry.id === id ? { ...entry, ...update } : entry,
+      ),
+    }));
+  }
+
+  function setExperience(id: string, update: Partial<ExperienceDraft>) {
+    setDraft((current) => ({
+      ...current,
+      experience: current.experience.map((entry) =>
+        entry.id === id ? { ...entry, ...update } : entry,
+      ),
+    }));
   }
 
   async function submit(event: FormEvent) {
@@ -168,10 +294,12 @@ export function ProfileEditor({
       const resume = await importResumeFile(file);
       setDraft((current) => mergeResume(current, resume));
       const factCount = Object.entries(resume).filter(
-        ([key, value]) => key !== "evidence" && Boolean(value),
+        ([key, value]) =>
+          !["evidence", "education", "experience"].includes(key) &&
+          Boolean(value),
       ).length;
       setImportMessage(
-        `Imported ${factCount} profile fields and ${resume.evidence.length} evidence ${resume.evidence.length === 1 ? "item" : "items"} from ${file.name}. Review every field before saving.`,
+        `Imported ${factCount} profile fields, ${resume.education.length} education entries, ${resume.experience.length} experience entries, and ${resume.evidence.length} evidence items from ${file.name}. Review every field before saving.`,
       );
     } catch (cause) {
       setError(
@@ -239,14 +367,6 @@ export function ProfileEditor({
           </label>
         </div>
         <label>
-          Headline
-          <input
-            required
-            value={draft.headline}
-            onChange={(event) => set("headline", event.target.value)}
-          />
-        </label>
-        <label>
           Email
           <input
             required
@@ -265,7 +385,7 @@ export function ProfileEditor({
           />
         </label>
         <label>
-          Location
+          City and region
           <input
             required
             value={draft.location}
@@ -275,52 +395,208 @@ export function ProfileEditor({
         <label>
           Portfolio or GitHub URL
           <input
-            required
             type="url"
             value={draft.portfolio}
             onChange={(event) => set("portfolio", event.target.value)}
           />
         </label>
+        <label>
+          LinkedIn URL
+          <input
+            type="url"
+            value={draft.linkedin}
+            onChange={(event) => set("linkedin", event.target.value)}
+          />
+        </label>
       </fieldset>
 
       <fieldset>
-        <legend>Education and availability</legend>
-        <label>
-          School
-          <input
-            required
-            value={draft.school}
-            onChange={(event) => set("school", event.target.value)}
-          />
-        </label>
-        <label>
-          Degree
-          <input
-            required
-            value={draft.degree}
-            onChange={(event) => set("degree", event.target.value)}
-          />
-        </label>
-        <div className="field-grid two-columns">
-          <label>
-            Graduation date
-            <input
-              required
-              type="date"
-              value={draft.graduationDate}
-              onChange={(event) => set("graduationDate", event.target.value)}
-            />
-          </label>
-          <label>
-            Earliest start date
-            <input
-              required
-              type="date"
-              value={draft.startDate}
-              onChange={(event) => set("startDate", event.target.value)}
-            />
-          </label>
+        <legend>Education</legend>
+        <div className="repeatable-heading">
+          <span className="field-help">Add every relevant credential.</span>
+          <button
+            className="text-button"
+            type="button"
+            onClick={() =>
+              setDraft((current) => ({
+                ...current,
+                education: [...current.education, blankEducation()],
+              }))
+            }
+          >
+            Add education
+          </button>
         </div>
+        {draft.education.map((entry, index) => (
+          <div className="repeatable-card" key={entry.id}>
+            <div className="repeatable-card-heading">
+              <strong>Education {index + 1}</strong>
+              {draft.education.length > 1 && (
+                <button
+                  className="text-button danger"
+                  type="button"
+                  onClick={() =>
+                    setDraft((current) => ({
+                      ...current,
+                      education: current.education.filter(
+                        (item) => item.id !== entry.id,
+                      ),
+                    }))
+                  }
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            <label>
+              School
+              <input
+                required
+                value={entry.school}
+                onChange={(event) =>
+                  setEducation(entry.id, { school: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Degree or program
+              <input
+                required
+                value={entry.degree}
+                onChange={(event) =>
+                  setEducation(entry.id, { degree: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Graduation date
+              <input
+                type="date"
+                value={entry.graduationDate}
+                onChange={(event) =>
+                  setEducation(entry.id, { graduationDate: event.target.value })
+                }
+              />
+            </label>
+          </div>
+        ))}
+      </fieldset>
+
+      <fieldset>
+        <legend>Work experience</legend>
+        <div className="repeatable-heading">
+          <span className="field-help">Add roles you want to reuse.</span>
+          <button
+            className="text-button"
+            type="button"
+            onClick={() =>
+              setDraft((current) => ({
+                ...current,
+                experience: [...current.experience, blankExperience()],
+              }))
+            }
+          >
+            Add experience
+          </button>
+        </div>
+        {!draft.experience.length && (
+          <p className="field-help">No work experience added.</p>
+        )}
+        {draft.experience.map((entry, index) => (
+          <div className="repeatable-card" key={entry.id}>
+            <div className="repeatable-card-heading">
+              <strong>Experience {index + 1}</strong>
+              <button
+                className="text-button danger"
+                type="button"
+                onClick={() =>
+                  setDraft((current) => ({
+                    ...current,
+                    experience: current.experience.filter(
+                      (item) => item.id !== entry.id,
+                    ),
+                  }))
+                }
+              >
+                Remove
+              </button>
+            </div>
+            <label>
+              Job title
+              <input
+                required
+                value={entry.title}
+                onChange={(event) =>
+                  setExperience(entry.id, { title: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Company
+              <input
+                required
+                value={entry.company}
+                onChange={(event) =>
+                  setExperience(entry.id, { company: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Location
+              <input
+                value={entry.location}
+                onChange={(event) =>
+                  setExperience(entry.id, { location: event.target.value })
+                }
+              />
+            </label>
+            <div className="field-grid two-columns">
+              <label>
+                Start date
+                <input
+                  placeholder="May 2024"
+                  value={entry.startDate}
+                  onChange={(event) =>
+                    setExperience(entry.id, { startDate: event.target.value })
+                  }
+                />
+              </label>
+              <label>
+                End date
+                <input
+                  placeholder="Present"
+                  value={entry.endDate}
+                  onChange={(event) =>
+                    setExperience(entry.id, { endDate: event.target.value })
+                  }
+                />
+              </label>
+            </div>
+            <label>
+              Summary
+              <textarea
+                rows={3}
+                value={entry.description}
+                onChange={(event) =>
+                  setExperience(entry.id, { description: event.target.value })
+                }
+              />
+            </label>
+          </div>
+        ))}
+      </fieldset>
+
+      <fieldset>
+        <legend>Availability</legend>
+        <label>
+          Earliest start date
+          <input
+            required
+            type="date"
+            value={draft.startDate}
+            onChange={(event) => set("startDate", event.target.value)}
+          />
+        </label>
         <label>
           Open to relocation
           <select

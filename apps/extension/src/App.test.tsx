@@ -207,6 +207,7 @@ describe("profile-first autofill workflow", () => {
     vi.mocked(loadMyProfile).mockResolvedValue(mayaProfile);
     render(<App />);
     await screen.findByText("Saved");
+    await waitFor(() => expect(addListener).toHaveBeenCalled());
     const listener = addListener.mock.calls[0]?.[0] as (
       message: unknown,
       sender: unknown,
@@ -284,14 +285,32 @@ describe("profile-first autofill workflow", () => {
     vi.mocked(importResumeFile).mockResolvedValue({
       firstName: "Jordan",
       lastName: "Lee",
-      headline: "Software Developer",
       email: "jordan@example.com",
       phone: "+1 604 555 0100",
       location: "Vancouver, BC",
       portfolio: "https://github.com/jordanlee",
-      school: "University of British Columbia",
-      degree: "BSc Computer Science",
-      graduationDate: "2026-05-01",
+      linkedin: "https://www.linkedin.com/in/jordanlee",
+      education: [
+        {
+          school: "University of British Columbia",
+          degree: "BSc Computer Science",
+          graduationDate: "2026-05-01",
+        },
+        {
+          school: "Langara College",
+          degree: "Diploma in Web Development",
+          graduationDate: "2023-05-01",
+        },
+      ],
+      experience: [
+        {
+          company: "Example Labs",
+          title: "Software Developer",
+          startDate: "May 2024",
+          endDate: "Present",
+          description: "Built a tested TypeScript application.",
+        },
+      ],
       evidence: ["Built a tested TypeScript application."],
     });
     render(<App />);
@@ -310,6 +329,16 @@ describe("profile-first autofill workflow", () => {
       expect(screen.getByLabelText("Email")).toHaveValue("jordan@example.com"),
     );
     expect(screen.getByLabelText("First name")).toHaveValue("Jordan");
+    expect(screen.queryByLabelText("Headline")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("LinkedIn URL")).toHaveValue(
+      "https://www.linkedin.com/in/jordanlee",
+    );
+    expect(screen.getAllByLabelText("School")).toHaveLength(2);
+    expect(screen.getAllByLabelText("Degree or program")).toHaveLength(2);
+    expect(screen.getByLabelText("Job title")).toHaveValue(
+      "Software Developer",
+    );
+    expect(screen.getByLabelText("Company")).toHaveValue("Example Labs");
     expect(screen.getByLabelText("One verified fact per line")).toHaveValue(
       "Built a tested TypeScript application.",
     );
