@@ -8,7 +8,7 @@ Target length: 2:40–2:55. Keep the working product on screen for most of the v
 
 **Narration:**
 
-“Job applications repeat the same facts, while generic AI can produce polished answers that quietly exaggerate your experience. ApplyProof is an evidence-grounded application copilot. It helps candidates move faster without inventing who they are.”
+“Job applications make candidates enter the same information again and again, then switch to a separate AI tool for every written question. ApplyProof brings autofill and AI writing into the application page, so you can complete the repetitive work much faster without losing control of the final answer.”
 
 ## 0:18–0:42 — Local profile and evidence
 
@@ -18,21 +18,21 @@ Target length: 2:40–2:55. Keep the working product on screen for most of the v
 
 “The extension keeps one editable profile locally. For this demo I use Maya Chen, a fictional new graduate. A user can also import a Word or text-based PDF resume. The original file stays in extension-owned local storage, and every extracted profile value can be reviewed before saving.”
 
-## 0:42–1:22 — Scan and safe autofill
+## 0:42–1:22 — One-click scan and autofill
 
 **Visual:** Click **Scan & Autofill**. Show identity, education, work authorization, optional demographic choice, accuracy checkbox, and attached resume. Pause briefly on the password fixture remaining blank.
 
 **Narration:**
 
-“One user action scans the application and fills verified facts deterministically. Work authorization and voluntary answers come only from explicit profile choices. Existing values are preserved, and sensitive fields such as this password are excluded. ApplyProof can attach the locally saved resume, but it never clicks Continue or Submit.”
+“With one click, ApplyProof scans the current application and fills contact details, education, availability, work authorization, and other saved choices together. It can also attach the saved resume. Existing answers are preserved, sensitive fields such as this password are skipped, and the candidate still controls Continue and Submit.”
 
-## 1:22–1:58 — Grounded inline answers
+## 1:22–1:58 — AI answers inside the application
 
 **Visual:** Show generated answers in the application. Focus “Describe a relevant project,” enter a short instruction such as “Emphasize the accessibility work,” and click Regenerate. Show the character-limit label.
 
 **Narration:**
 
-“Blank open questions are drafted from selected resume evidence and inserted directly into the real application field, where the candidate remains the editor. I can ask it to emphasize a project and regenerate. The instruction guides the answer but cannot become evidence, and live character limits are enforced before insertion.”
+“ApplyProof also uses AI to draft blank written answers directly inside the application, so I do not need to copy each question into a separate chat. It uses the profile and resume as context, and I can ask it to emphasize a project and regenerate in place. The result stays editable and automatically respects the field's character limit.”
 
 ## 1:58–2:19 — Technical boundary
 
@@ -40,7 +40,7 @@ Target length: 2:40–2:55. Keep the working product on screen for most of the v
 
 **Narration:**
 
-“ApplyProof separates deterministic facts from model-generated writing. The extension sends bounded field metadata and relevant evidence—not full-page HTML. A FastAPI service validates structured output, evidence references, and length. The local fixture is the reliable judging path; Workable, BambooHR, and Greenhouse are builder-tested pilots.”
+“Under the hood, ApplyProof uses deterministic autofill for known facts and AI for questions that need writing. The extension sends only the relevant field context, profile, and resume evidence to a FastAPI service, which validates the structured response and length. The local demo is the reliable judging path; Workable, BambooHR, and Greenhouse are builder-tested pilots.”
 
 ## 2:19–2:42 — Codex and GPT-5.6
 
@@ -56,7 +56,7 @@ Target length: 2:40–2:55. Keep the working product on screen for most of the v
 
 **Narration:**
 
-“ApplyProof helps applicants move faster without losing control of the truth. Evidence before eloquence—and the final submission always stays with the person.”
+“ApplyProof makes job applications faster and less repetitive by bringing profile autofill and AI writing into one workflow. The candidate reviews the result, and the final submission always stays with the person.”
 
 ## Recording checklist
 
