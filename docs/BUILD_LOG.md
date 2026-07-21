@@ -343,6 +343,20 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** `README.md`, `LICENSE`, `docs/DEVPOST_SUBMISSION.md`, `docs/DEMO_VIDEO_SCRIPT.md`, and this build log.
 
+### 2026-07-21 — Adaptive answer-memory product direction
+
+**Goal:** make ApplyFlow increasingly personalized by turning newly completed application answers into reusable knowledge.
+
+**Human decision:** move the product narrative from defensive automation toward proactive learning. After a user completes a new question, ApplyFlow should offer an inline **Save this answer?** card and collect multiple suggestions in a side-panel **New answers to remember** inbox. Users should be able to save or skip one answer, select several, or use **Save all**.
+
+**Codex contribution:** translated the interaction into a semantic memory lifecycle, detailed the floating-card and batch side-panel states, defined reusable-answer metadata and cross-site matching, added roadmap deliverables and acceptance criteria, and rewrote current-facing documentation around useful automation, applicant-owned choices, and a profile that grows with every application.
+
+**Why GPT-5.6 helped:** the design required connecting page-level interactions, side-panel batch state, semantic question matching, duplicate merging, evolving preferences, cross-ATS reuse, and a clear product story across multiple technical and submission documents.
+
+**Verification:** documentation links, Markdown formatting, terminology consistency, and the distinction between implemented scoped authorization memory and planned general answer capture were reviewed together.
+
+**Artifacts:** `README.md`, `docs/ROADMAP.md`, `docs/ANSWER_GENERATION_DESIGN.md`, `docs/DEVPOST_SUBMISSION.md`, `docs/SITE_COMPATIBILITY.md`, and this build log.
+
 ## Entry template
 
 Copy this section for the next milestone:

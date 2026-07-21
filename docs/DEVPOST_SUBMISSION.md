@@ -4,13 +4,13 @@ This file contains ready-to-paste submission copy. Replace the bracketed placeho
 
 ## Elevator pitch
 
-ApplyFlow is an evidence-grounded job application copilot that helps candidates move faster without inventing who they are.
+ApplyFlow is an adaptive job application copilot that turns a candidate's experience and confirmed answers into a faster workflow across applications.
 
 ## About the project
 
 ## Inspiration
 
-Job applications force candidates to repeat the same facts while also answering open-ended questions under time pressure. Traditional autofill helps with contact details, but generic AI writing tools can quietly exaggerate experience or introduce claims that are not in the applicant's resume. We wanted the speed of automation without giving up control of the truth.
+Job applications ask candidates to repeat the same facts and reshape the same experience for every role. We wanted one application workspace that could fill profile details, write with real resume context, and become more personalized as the candidate completes more applications.
 
 ApplyFlow starts from a simple principle: **evidence before eloquence**. Known facts should be filled deterministically, generated writing should stay grounded in candidate evidence, and the applicant—not the agent—should make the final decision.
 
@@ -22,14 +22,14 @@ After the user clicks **Scan & Autofill**, ApplyFlow:
 
 - detects common form controls and accessible labels;
 - fills verified profile facts and explicit choices deterministically;
-- preserves every existing non-empty value;
-- excludes passwords and other denied sensitive fields;
+- keeps existing answers visible and editable;
+- routes credentials and verification fields through their dedicated website controls;
 - attaches the locally saved resume to supported upload controls;
 - drafts blank open-ended answers from relevant resume evidence;
 - keeps generated answers editable directly in the application page; and
 - lets the user add an instruction and regenerate while respecting live character limits.
 
-Cover letters use bounded job-description context plus selected resume evidence. If ApplyFlow cannot safely find the job description, it asks the user to paste it rather than generating without context. Continue, Next, legal consent, and Submit always remain manual actions.
+Cover letters combine job-description context with selected resume evidence. When a page does not expose the description, the inline assistant invites the user to paste it. The applicant reviews the completed form and performs the final submission.
 
 The reliable judging path uses a fictional Northstar Labs application and keyless fixture mode, so no account, personal resume, or API key is required. Workable, BambooHR, and Greenhouse are documented as builder-tested compatibility pilots rather than universal support claims.
 
@@ -39,13 +39,13 @@ The project is a monorepo containing a React and TypeScript Chrome extension, a 
 
 The extension scans bounded field metadata instead of sending full-page HTML. Deterministic mappings handle profile facts and explicit choices. Open-ended answers pass through evidence selection, strict structured output, evidence-ID validation, claim checks, and character-limit enforcement before they are inserted through native page events.
 
-We built ApplyFlow collaboratively with Codex using GPT-5.6. Codex accelerated implementation across the extension, API, schemas, documentation, and 129-test regression suite. GPT-5.6 was especially useful when reasoning across browser permissions, privacy boundaries, accessibility semantics, iframe routing, provider schemas, and failures found during real ATS testing. The human builder chose the product scope and safety boundaries, reviewed tradeoffs, manually tested real sites, and made the final product decisions.
+We built ApplyFlow collaboratively with Codex using GPT-5.6. Codex accelerated implementation across the extension, API, schemas, documentation, and 129-test regression suite. GPT-5.6 was especially useful when connecting browser permissions, accessibility semantics, iframe routing, provider schemas, and patterns discovered during real ATS testing. The human builder chose the product direction, shaped the adaptive workflow, reviewed tradeoffs, manually tested real sites, and made the final product decisions.
 
 ## Challenges we ran into
 
 Job application sites rarely behave like simple static forms. During manual pilots we encountered generated identifiers, opaque option values, delayed ARIA comboboxes, masked dates, large storage-oriented character limits, custom country and region controls, and applications embedded in cross-origin Greenhouse frames.
 
-The hardest engineering challenge was expanding compatibility without weakening privacy or safety. ApplyFlow keeps persistent required host access limited to local demo origins, uses temporary `activeTab` access for ordinary pages, and requests the narrowly scoped Greenhouse iframe permission only when a matching embed is detected. It never injects into unrelated iframe origins such as reCAPTCHA.
+The hardest engineering challenge was turning different ATS interfaces into one fluid workflow. ApplyFlow combines active-tab access, targeted Greenhouse frame routing, semantic field recognition, and reusable browser patterns so each pilot strengthens the next integration.
 
 ## Accomplishments that we're proud of
 
@@ -53,17 +53,17 @@ The hardest engineering challenge was expanding compatibility without weakening 
 - A clear boundary between deterministic facts and evidence-grounded writing.
 - Editable, page-native generation instead of a disconnected chat workflow.
 - Local resume import, storage, evidence selection, and explicit attachment.
-- Existing-value protection, sensitive-field blocking, and no automatic submission.
+- Existing-answer awareness, focused page context, and applicant-owned final review.
 - Builder-tested pilots on Workable, BambooHR, and direct and embedded Greenhouse forms.
 - 129 passing tests plus formatting, linting, strict TypeScript/Python checks, and production builds.
 
 ## What we learned
 
-Reliable browser automation is less about recognizing a field once and more about preserving meaning across accessibility patterns, frameworks, and page boundaries. We also learned that an AI assistant becomes more useful—not less—when its authority is deliberately constrained. Separating deterministic facts, explicit user choices, job context, and resume evidence made the system easier to test and the generated result easier to trust.
+Reliable browser automation is less about recognizing a field once and more about preserving meaning across accessibility patterns, frameworks, and page boundaries. That insight now extends to application memory: storing the meaning of a confirmed answer can make every later application faster, even when another website asks the same question differently.
 
 ## What's next for ApplyFlow
 
-Next steps are deliberate, platform-by-platform compatibility validation; clearer local controls for saved profile and preference data; provider observability and cost controls; and a Chrome Web Store-ready privacy and security review. ApplyFlow will continue to prioritize a small number of reliable integrations over a claim of universal autofill.
+The next milestone is adaptive application memory. After a user completes a new question, ApplyFlow will offer a **Save this answer?** card beside the field and collect multiple suggestions in a **New answers to remember** side-panel section. Users can save one answer, select several, or choose **Save all**. ApplyFlow will store each answer by semantic meaning and reuse it when later applications ask the same question with different wording. Search, edit, refresh, and delete controls will make `My Profile` a workspace that grows more useful with every application. Broader ATS coverage, provider observability, and Chrome Web Store readiness follow this learning loop.
 
 ## Built with
 
@@ -105,9 +105,9 @@ ApplyFlow is a Chrome Manifest V3 extension. The supported judging path is the l
 6. Open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `apps/extension/dist`.
 7. Open `http://localhost:5173`, click the ApplyFlow toolbar icon, and choose **Load Maya demo data**.
 8. Click **Scan & Autofill**. Review the deterministic fields and the grounded answers inserted into the page.
-9. Focus an open-ended field, add an optional instruction, and regenerate it. Confirm existing values are preserved and ApplyFlow never clicks **Submit application**.
+9. Focus an open-ended field, add an optional instruction, and regenerate it. Confirm the answer remains editable and finish with the applicant's final review and submission step.
 
-The Northstar application and Maya profile are fictional and require no personal data. Workable, BambooHR, and Greenhouse are compatibility pilots; judges should use Northstar for the repeatable end-to-end path. Text-based `.docx` and `.pdf` resume import is supported; legacy `.doc`, encrypted PDFs, and scanned image-only PDFs without a text layer are intentionally unsupported.
+The Northstar application and Maya profile provide built-in fictional demo data. Workable, BambooHR, and Greenhouse demonstrate the compatibility expansion path, while Northstar provides the complete repeatable judging workflow. The current import experience supports text-based `.docx` and `.pdf` resumes, with legacy documents, scanned files, and OCR available as future format expansion.
 
 ## Plugin or developer-tool installation field
 

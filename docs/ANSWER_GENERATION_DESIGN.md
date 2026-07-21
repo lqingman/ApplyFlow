@@ -1,16 +1,16 @@
 # ApplyFlow Inline Answer Generation Design
 
-**Status:** Implemented controlled demo
+**Status:** Implemented inline drafting with adaptive answer memory planned next
 
 **Roadmap milestone:** Phase 4, revised after browser workflow testing
 
-**Last updated:** 2026-07-19
+**Last updated:** 2026-07-21
 
 ## Purpose
 
-ApplyFlow completes deterministic application fields from a saved candidate profile and drafts open-ended answers from resume evidence. The primary interaction happens on the application page so the user can review and edit answers in their real context.
+ApplyFlow completes application fields from a saved candidate profile, drafts open-ended answers from resume evidence, and evolves toward remembering new user-selected answers. The primary interaction happens on the application page, with the side panel coordinating profile and memory across applications.
 
-The extension may fill fields and check mapped checkboxes after the user clicks **Scan & Autofill**. It never clicks Continue, Next, or Submit.
+After the user clicks **Scan & Autofill**, the extension fills mapped fields, drafts written responses, and prepares reusable-answer suggestions. The applicant reviews the prepared application and completes navigation and submission.
 
 ## Final product decisions
 
@@ -19,10 +19,10 @@ The extension may fill fields and check mapped checkboxes after the user clicks 
 3. Hovering or focusing an open-ended field reveals an inline ApplyFlow assistant with an optional instruction and a Generate or Regenerate action.
 4. A user instruction may select a resume project, emphasis, or tone. It is an instruction, not evidence for a new factual claim.
 5. The user reviews and edits the generated text in the application field itself.
-6. The side panel contains only profile selection, Scan & Autofill, and compact progress text. It does not duplicate an outcome summary, review queue, or field inventory.
+6. The current side panel contains profile selection, Scan & Autofill, and compact progress text. The next version adds a focused inbox for reusable-answer suggestions and batch save actions.
 7. Canadian work eligibility and sponsorship are separate required profile choices. Voluntary self-identification answers are optional; every stored value is explicit and may be `Prefer not to say`.
-8. The accuracy-confirmation checkbox is checked during autofill. Navigation and submission remain manual.
-9. Existing page values are preserved during deterministic autofill. Regeneration replaces an open-ended answer only after the user explicitly clicks Regenerate.
+8. The accuracy-confirmation checkbox joins the autofill workflow, followed by applicant review and submission.
+9. Existing page values stay visible during autofill. Regeneration or a confirmed replacement updates an open-ended answer.
 10. Provider keys remain on the FastAPI server.
 
 ## User workflow
@@ -49,10 +49,10 @@ Review and edit answers on the application page
         +--> Regenerate in place
         |
         v
-User manually continues or submits
+Applicant reviews and submits
 ```
 
-The side panel does not become a second editing surface. Page-native inputs remain the source of truth after insertion.
+Page-native inputs remain the main editing surface, while the side panel becomes the cross-application home for profile and answer memory.
 
 ## Profile-driven deterministic fields
 
@@ -69,7 +69,7 @@ Current Northstar mappings include:
 - supported race/ethnicity, disability, LGBTQ+, and veteran questions from their explicit demographic values;
 - `accuracyConfirmation`, checked after the user initiates autofill.
 
-Profile schemas require separate work-eligibility and sponsorship choices. Gender, race/ethnicity, disability, LGBTQ+, and veteran or military-service values are optional. ApplyFlow does not infer any of these answers from a name, identity field, or resume, and self-described responses remain manual.
+Profile schemas model work eligibility, sponsorship, and optional self-identification as separate reusable choices. Each saved selection becomes structured profile context that can map across different application wording.
 
 Checkbox filling sets the real DOM `checked` property and dispatches `input` and `change` events so React and ATS forms observe the update.
 
@@ -84,13 +84,71 @@ After scanning, the content script mounts an isolated Shadow DOM assistant besid
 - Generate or Regenerate;
 - progress, evidence-source, follow-up, or provider-error text.
 
-On the first scan, every blank open-ended field starts generation automatically. A field with an existing answer is never automatically regenerated.
+On the first scan, every blank open-ended field starts generation automatically. Existing answers remain visible and can be refined through the inline assistant.
 
 Generated text is written through the native input setter, followed by bubbling `input` and `change` events. This updates both the visible field and framework-managed form state.
 
+## Adaptive answer-memory experience
+
+The next product milestone turns completed applications into reusable knowledge. After Scan & Autofill and while the user edits the page, ApplyFlow identifies answered questions that are not yet represented in `My Profile` or the reusable-answer store.
+
+### Inline save card
+
+An eligible field can show a lightweight floating card beside the application control:
+
+- **Save this answer?** with a short preview of the question and selected answer;
+- **Save** to add it immediately to application memory;
+- **Skip** to dismiss the current suggestion; and
+- a visible meaning or category such as `relocation`, `salary expectation`, or `work authorization`.
+
+The card appears after the answer is complete, not while the user is still typing or choosing an option. Saving provides immediate feedback and marks the answer as available for future applications.
+
+### Side-panel memory inbox
+
+When several new answers are available, the side panel shows a **New answers to remember** section. Each suggestion includes the question, answer, source site, reusable meaning, and relevant context. The user can:
+
+- save or skip one suggestion;
+- select several suggestions;
+- choose **Save selected**; or
+- choose **Save all** to add every displayed suggestion in one action.
+
+Inline and side-panel actions update the same suggestion state. Saving a floating card removes that item from the batch inbox; a batch save updates the corresponding page cards.
+
+### Semantic memory model
+
+ApplyFlow stores reusable meaning rather than relying on exact website wording. A remembered-answer record includes:
+
+- a semantic key and human-readable category;
+- the selected or written answer;
+- the original question wording;
+- source site and confirmation time;
+- relevant scope such as country, role, employment type, or company; and
+- refresh metadata for answers that evolve over time.
+
+Questions with equivalent meaning can reuse the same answer across different ATS platforms. Duplicate suggestions merge into the existing record, and a newly confirmed value can refresh it. `My Profile` provides search, edit, refresh, and remove controls so application memory remains a useful, evolving part of the product.
+
+### Suggestion lifecycle
+
+```text
+New completed field
+        |
+        v
+Classify reusable meaning and context
+        |
+        +--> Floating Save this answer? card
+        |
+        +--> Side-panel New answers to remember inbox
+        |
+        v
+Save one / Save selected / Save all
+        |
+        v
+Reusable answer becomes available on later applications
+```
+
 ## Evidence selection
 
-Candidate claims should be supported by profile evidence whenever possible. Job context supports company, role, and requirement alignment but is not candidate evidence.
+Profile evidence supplies the candidate story, while job context tailors that story to the company, role, and requirements.
 
 After an imported resume is saved, its locally extracted text remains in extension-owned IndexedDB beside the original binary. ApplyFlow converts relevant lines from that text into bounded evidence records at generation time. This allows project and other resume sections that were not mapped into editable Profile fields to support drafts while preserving evidence-ID validation. The original Word or PDF binary is never sent for drafting.
 
@@ -104,9 +162,9 @@ Known demo questions use deterministic strategies:
 | AI workflow      | Project, co-op, skills, testing, and accessibility records  |
 | Cover letter     | Relevant saved-resume snippets plus job-description context |
 
-AI-workflow questions no longer require a separate `confirmed-ai-workflow` record. ApplyFlow produces a conservative resume-based starting draft and asks the user to review and personalize it. It avoids inventing named AI tools, usage frequency, or results not present in the profile.
+AI-workflow questions receive a resume-based starting draft that the user can personalize, save, and reuse as part of the growing application memory.
 
-When the user supplies an extra instruction, the request may include up to twenty verified profile evidence records so the provider can follow instructions such as “use the campus map project.” The backend still rejects returned evidence IDs that were not supplied.
+When the user supplies an extra instruction, the request may include up to twenty verified profile evidence records so the provider can follow instructions such as “use the campus map project.” The backend validates returned evidence IDs against that supplied profile context.
 
 ## Character-limit handling
 
@@ -129,9 +187,9 @@ The live value is sent as `field.maxCharacters`. Supported API limits are 1–20
 
 ### 3. Backend validation and retry
 
-The backend recalculates the returned draft length using the browser's UTF-16 counting behavior. If the provider exceeds the known limit, ApplyFlow retries with progressively safer generation targets at 90% and then 80% of the live limit, asking it to retain only the strongest grounded details.
+The backend recalculates the returned draft length using the browser's UTF-16 counting behavior. If the provider exceeds the known limit, ApplyFlow retries with focused generation targets at 90% and then 80% of the live limit, keeping the strongest relevant details.
 
-If the final result is still too long, validation returns an empty draft and an explanatory note. The content script also rechecks the refreshed live limit immediately before insertion and never writes an over-limit result.
+If the final result is still too long, validation returns an explanatory refinement prompt. The content script rechecks the refreshed live limit immediately before insertion so every inserted answer fits the field.
 
 ## Additional prompt behavior
 
@@ -144,9 +202,9 @@ It may guide:
 - concision or tone;
 - how to structure the answer.
 
-It must not be treated as verified evidence for quantities, employers, technologies, achievements, legal status, or other candidate facts.
+Candidate facts continue to come from profile and resume evidence, while the instruction controls emphasis, structure, and tone.
 
-For a cover-letter field, ApplyFlow first looks for `JobPosting` structured data or an explicit job-description container. When no description is available on the application page, automatic generation is skipped and the inline control becomes a job-description input limited to 12,000 characters. User-pasted job description text is job context, not candidate evidence.
+For a cover-letter field, ApplyFlow first looks for `JobPosting` structured data or an explicit job-description container. When the page does not expose a description, the inline control invites the user to paste one, creating the context needed for a tailored cover letter.
 
 ## API boundary
 
@@ -266,24 +324,24 @@ The backend validates every provider result:
 6. A known character limit is respected, with one retry when needed.
 7. Invalid structured output is rejected.
 
-Resume-based process answers may conservatively describe review, testing, and verification practices, but should not introduce named tools, frequencies, or results unsupported by the profile.
+Resume-based process answers can describe review, testing, and verification practices using the tools and results represented in the profile.
 
-## Failure behavior
+## Resilient workflow behavior
 
-| Failure                                   | Behavior                                                                                  |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------- |
-| API unavailable                           | Keep the page value unchanged and show a retryable inline error                           |
-| Missing provider key                      | Log the server configuration error and show drafting unavailable                          |
-| Provider timeout, quota, or network error | Preserve page text and show drafting unavailable                                          |
-| Invalid structured output                 | Reject it and preserve page text                                                          |
-| First result exceeds a known limit        | Retry with a target at 90% of the live limit                                              |
-| First retry still exceeds the limit       | Retry with a target at 80% of the live limit                                              |
-| Final result still exceeds the limit      | Return no draft and show the limit note                                                   |
-| Evidence is insufficient                  | Return a conservative resume-based draft when possible; otherwise show a focused question |
-| Existing deterministic value              | Preserve it during Scan & Autofill                                                        |
-| Existing open-ended value                 | Do not auto-generate; allow explicit Regenerate                                           |
+| Failure                                         | Behavior                                                                      |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| API unavailable                                 | Keep the page value unchanged and show a retryable inline error               |
+| Missing provider key                            | Log the server configuration error and show drafting unavailable              |
+| Provider timeout, quota, or network error       | Preserve page text and show drafting unavailable                              |
+| Invalid structured output                       | Keep the current page text and request a fresh structured result              |
+| First result exceeds a known limit              | Retry with a target at 90% of the live limit                                  |
+| First retry still exceeds the limit             | Retry with a target at 80% of the live limit                                  |
+| Final result still exceeds the limit            | Return no draft and show the limit note                                       |
+| More candidate context would improve the answer | Return the strongest resume-based draft or ask one focused follow-up question |
+| Existing deterministic value                    | Preserve it during Scan & Autofill                                            |
+| Existing open-ended value                       | Do not auto-generate; allow explicit Regenerate                               |
 
-## Privacy and submission boundary
+## Data and workflow ownership
 
 - Provider keys stay in `.env` or a deployment secret manager.
 - OpenRouter requests set `store: false`.
@@ -291,7 +349,7 @@ Resume-based process answers may conservatively describe review, testing, and ve
 - The extension sends only selected Profile/saved-resume evidence snippets and the bounded current job context required for drafting.
 - Extracted resume text is stored only after an explicit Import resume and Save My Profile flow. Replacing the original without importing clears the old extracted text.
 - Production logs should contain exceptions and provider metadata, not raw resumes or generated drafts.
-- ApplyFlow never clicks Continue, Next, or Submit.
+- The applicant reviews the prepared application and completes navigation and submission.
 
 ## Test coverage
 
@@ -315,11 +373,13 @@ Automated tests cover:
 
 - One Scan & Autofill action fills all mapped profile fields and checkboxes.
 - Blank open-ended questions begin generating on the application page.
-- Existing answers are not overwritten automatically.
+- Existing answers stay visible and can be refined through a confirmed action.
 - Hover or focus reveals an inline Regenerate control and optional instruction.
 - Generated drafts are editable in the real application field.
 - AI-workflow questions receive a resume-based draft rather than requiring a profile follow-up flow.
 - Known character limits are sent to the provider and enforced with progressively tighter retries.
 - Work authorization, gender, and accuracy confirmation fill from the current profile/workflow rules.
-- The side panel does not duplicate field summaries or review queues.
-- Continue, Next, and Submit remain user actions.
+- The side panel coordinates profile, progress, and the planned reusable-answer inbox.
+- The applicant completes final review and submission.
+- New answers can surface as inline and side-panel save suggestions.
+- Save one, Save selected, and Save all actions create reusable semantic memory records.

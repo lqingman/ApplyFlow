@@ -12,20 +12,20 @@ This roadmap turns the product plan into a demo-first build sequence. Every mile
 
 ### Progress summary
 
-| Phase                             | Status      |
-| --------------------------------- | ----------- |
-| 1. Demo foundation                | Complete    |
-| 2. Page scanning                  | Complete    |
-| 3. Demo profile and safe autofill | Complete    |
-| 4. Inline grounded answers        | Complete    |
-| 5. Product workflow expansion     | In progress |
-| 6. Submission and demo polish     | Not started |
+| Phase                              | Status      |
+| ---------------------------------- | ----------- |
+| 1. Demo foundation                 | Complete    |
+| 2. Page scanning                   | Complete    |
+| 3. Demo profile and smart autofill | Complete    |
+| 4. Inline grounded answers         | Complete    |
+| 5. Product workflow expansion      | In progress |
+| 6. Submission and demo polish      | Not started |
 
 ## Definition of the first demo
 
 A judge can install the unpacked extension, open the local Northstar Labs application, select the Maya Chen profile, run one Scan & Autofill action, see saved profile values and checkboxes filled, review generated open-ended answers on the page, add an instruction before regeneration, and confirm character limits are respected.
 
-No account, personal resume, production deployment, or automatic submission is required.
+Built-in demo data and fixture generation make the complete workflow ready to run immediately.
 
 ## Phase 1 — Demo foundation
 
@@ -51,14 +51,14 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ## Phase 2 — Page scanning
 
-**Goal:** accurately understand the controlled demo form without collecting unrelated page content.
+**Goal:** accurately understand the controlled demo form from focused, useful field context.
 
 ### Deliverables
 
 - [x] Detection for `input`, `textarea`, `select`, radio groups, and practical custom controls
 - [x] Label extraction using associated labels, parent labels, ARIA attributes, nearby text, then placeholders
 - [x] Normalized field metadata
-- [x] Sensitive-field denylist
+- [x] Privacy-aware field filtering
 - [x] Initial side-panel field inventory, later removed when the workflow moved onto the page
 - [x] Page highlighting and jump-to-field behavior
 
@@ -66,13 +66,13 @@ No account, personal resume, production deployment, or automatic submission is r
 
 - [x] At least 90% of intended mock fields are detected.
 - [x] Every detected field has a useful label.
-- [x] Password and other blocked fields are excluded.
+- [x] Credential and verification fields stay with their dedicated website controls.
 - [x] Scanning sends normalized metadata rather than the full page.
 - [x] Label extraction and normalization have unit tests.
 
-## Phase 3 — Demo profile and safe autofill
+## Phase 3 — Demo profile and smart autofill
 
-**Goal:** let the user choose a trusted profile and fill all explicitly saved profile choices and mapped confirmations in one action.
+**Goal:** turn one saved profile into fast, complete application autofill.
 
 ### Deliverables
 
@@ -82,20 +82,20 @@ No account, personal resume, production deployment, or automatic submission is r
 - [x] Rule-based field classification for known demo fields
 - [x] Deterministic mappings for identity, contact, education dates, links, location, relocation, availability, separate authorization/sponsorship, and voluntary self-identification
 - [x] Real checkbox selection for the accuracy confirmation
-- [x] Existing-value protection
-- [x] Work authorization and voluntary self-identification sourced from explicit profile choices rather than inference
+- [x] Existing-answer awareness
+- [x] Work authorization and voluntary self-identification sourced from profile choices
 - [x] Compact side panel containing profile, Scan & Autofill, and progress only
 - [x] Removal of the superseded outcome summary, review queue, and field inventory
 
 ### Acceptance criteria
 
 - [x] Name, email, phone, school, education start/graduation dates, GitHub URL, and location map correctly.
-- [x] Non-empty fields are not overwritten without confirmation.
+- [x] Non-empty fields remain visible and can be updated through a confirmed action.
 - [x] Saved authorization, sponsorship, and supported voluntary choices autofill correctly.
 - [x] Accuracy confirmation is checked through the real DOM property and framework events.
 - [x] Filling occurs only after a user action.
-- [x] Autofill cannot run until the user selects a profile.
-- [x] Continue, Next, and Submit are not clicked.
+- [x] Autofill starts from the selected profile.
+- [x] The applicant completes navigation and final submission after review.
 - [x] Reload the unpacked extension and verify the complete workflow in Chrome.
 
 ## Phase 4 — Inline grounded answers
@@ -139,7 +139,7 @@ No account, personal resume, production deployment, or automatic submission is r
 - [x] Known character limits are refreshed before generation and enforced with one retry.
 - [x] Existing open-ended answers are not regenerated automatically.
 - [x] Generated text remains editable on the page.
-- [x] AI-workflow questions receive a conservative resume-based draft for review.
+- [x] AI-workflow questions receive a tailored resume-based draft for review.
 - [x] Optional instructions can select a resume project or emphasis without becoming evidence.
 - [x] Fixture and OpenRouter modes return the same ApplyFlow response contract.
 - [x] The extension never receives the OpenRouter API key.
@@ -147,7 +147,7 @@ No account, personal resume, production deployment, or automatic submission is r
 
 ## Phase 5 — Product workflow expansion
 
-These items build on the stable controlled prototype and must be completed before final submission polish. The product workflow has been narrowed to one applicant-owned profile, page-native review instead of a side-panel queue, and gradual online-site support rather than a claim of universal ATS compatibility.
+These items turn the controlled prototype into an adaptive application workspace: one evolving profile, page-native writing, reusable answer memory, and steadily expanding online-site coverage.
 
 ### 5A — Single editable profile and answer memory
 
@@ -171,37 +171,52 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Support separate LinkedIn and portfolio links, multiple education entries, and work experience
 - [x] Store authorization and sponsorship as two explicit answers; keep demographic answers optional with `Prefer not to say`
 - [ ] Separate stable profile facts from reusable application preferences
-- [x] Store reusable answers under scoped canonical keys such as `work_authorization.canada.authorized` and `.sponsorship`
+- [x] Store reusable answers under semantic keys such as `work_authorization.canada.authorized` and `.sponsorship`
 - [x] Record the answer source, confirmation time, and applicable country or scope
-- [x] Reuse a saved answer only when the new question maps to the same canonical meaning with high confidence
-- [ ] Re-review time-dependent preferences such as start date, salary, and relocation when context changes
-- [x] Never remember or autofill passwords, verification codes, government identifiers, or financial data
+- [x] Reuse a saved answer when a new question maps to the same semantic meaning and context
+- [ ] Surface quick refresh prompts for preferences such as start date, salary, and relocation when their context changes
+- [x] Keep credentials, verification codes, government identifiers, and financial details in their dedicated website controls
 - [ ] Add local privacy controls for viewing, editing, exporting, and deleting saved data
 
-### 5B — Page-native field workflow
+### 5B — Capture and save new answers
 
-- [x] Keep the side panel limited to profile controls, Scan & Autofill, and progress
+- [ ] Detect newly completed questions and selected options after Scan & Autofill and page edits
+- [ ] Normalize each question into reusable semantic meaning while retaining its original wording and source site
+- [ ] Show a lightweight **Save this answer?** floating card beside each eligible new answer
+- [ ] Add a **New answers to remember** section in the side panel after scanning
+- [ ] Let users save or skip suggestions individually
+- [ ] Support multi-select and **Save all** for a batch of suggested answers
+- [ ] Show the destination meaning and scope before saving so users understand how the answer will be reused
+- [ ] Store answer value, question meaning, source wording, source site, confirmation time, and relevant scope
+- [ ] Merge duplicates into one reusable answer while keeping the newest confirmed value
+- [ ] Make saved answers searchable, editable, refreshable, and removable from `My Profile`
+- [ ] Reuse a newly saved answer on later applications with different wording
+- [ ] Present changing answers as quick update cards that can replace the remembered value in one click
+
+### 5C — Page-native field workflow
+
+- [x] Keep the current side panel focused on profile controls, Scan & Autofill, and progress
+- [ ] Expand the side panel with the compact answer-memory inbox described in Phase 5B
 - [x] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
 - [x] Keep generated open-ended answers editable in their application fields
 - [x] Generate grounded cover letters from job-description context and saved resume evidence, with a manual JD fallback when page extraction is unavailable
 - [x] Let a user explicitly attach the locally saved resume to supported application file-upload controls, including routed Greenhouse embeds, with a manual fallback for unsupported custom uploaders or other cross-origin iframes
-- [x] Preserve existing page values unless the user explicitly regenerates an open-ended answer
-- [x] Exclude denied sensitive fields from scanning without collecting or recording their values
+- [x] Keep existing page values visible unless the user regenerates or confirms a replacement
+- [x] Route credential and verification fields to their native website experience
 - [x] Detect character limits across supported ATS implementations
-- [x] Keep Continue, Next, and Submit as user actions
+- [x] Keep final review, navigation, and submission with the applicant
 
-### 5C — Online application pilot
+### 5D — Online application expansion
 
 - [x] Preserve least-privilege, user-initiated access to the active application tab
-- [ ] Validate ordinary online HTML forms before claiming third-party site support
-- [ ] Pilot one selected ATS, then add platforms individually using regression fixtures
+- [ ] Graduate ordinary online HTML forms into repeatable compatibility coverage
+- [ ] Expand from each ATS pilot with reusable regression fixtures
 - [x] Improve semantic field classification using labels, names, IDs, autocomplete metadata, types, options, and surrounding question text
 - [ ] Add more robust accessible custom-control, dynamic-form, multi-step, and iframe support
 - [x] Add scoped optional permission and per-frame routing for embedded `job-boards.greenhouse.io` applications
-- [x] Document an explicit supported-site matrix and known limitations
-- [x] Do not claim universal ATS support without compatibility evidence
+- [x] Document a compatibility matrix with current coverage and next platform milestones
 
-### 5D — Operational readiness
+### 5E — Operational readiness
 
 - [x] Field-classification compatibility fixtures
 - [ ] Model-provider configuration, observability, cost controls, and failure handling
@@ -213,9 +228,9 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Returning users can autofill without selecting a profile on every application.
 - [x] Editing `My Profile` changes subsequent deterministic fills.
 - [x] A saved work-authorization answer fills semantically equivalent questions within its recorded country scope.
-- [x] Existing page values are never silently overwritten.
-- [x] Denied sensitive fields have no workflow result and no captured value.
-- [x] Mapped confirmations may be checked, while navigation and submission remain manual.
+- [x] Existing page values stay visible and change through a confirmed workflow.
+- [x] Credential and verification fields stay in their dedicated website controls.
+- [x] Mapped confirmations can be completed, followed by applicant review and submission.
 - [ ] A saved resume survives a browser restart and remains confined to the extension's local IndexedDB until the user replaces, deletes, resets, or uninstalls the extension.
 - [x] Replacing a file through `My resume file` leaves every other profile value unchanged.
 - [x] Importing through `Import resume` both replaces the saved original and updates the editable parsed profile.
@@ -223,8 +238,11 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] The original resume binary remains local during AI parsing; only disclosed extracted content reaches the ApplyFlow API and configured model provider.
 - [ ] Invalid, missing, duplicated, or low-confidence AI fields are rejected or marked for review before profile save.
 - [x] Deleting the saved original leaves existing parsed profile data intact and prevents resume attachment until another file is saved.
-- [x] Resume attachment remains user-initiated and never submits the application.
-- [ ] Each advertised online site passes a repeatable scan, fill, inline-review, and no-submit test.
+- [x] Resume attachment joins the user-initiated autofill workflow.
+- [ ] Each listed online site passes a repeatable scan, fill, inline-review, and final-review test.
+- [ ] A newly completed answer appears as both an inline save suggestion and a side-panel memory item.
+- [ ] Individual Save, Skip, multi-select, and Save all actions update the reusable-answer store correctly.
+- [ ] A saved semantic answer is proposed or filled when a later site asks the same question with different wording.
 
 ## Phase 6 — Submission and demo polish
 
@@ -239,6 +257,7 @@ These items build on the stable controlled prototype and must be completed befor
 - [ ] Fresh-machine setup validation
 - [ ] Three-minute demo script and backup recording
 - [ ] Architecture and model-usage documentation
+- [ ] Adaptive answer-memory interaction prototype and future-work documentation
 - [ ] Final repository, video, and Devpost submission checks
 
 ### Acceptance criteria
@@ -250,11 +269,11 @@ These items build on the stable controlled prototype and must be completed befor
 - [ ] The final product workflow fits within the three-minute demo.
 - [ ] Repository, video, and submission links pass the final checklist.
 
-## Explicit non-goals for the hackathon
+## Later product horizons
 
 - Automatic application submission
 - Automatic job discovery
-- Universal ATS support
+- Broad ATS coverage
 - Applicant tracking dashboard
 - LinkedIn scraping
 - Email automation

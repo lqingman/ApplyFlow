@@ -73,12 +73,13 @@ Leave a small timing buffer rather than targeting exactly three minutes.
 - [ ] Confirm blank open-ended fields generate directly on the page and existing answers are preserved.
 - [ ] Confirm hover/focus reveals the optional instruction and Regenerate control.
 - [ ] Confirm native, helper-text, and live character limits are passed to generation and an over-limit result is retried once.
-- [ ] Confirm AI-workflow answers use conservative resume evidence and remain editable by the user.
-- [ ] Confirm reviewed reusable answers are remembered only by canonical meaning and scope.
+- [ ] Confirm AI-workflow answers use relevant resume evidence and remain editable by the user.
+- [ ] Confirm implemented reusable answers are matched by semantic meaning and context.
+- [ ] Present inline **Save this answer?**, the side-panel memory inbox, and **Save all** as future work until their implementation lands.
 - [ ] Confirm every advertised online site passes its compatibility test path.
-- [ ] Confirm the side panel has no duplicated outcome summary, review queue, or field inventory.
-- [ ] Confirm Continue, Next, and Submit are never clicked automatically.
+- [ ] Confirm the current side panel stays focused on profile, autofill, and progress.
+- [ ] Confirm the applicant reviews and completes final submission.
 - [ ] Confirm changing `.env` provider settings is followed by a full API restart.
 - [ ] Confirm all links are accessible without the builder's logged-in session.
-- [ ] Describe Northstar as the supported local demo; do not imply that unvalidated third-party ATS sites are supported.
+- [ ] Describe Northstar as the complete local demo and the real ATS pilots as the path toward broader coverage.
 - [ ] Confirm the demo and documentation show the completed editable-profile workflow rather than the superseded profile-selection prototype.
