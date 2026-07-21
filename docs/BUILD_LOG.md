@@ -319,6 +319,18 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** shared answer and page-scan contracts; extension job-context extraction, resume storage, evidence selection, inline assistant, drafting client, profile UI, and tests; API contracts, provider instructions, validation, and tests; README, answer design, roadmap, site matrix, and build log.
 
+### 2026-07-20 — Embedded Greenhouse application routing
+
+**Goal:** make ApplyProof work when an employer careers page embeds its Greenhouse application in a cross-origin iframe, without adding broad or silent online-site access.
+
+**Human decision:** support only `job-boards.greenhouse.io` embeds, request access at runtime, preserve the employer page as the preferred job-context source, and keep every unrelated iframe provider outside the supported boundary.
+
+**Codex contribution:** reproduced the Airbnb failure and confirmed that the application controls live in a Greenhouse iframe while the existing bridge injects and messages only the top document. Added a manifest-declared optional Greenhouse host permission; exact-host embed detection; permission-denial handling; permitted-frame discovery; collision-safe external field IDs; and per-frame routing for scan, focus, deterministic fill, resume attachment, and inline assistants. Top-page job context is merged with frame fields, while reCAPTCHA and other iframe origins remain untouched.
+
+**Verification:** targeted bridge tests cover optional permission grant and denial, top-plus-frame injection, field-ID translation in both directions, aggregate blocked-field counts, top-page job-context preference, and Greenhouse-frame filling. Formatting, linting, type checks, all 129 repository tests, production builds, and `git diff --check` pass; the extension suite accounts for 99 of those tests. A manual Airbnb acceptance pass remains required after reloading the unpacked extension because Chrome does not expose its internal extensions page to browser automation.
+
+**Artifacts:** extension browser bridge and regression tests; least-privilege manifest and manifest test; `README.md`; compatibility matrix; roadmap; and this build log.
+
 ## Entry template
 
 Copy this section for the next milestone:

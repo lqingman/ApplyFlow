@@ -14,6 +14,9 @@ describe("least-privilege manifest", () => {
       "http://localhost/*",
       "http://127.0.0.1/*",
     ]);
+    expect(manifest.optional_host_permissions).toEqual([
+      "https://job-boards.greenhouse.io/*",
+    ]);
     expect(manifest).not.toHaveProperty("content_scripts");
     expect(JSON.stringify(manifest)).not.toContain("<all_urls>");
   });

@@ -5,6 +5,7 @@
   "description": "Grounded assistance for truthful job applications.",
   "permissions": ["sidePanel", "activeTab", "scripting", "storage"],
   "host_permissions": ["http://localhost/*", "http://127.0.0.1/*"],
+  "optional_host_permissions": ["https://job-boards.greenhouse.io/*"],
   "background": {
     "service_worker": "background.js"
   },

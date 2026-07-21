@@ -184,7 +184,7 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Treat profile facts and high-confidence remembered answers as eligible for user-initiated autofill
 - [x] Keep generated open-ended answers editable in their application fields
 - [x] Generate grounded cover letters from job-description context and saved resume evidence, with a manual JD fallback when page extraction is unavailable
-- [x] Let a user explicitly attach the locally saved resume to supported application file-upload controls, with a manual fallback for unsupported custom uploaders or cross-origin iframes
+- [x] Let a user explicitly attach the locally saved resume to supported application file-upload controls, including routed Greenhouse embeds, with a manual fallback for unsupported custom uploaders or other cross-origin iframes
 - [x] Preserve existing page values unless the user explicitly regenerates an open-ended answer
 - [x] Exclude denied sensitive fields from scanning without collecting or recording their values
 - [x] Detect character limits across supported ATS implementations
@@ -197,6 +197,7 @@ These items build on the stable controlled prototype and must be completed befor
 - [ ] Pilot one selected ATS, then add platforms individually using regression fixtures
 - [x] Improve semantic field classification using labels, names, IDs, autocomplete metadata, types, options, and surrounding question text
 - [ ] Add more robust accessible custom-control, dynamic-form, multi-step, and iframe support
+- [x] Add scoped optional permission and per-frame routing for embedded `job-boards.greenhouse.io` applications
 - [x] Document an explicit supported-site matrix and known limitations
 - [x] Do not claim universal ATS support without compatibility evidence
 

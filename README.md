@@ -4,7 +4,7 @@ ApplyProof is a Chrome extension that helps people complete job applications wit
 
 Traditional autofill handles contact details. Generic AI can write polished answers, but may exaggerate or invent experience. ApplyProof combines deterministic profile autofill with resume-grounded drafts that are generated and reviewed directly on the application page.
 
-> **Project status:** Phase 5 is in progress. The extension now persists one editable `My Profile` locally, can seed it with Maya demo data, and uses it for Scan & Autofill and inline grounded answers.
+> **Project status:** Phase 5 is in progress. The extension now persists one editable `My Profile` locally, can seed it with Maya demo data, uses it for Scan & Autofill and inline grounded answers, and includes a scoped pilot for direct and embedded Greenhouse applications.
 
 The current build is a controlled local demo. The confirmed product direction is one editable applicant profile, page-native review, and gradual validation on real application sites after the local workflow is stable.
 
@@ -141,7 +141,7 @@ For example, “Are you legally authorized to work in Canada?” and “Will you
 
 ## Website support
 
-The supported and tested environment today is the local Northstar Labs application. The extension uses user-initiated active-tab access and has persistent host permissions only for the local demo origins. Simple online forms may happen to work, but they are not yet an advertised capability.
+The fully supported environment today is the local Northstar Labs application. Workable, BambooHR, and Greenhouse remain builder-tested pilots rather than generally supported integrations. The extension uses user-initiated active-tab access and has persistent required host permissions only for the local demo origins. Embedded Greenhouse forms request the narrowly declared `job-boards.greenhouse.io` optional permission only when such a frame is detected. Other online forms may happen to work, but they are not advertised as supported without compatibility evidence.
 
 Online support will be introduced as a compatibility pilot: validate ordinary HTML forms first, then selected ATS platforms one at a time. Each advertised site must pass repeatable tests covering semantic field classification, custom controls, dynamic and multi-step forms, iframe boundaries, existing-value protection, inline drafting, live limits, and the guarantee that ApplyProof never submits automatically. Universal ATS support remains out of scope.
 
@@ -259,6 +259,13 @@ instruction and regenerate it. The side panel remains compact and does not dupli
 review queue, or field inventory. After rebuilding an already loaded unpacked extension, use the
 reload button on `chrome://extensions` and refresh the application page before retesting.
 
+For an embedded Greenhouse pilot such as an employer careers page containing a
+`job-boards.greenhouse.io` application, keep the employer page active and click **Scan & Autofill**.
+Chrome asks once for access to the embedded Greenhouse origin. Granting it lets ApplyProof scan and
+route fields, resume attachment, and inline writing controls inside that frame while retaining job
+context from the employer page. Declining leaves the frame untouched and stops the workflow with an
+explanation. Other iframe providers remain unsupported.
+
 Start the API in keyless fixture mode for deterministic demo answers. The AI-workflow question uses
 resume project, skill, testing, and accessibility evidence to produce a conservative starting draft
 for user review; it does not require a separate confirmation flow. Character constraints are read
@@ -286,9 +293,10 @@ The API scripts expect the project-local `.venv` created by the install steps. T
 mock application contain no model dependency or secrets. Scanning runs only after a user action and
 passes normalized field metadata plus bounded, relevant job context through the extension; it does
 not send full-page HTML. Drafting may send selected saved-resume evidence snippets and up to 12,000
-characters of extracted or user-pasted job description to the API. Persistent host access is limited to the local demo origins (`localhost` and
-`127.0.0.1`). Real application sites are not yet supported or advertised; they will be added through
-the compatibility pilot described above.
+characters of extracted or user-pasted job description to the API. Persistent required host access
+is limited to the local demo origins (`localhost` and `127.0.0.1`). Greenhouse iframe access is
+optional and requested at runtime only after a matching embed is detected. Named real-site
+integrations remain compatibility pilots unless the matrix says otherwise.
 
 Before submitting, use the [hackathon submission checklist](docs/SUBMISSION_CHECKLIST.md).
 
