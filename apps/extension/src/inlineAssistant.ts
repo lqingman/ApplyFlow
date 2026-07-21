@@ -18,6 +18,8 @@ let cleanups: Cleanup[] = [];
 let pageObserver: MutationObserver | undefined;
 let remountTimer: number | undefined;
 const coverLetterPattern = /\bcover[- ]?letter\b/i;
+const botChallengePattern =
+  /captcha|g-recaptcha-response|hcaptcha|cf-turnstile/i;
 
 function isCoverLetterField(field: Pick<NormalizedField, "id" | "label">) {
   return coverLetterPattern.test(`${field.id} ${field.label}`);
@@ -154,6 +156,17 @@ function isOpenQuestion(
 ): element is OpenField {
   return (
     field.kind === "textarea" &&
+    !botChallengePattern.test(
+      [
+        field.id,
+        field.label,
+        field.metadata?.name,
+        element.id,
+        element.getAttribute("name"),
+      ]
+        .filter(Boolean)
+        .join(" "),
+    ) &&
     (element instanceof HTMLTextAreaElement ||
       element instanceof HTMLInputElement ||
       element instanceof HTMLElement)

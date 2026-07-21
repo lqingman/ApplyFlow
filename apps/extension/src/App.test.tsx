@@ -356,13 +356,19 @@ describe("profile-first autofill workflow", () => {
     fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "new.email@example.com" },
     });
+    fireEvent.change(screen.getByLabelText("Preferred name (optional)"), {
+      target: { value: "Maymay" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Save My Profile" }));
 
     await waitFor(() =>
       expect(saveMyProfile).toHaveBeenCalledWith(
         expect.objectContaining({
           id: "my-profile",
-          identity: expect.objectContaining({ email: "new.email@example.com" }),
+          identity: expect.objectContaining({
+            email: "new.email@example.com",
+            preferredName: "Maymay",
+          }),
         }),
       ),
     );

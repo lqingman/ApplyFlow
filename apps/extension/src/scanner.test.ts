@@ -133,6 +133,18 @@ describe("page scanner", () => {
     );
   });
 
+  it("never treats bot-challenge response controls as application questions", () => {
+    document.body.innerHTML = `
+      <textarea id="g-recaptcha-response" name="g-recaptcha-response"></textarea>
+      <textarea id="project" aria-label="Project summary"></textarea>
+    `;
+
+    expect(scanDocument(document).map((field) => field.id)).toEqual([
+      "project",
+    ]);
+    expect(countBlockedFields(document)).toBe(1);
+  });
+
   it("does not scan navigation or submission controls", () => {
     document.body.innerHTML = `
       <label>First name <input id="first-name"></label>
@@ -170,5 +182,33 @@ describe("page scanner", () => {
       "role",
       "combobox",
     );
+  });
+
+  it("treats a Fabric select display value as replaceable profile data", () => {
+    document.body.innerHTML = `
+      <label for="country">Country</label>
+      <div data-fabric-component="Select">
+        <button aria-haspopup="true" aria-label="Country United States"><span class="fab-SelectToggle__content">United States</span></button>
+        <select id="country" name="countryId.value" aria-hidden="true" readonly required>
+          <option value="1" selected></option>
+        </select>
+      </div>
+      <label for="available">Date Available</label>
+      <input id="available" placeholder="dd mon yyyy">
+    `;
+
+    expect(scanDocument(document)).toMatchObject([
+      {
+        id: "country",
+        label: "Country",
+        value: "",
+        metadata: { name: "countryId.value" },
+      },
+      {
+        id: "available",
+        label: "Date Available",
+        metadata: { inputType: "text", placeholder: "dd mon yyyy" },
+      },
+    ]);
   });
 });

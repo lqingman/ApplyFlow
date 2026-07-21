@@ -24,9 +24,9 @@ describe("safe page filling", () => {
     `;
   });
 
-  it("fills blank controls and radio groups", () => {
+  it("fills blank controls and radio groups", async () => {
     expect(
-      fillDocument(document, [
+      await fillDocument(document, [
         { fieldId: "email", value: "maya.chen@example.com" },
         { fieldId: "relocation", value: "yes" },
         { fieldId: "accuracyConfirmation", value: "true" },
@@ -49,18 +49,20 @@ describe("safe page filling", () => {
     ).toBe(true);
   });
 
-  it("never overwrites an existing value", () => {
+  it("never overwrites an existing value", async () => {
     expect(
-      fillDocument(document, [{ fieldId: "school", value: "New school" }]),
+      await fillDocument(document, [
+        { fieldId: "school", value: "New school" },
+      ]),
     ).toEqual([{ fieldId: "school", status: "skipped_existing" }]);
     expect(document.querySelector<HTMLInputElement>("#school")?.value).toBe(
       "Already entered",
     );
   });
 
-  it("matches visible option labels when ATS values are opaque IDs", () => {
+  it("matches visible option labels when ATS values are opaque IDs", async () => {
     expect(
-      fillDocument(document, [
+      await fillDocument(document, [
         { fieldId: "race", value: "Asian" },
         { fieldId: "disability", value: "No" },
       ]),
@@ -74,5 +76,36 @@ describe("safe page filling", () => {
     expect(
       document.querySelector<HTMLSelectElement>("#disability")?.value,
     ).toBe("202");
+  });
+
+  it("fills a BambooHR Fabric select through its visible menu", async () => {
+    document.body.innerHTML = `
+      <div data-fabric-component="Select">
+        <button aria-haspopup="true" aria-expanded="false"><span class="fab-SelectToggle__content">United States</span></button>
+        <select id="country" name="countryId.value" aria-hidden="true" readonly>
+          <option value="1" selected></option>
+        </select>
+      </div>
+    `;
+    const toggle = document.querySelector("button")!;
+    toggle.addEventListener("click", () => {
+      toggle.setAttribute("aria-expanded", "true");
+      const option = document.createElement("div");
+      option.setAttribute("role", "menuitem");
+      option.textContent = "Canada";
+      option.addEventListener("click", () => {
+        document.querySelector(".fab-SelectToggle__content")!.textContent =
+          "Canada";
+        toggle.setAttribute("aria-expanded", "false");
+      });
+      document.body.append(option);
+    });
+
+    await expect(
+      fillDocument(document, [{ fieldId: "country", value: "Canada" }]),
+    ).resolves.toEqual([{ fieldId: "country", status: "filled" }]);
+    expect(
+      document.querySelector(".fab-SelectToggle__content"),
+    ).toHaveTextContent("Canada");
   });
 });

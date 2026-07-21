@@ -27,6 +27,7 @@ export const normalizedFieldSchema = z.object({
       name: z.string().min(1).optional(),
       autocomplete: z.string().min(1).optional(),
       inputType: z.string().min(1).optional(),
+      placeholder: z.string().min(1).optional(),
       questionText: z.string().min(1).max(500).optional(),
     })
     .optional(),
@@ -193,10 +194,20 @@ const currentCandidateProfileSchema = z.object({
   displayName: z.string().min(1),
   identity: z.object({
     firstName: z.string().min(1),
+    preferredName: z.string().trim().min(1).optional(),
     lastName: z.string().min(1),
     email: z.string().email(),
     phone: z.string().min(1),
     location: z.string().min(1),
+    address: z
+      .object({
+        streetAddress: z.string().trim().min(1).optional(),
+        city: z.string().trim().min(1).optional(),
+        stateOrProvince: z.string().trim().min(1).optional(),
+        postalCode: z.string().trim().min(1).optional(),
+        country: z.string().trim().min(1).optional(),
+      })
+      .optional(),
   }),
   links: z.object({
     portfolio: z.string().url().optional(),

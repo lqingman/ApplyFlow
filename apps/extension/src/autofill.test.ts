@@ -23,6 +23,7 @@ describe("safe autofill planning", () => {
   it("maps deterministic profile fields", () => {
     const { fills } = planAutofill(mayaProfile, [
       field("first-name"),
+      field("preferred-name"),
       field("email", { kind: "email" }),
       field("school"),
       field("education-start-date", { kind: "date" }),
@@ -46,6 +47,7 @@ describe("safe autofill planning", () => {
 
     expect(fills).toEqual([
       { fieldId: "first-name", value: "Maya" },
+      { fieldId: "preferred-name", value: "May" },
       { fieldId: "email", value: "maya.chen@example.com" },
       { fieldId: "school", value: "University of British Columbia" },
       { fieldId: "education-start-date", value: "2022-09-01" },
@@ -59,6 +61,40 @@ describe("safe autofill planning", () => {
       { fieldId: "gender", value: "Woman" },
       { fieldId: "accuracyConfirmation", value: "true" },
     ]);
+  });
+
+  it("maps preferred-name questions without replacing the legal first name", () => {
+    const { fills } = planAutofill(mayaProfile, [
+      field("legal-name", { label: "Legal given name" }),
+      field("nickname", {
+        label: "What name do you go by?",
+        metadata: { autocomplete: "given-name" },
+      }),
+      field("chosen-name", { label: "Chosen name" }),
+      field("preferred-first", { label: "Preferred first name" }),
+    ]);
+
+    expect(fills).toEqual([
+      { fieldId: "legal-name", value: "Maya" },
+      { fieldId: "nickname", value: "May" },
+      { fieldId: "chosen-name", value: "May" },
+      { fieldId: "preferred-first", value: "May" },
+    ]);
+  });
+
+  it("leaves a preferred-name question blank when none is saved", () => {
+    const profile = {
+      ...mayaProfile,
+      identity: { ...mayaProfile.identity, preferredName: undefined },
+    };
+    const { fills } = planAutofill(profile, [
+      field("nickname", {
+        label: "Preferred name",
+        metadata: { autocomplete: "given-name" },
+      }),
+    ]);
+
+    expect(fills).toEqual([]);
   });
 
   it("preserves existing values and routes open answers to review", () => {
@@ -163,5 +199,60 @@ describe("safe autofill planning", () => {
     );
 
     expect(fills).toEqual([{ fieldId: "eligibility-question", value: "Yes" }]);
+  });
+
+  it("maps split BambooHR address fields and its masked availability date", () => {
+    const { fills } = planAutofill(mayaProfile, [
+      field("street", {
+        label: "Address",
+        metadata: { name: "streetAddress.value" },
+      }),
+      field("city", { label: "City", metadata: { name: "city.value" } }),
+      field("state", {
+        label: "State",
+        kind: "select",
+        metadata: { name: "state.value" },
+      }),
+      field("zip", { label: "ZIP", metadata: { name: "zip.value" } }),
+      field("country", {
+        label: "Country",
+        kind: "select",
+        metadata: { name: "countryId.value" },
+      }),
+      field("available", {
+        label: "Date Available",
+        metadata: { placeholder: "dd mon yyyy", inputType: "text" },
+      }),
+    ]);
+
+    expect(fills).toEqual([
+      { fieldId: "street", value: "1234 Demo Street" },
+      { fieldId: "city", value: "Vancouver" },
+      { fieldId: "state", value: "British Columbia" },
+      { fieldId: "zip", value: "V6B 1A1" },
+      { fieldId: "country", value: "Canada" },
+      { fieldId: "available", value: "03 Aug 2026" },
+    ]);
+  });
+
+  it("uses a Canadian authorization question to scope a nearby sponsorship question", () => {
+    const { fills } = planAutofill(mayaProfile, [
+      field("customQuestionAnswers.yes_no_359", {
+        label: "Are you legally authorized to work in Canada?",
+        kind: "radio",
+        options: ["Yes", "No"],
+      }),
+      field("customQuestionAnswers.yes_no_360", {
+        label:
+          "Will you now or in the future require sponsorship for employment visa status?",
+        kind: "radio",
+        options: ["Yes", "No"],
+      }),
+    ]);
+
+    expect(fills).toEqual([
+      { fieldId: "customQuestionAnswers.yes_no_359", value: "Yes" },
+      { fieldId: "customQuestionAnswers.yes_no_360", value: "No" },
+    ]);
   });
 });

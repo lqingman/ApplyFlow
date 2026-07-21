@@ -14,6 +14,7 @@ export const sensitiveFieldPatterns = [
   /credit card|debit card|card number|\bcvv\b|\bcvc\b/i,
   /bank account|routing number|transit number|swift|\biban\b/i,
   /security question|mother.?s maiden|secret answer/i,
+  /captcha|g-recaptcha-response|hcaptcha|cf-turnstile/i,
 ];
 
 function normalizeText(value: string | null | undefined) {
@@ -154,9 +155,13 @@ function isUsable(element: ScannableElement) {
   ) {
     return false;
   }
+  const isFabricBackingSelect =
+    element instanceof HTMLSelectElement &&
+    element.matches('[aria-hidden="true"][readonly]') &&
+    Boolean(element.closest('[data-fabric-component="Select"]'));
   return (
     !element.hasAttribute("disabled") &&
-    element.getAttribute("aria-hidden") !== "true"
+    (element.getAttribute("aria-hidden") !== "true" || isFabricBackingSelect)
   );
 }
 
@@ -187,6 +192,13 @@ function normalizedValue(element: ScannableElement) {
     element instanceof HTMLTextAreaElement ||
     element instanceof HTMLSelectElement
   ) {
+    if (
+      element instanceof HTMLSelectElement &&
+      element.matches('[aria-hidden="true"][readonly]') &&
+      element.closest('[data-fabric-component="Select"]')
+    ) {
+      return "";
+    }
     return element.value;
   }
   return normalizeText(
@@ -202,12 +214,16 @@ function fieldMetadata(element: ScannableElement, label: string) {
     element instanceof HTMLInputElement
       ? element.type.toLowerCase()
       : undefined;
+  const placeholder =
+    normalizeText(element.getAttribute("placeholder")) || undefined;
   const context = questionText(element, label);
-  if (!name && !autocomplete && !inputType && !context) return undefined;
+  if (!name && !autocomplete && !inputType && !placeholder && !context)
+    return undefined;
   return {
     ...(name ? { name } : {}),
     ...(autocomplete ? { autocomplete } : {}),
     ...(inputType ? { inputType } : {}),
+    ...(placeholder ? { placeholder } : {}),
     ...(context ? { questionText: context } : {}),
   };
 }

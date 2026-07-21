@@ -6,6 +6,7 @@ describe("Maya Chen demo profile", () => {
   it("contains deterministic autofill data and evidence", () => {
     expect(mayaProfile.displayName).toBe("Maya Chen");
     expect(mayaProfile.identity.email).toBe("maya.chen@example.com");
+    expect(mayaProfile.identity.preferredName).toBe("May");
     expect(mayaProfile.evidence).toHaveLength(5);
     expect(mayaProfile.evidence.map((record) => record.id)).toContain(
       "interest-accessible-products",

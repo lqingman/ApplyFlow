@@ -49,10 +49,15 @@ type ExperienceDraft = {
 
 type ProfileDraft = {
   firstName: string;
+  preferredName: string;
   lastName: string;
   email: string;
   phone: string;
-  location: string;
+  streetAddress: string;
+  city: string;
+  stateOrProvince: string;
+  postalCode: string;
+  country: string;
   portfolio: string;
   linkedin: string;
   education: EducationDraft[];
@@ -103,13 +108,28 @@ function blankExperience(): ExperienceDraft {
   };
 }
 
+function splitLegacyLocation(location = "") {
+  const [city = "", stateOrProvince = ""] = location
+    .split(",")
+    .map((part) => part.trim());
+  return { city, stateOrProvince };
+}
+
 function draftFrom(profile: CandidateProfile | null): ProfileDraft {
+  const legacyAddress = splitLegacyLocation(profile?.identity.location);
   return {
     firstName: profile?.identity.firstName ?? "",
+    preferredName: profile?.identity.preferredName ?? "",
     lastName: profile?.identity.lastName ?? "",
     email: profile?.identity.email ?? "",
     phone: profile?.identity.phone ?? "",
-    location: profile?.identity.location ?? "",
+    streetAddress: profile?.identity.address?.streetAddress ?? "",
+    city: profile?.identity.address?.city ?? legacyAddress.city,
+    stateOrProvince:
+      profile?.identity.address?.stateOrProvince ??
+      legacyAddress.stateOrProvince,
+    postalCode: profile?.identity.address?.postalCode ?? "",
+    country: profile?.identity.address?.country ?? "Canada",
     portfolio: profile?.links.portfolio ?? "",
     linkedin: profile?.links.linkedin ?? "",
     education: profile?.education.map((entry) => ({
@@ -163,15 +183,32 @@ function profileFromDraft(
   draft: ProfileDraft,
   existing: CandidateProfile | null,
 ) {
+  const location = [draft.city.trim(), draft.stateOrProvince.trim()]
+    .filter(Boolean)
+    .join(", ");
   return candidateProfileSchema.parse({
     id: "my-profile",
     displayName: `${draft.firstName.trim()} ${draft.lastName.trim()}`.trim(),
     identity: {
       firstName: draft.firstName.trim(),
+      ...(draft.preferredName.trim()
+        ? { preferredName: draft.preferredName.trim() }
+        : {}),
       lastName: draft.lastName.trim(),
       email: draft.email.trim(),
       phone: draft.phone.trim(),
-      location: draft.location.trim(),
+      location,
+      address: {
+        ...(draft.streetAddress.trim()
+          ? { streetAddress: draft.streetAddress.trim() }
+          : {}),
+        city: draft.city.trim(),
+        stateOrProvince: draft.stateOrProvince.trim(),
+        ...(draft.postalCode.trim()
+          ? { postalCode: draft.postalCode.trim() }
+          : {}),
+        country: draft.country.trim(),
+      },
     },
     links: {
       ...(draft.portfolio.trim() ? { portfolio: draft.portfolio.trim() } : {}),
@@ -219,6 +256,7 @@ function profileFromDraft(
 }
 
 function mergeResume(draft: ProfileDraft, resume: ParsedResume): ProfileDraft {
+  const importedAddress = splitLegacyLocation(resume.location);
   const importedEducation = resume.education.map((entry) => ({
     id: entryId("education"),
     school: entry.school,
@@ -248,7 +286,8 @@ function mergeResume(draft: ProfileDraft, resume: ParsedResume): ProfileDraft {
     lastName: resume.lastName ?? draft.lastName,
     email: resume.email ?? draft.email,
     phone: resume.phone ?? draft.phone,
-    location: resume.location ?? draft.location,
+    city: importedAddress.city || draft.city,
+    stateOrProvince: importedAddress.stateOrProvince || draft.stateOrProvince,
     portfolio: resume.portfolio ?? draft.portfolio,
     linkedin: resume.linkedin ?? draft.linkedin,
     education: importedEducation.length ? importedEducation : draft.education,
@@ -540,6 +579,13 @@ export function ProfileEditor({
           </label>
         </div>
         <label>
+          Preferred name (optional)
+          <input
+            value={draft.preferredName}
+            onChange={(event) => set("preferredName", event.target.value)}
+          />
+        </label>
+        <label>
           Email
           <input
             required
@@ -558,13 +604,52 @@ export function ProfileEditor({
           />
         </label>
         <label>
-          City and region
+          Street address
           <input
-            required
-            value={draft.location}
-            onChange={(event) => set("location", event.target.value)}
+            value={draft.streetAddress}
+            autoComplete="street-address"
+            onChange={(event) => set("streetAddress", event.target.value)}
           />
         </label>
+        <div className="field-grid two-columns">
+          <label>
+            City
+            <input
+              required
+              value={draft.city}
+              autoComplete="address-level2"
+              onChange={(event) => set("city", event.target.value)}
+            />
+          </label>
+          <label>
+            State or province
+            <input
+              required
+              value={draft.stateOrProvince}
+              autoComplete="address-level1"
+              onChange={(event) => set("stateOrProvince", event.target.value)}
+            />
+          </label>
+        </div>
+        <div className="field-grid two-columns">
+          <label>
+            ZIP or postal code
+            <input
+              value={draft.postalCode}
+              autoComplete="postal-code"
+              onChange={(event) => set("postalCode", event.target.value)}
+            />
+          </label>
+          <label>
+            Country
+            <input
+              required
+              value={draft.country}
+              autoComplete="country-name"
+              onChange={(event) => set("country", event.target.value)}
+            />
+          </label>
+        </div>
         <label>
           Portfolio or GitHub URL
           <input

@@ -96,6 +96,23 @@ describe("inline writing assistant", () => {
     expect(host).toHaveStyle({ left: "12px", top: "12px" });
   });
 
+  it("never mounts a writing assistant on a reCAPTCHA response field", () => {
+    document.body.innerHTML = `
+      <textarea id="g-recaptcha-response" name="g-recaptcha-response"></textarea>
+    `;
+    const captchaField = {
+      ...field,
+      id: "g-recaptcha-response",
+      label: "g recaptcha response",
+      metadata: { name: "g-recaptcha-response" },
+    };
+
+    expect(mountInlineAssistants(document, [captchaField])).toBe(0);
+    expect(
+      document.querySelector("[data-applyproof-inline-assistant]"),
+    ).not.toBeInTheDocument();
+  });
+
   it("positions the portal outside and below the application textarea", () => {
     document.body.innerHTML = `<textarea id="project"></textarea>`;
     const pageField = document.querySelector<HTMLTextAreaElement>("#project");

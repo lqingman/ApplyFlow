@@ -81,14 +81,11 @@ if (!window.__applyProofScannerReady) {
       return;
     }
     if (message?.type === "APPLYPROOF_FILL_FIELDS") {
-      sendResponse({
-        ok: true,
-        results: fillDocument(
-          document,
-          Array.isArray(message.fills) ? message.fills : [],
-        ),
-      });
-      return;
+      void fillDocument(
+        document,
+        Array.isArray(message.fills) ? message.fills : [],
+      ).then((results) => sendResponse({ ok: true, results }));
+      return true;
     }
     if (message?.type === "APPLYPROOF_ATTACH_RESUME") {
       const file = resumeFileFrom(message.file);

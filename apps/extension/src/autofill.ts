@@ -46,11 +46,33 @@ function semanticFingerprint(field: NormalizedField) {
     field.metadata?.name,
     field.metadata?.autocomplete,
     field.metadata?.inputType,
+    field.metadata?.placeholder,
     field.metadata?.questionText,
     ...field.options,
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+function dateValueForField(value: string, field: NormalizedField) {
+  const placeholder = field.metadata?.placeholder ?? "";
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match || !/\bdd\s+mon\s+yyyy\b/i.test(placeholder)) return value;
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  return `${match[3]} ${months[Number(match[2]) - 1]} ${match[1]}`;
 }
 
 function semanticProfileValue(
@@ -61,6 +83,17 @@ function semanticProfileValue(
   const autocomplete = field.metadata?.autocomplete?.toLowerCase() ?? "";
   const fingerprint = semanticFingerprint(field);
   const matches = (pattern: RegExp) => pattern.test(fingerprint);
+  const address = profile.identity.address;
+
+  if (
+    matches(
+      /\b(?:preferred|chosen)[-_\s]*(?:first[-_\s]*)?name\b|\bnick[-_\s]*name\b|\bname (?:you )?go by\b|\bwhat (?:should|can) we call you\b/i,
+    )
+  ) {
+    // A missing preferred name should stay blank instead of falling through to
+    // autocomplete="given-name" and inserting the applicant's legal name.
+    return profile.identity.preferredName;
+  }
 
   if (autocomplete.split(/\s+/).includes("given-name"))
     return profile.identity.firstName;
@@ -71,8 +104,20 @@ function semanticProfileValue(
   if (autocomplete.split(/\s+/).includes("email"))
     return profile.identity.email;
   if (autocomplete.split(/\s+/).includes("tel")) return profile.identity.phone;
+  if (autocomplete.split(/\s+/).includes("street-address"))
+    return address?.streetAddress;
+  if (autocomplete.split(/\s+/).includes("address-level1"))
+    return address?.stateOrProvince;
   if (autocomplete.split(/\s+/).includes("address-level2"))
-    return profile.identity.location;
+    return address?.city ?? profile.identity.location;
+  if (autocomplete.split(/\s+/).includes("postal-code"))
+    return address?.postalCode;
+  if (
+    autocomplete
+      .split(/\s+/)
+      .some((token) => ["country", "country-name"].includes(token))
+  )
+    return address?.country;
   if (autocomplete.split(/\s+/).includes("url")) return profile.links.portfolio;
 
   if (matches(/\b(?:(?:first|given)[-_\s]*name|forename)\b/i))
@@ -86,12 +131,28 @@ function semanticProfileValue(
   if (matches(/\b(?:portfolio|personal website|website url|github)\b/i))
     return profile.links.portfolio;
   if (
+    matches(/\b(?:street[-_\s]*address|address[-_\s]*line(?:[-_\s]*1)?)\b/i) ||
+    (matches(/\baddress\b/i) && !matches(/\b(?:email|e-mail|web)\b/i))
+  )
+    return address?.streetAddress;
+  if (matches(/\b(?:zip|postal)[-_\s]*(?:code)?\b/i))
+    return address?.postalCode;
+  if (
+    matches(/\b(?:state|province|region)\b/i) &&
+    !matches(/\b(?:city|location)\b/i)
+  )
+    return address?.stateOrProvince;
+  if (matches(/\bcountry\b/i)) return address?.country;
+  if (
     matches(
       /\b(?:current )?(?:city|location|city and (?:province|state))\b/i,
     ) &&
     !matches(/\b(?:preferred|desired|job) location\b/i)
-  )
-    return profile.identity.location;
+  ) {
+    if (matches(/\bcity\b/i) && matches(/\b(?:province|state|region)\b/i))
+      return profile.identity.location;
+    return address?.city ?? profile.identity.location;
+  }
   if (matches(/\b(?:school|college|university|institution)\b/i))
     return primaryEducation?.school;
   if (matches(/\b(?:degree|qualification)\b/i)) return primaryEducation?.degree;
@@ -107,28 +168,38 @@ function semanticProfileValue(
   if (matches(/\b(?:graduation|graduate|degree end|education end)\b/i))
     return primaryEducation?.graduationDate;
   if (matches(/\b(?:available|availability|start work|earliest start)\b/i))
-    return profile.availability.startDate;
+    return dateValueForField(profile.availability.startDate, field);
   if (matches(/\brelocat(?:e|ion|ing)\b/i))
     return profile.availability.relocation;
   return undefined;
 }
 
-function profileValue(profile: CandidateProfile, field: NormalizedField) {
+function profileValue(
+  profile: CandidateProfile,
+  field: NormalizedField,
+  canadianAuthorizationContext: boolean,
+) {
   const primaryEducation = profile.education[0];
   const { id } = field;
   const values: Record<string, string | undefined> = {
     "first-name": profile.identity.firstName,
+    "preferred-name": profile.identity.preferredName,
     "last-name": profile.identity.lastName,
     email: profile.identity.email,
     phone: profile.identity.phone,
     location: profile.identity.location,
+    address: profile.identity.address?.streetAddress,
+    city: profile.identity.address?.city,
+    state: profile.identity.address?.stateOrProvince,
+    zip: profile.identity.address?.postalCode,
+    country: profile.identity.address?.country,
     portfolio: profile.links.portfolio,
     linkedin: profile.links.linkedin,
     school: primaryEducation?.school,
     degree: primaryEducation?.degree,
     "education-start-date": primaryEducation?.startDate,
     "graduation-date": primaryEducation?.graduationDate,
-    "start-date": profile.availability.startDate,
+    "start-date": dateValueForField(profile.availability.startDate, field),
     relocation: profile.availability.relocation,
     accuracyConfirmation: "true",
   };
@@ -151,7 +222,8 @@ function profileValue(profile: CandidateProfile, field: NormalizedField) {
   }
   if (
     id === "sponsorship" ||
-    (/\bcanad(?:a|ian)\b/i.test(fingerprint) &&
+    ((/\bcanad(?:a|ian)\b/i.test(fingerprint) ||
+      canadianAuthorizationContext) &&
       /\bsponsor(?:ship)?\b/i.test(fingerprint))
   ) {
     return yesNoLabels[authorization.sponsorship];
@@ -240,9 +312,19 @@ export function planAutofill(
   fields: NormalizedField[],
   rememberedAnswers: RememberedAnswer[] = [],
 ) {
+  const canadianAuthorizationContext = fields.some((field) => {
+    const fingerprint = semanticFingerprint(field);
+    return (
+      /\bcanad(?:a|ian)\b/i.test(fingerprint) &&
+      /\b(?:authori[sz](?:ed|ation)|legally eligible|work permit|sponsorship)\b/i.test(
+        fingerprint,
+      )
+    );
+  });
   const decisions: FieldDecision[] = fields.map((field) => {
     const value =
-      profileValue(profile, field) ?? rememberedValue(field, rememberedAnswers);
+      profileValue(profile, field, canadianAuthorizationContext) ??
+      rememberedValue(field, rememberedAnswers);
     if (value !== undefined) {
       if (field.value.trim()) {
         return {

@@ -60,11 +60,11 @@ describe("Northstar Labs application", () => {
     });
   });
 
-  it("safely autofills the complete deterministic Phase 3 mapping", () => {
+  it("safely autofills the complete deterministic Phase 3 mapping", async () => {
     render(<App />);
 
     const plan = planAutofill(mayaProfile, scanDocument(document));
-    const results = fillDocument(document, plan.fills);
+    const results = await fillDocument(document, plan.fills);
 
     expect(plan.fills).toHaveLength(20);
     expect(results.every((result) => result.status === "filled")).toBe(true);

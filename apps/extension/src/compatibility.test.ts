@@ -10,7 +10,7 @@ describe("ordinary online HTML form compatibility", () => {
     document.body.innerHTML = "";
   });
 
-  it("classifies and fills fields with opaque IDs from semantic HTML metadata", () => {
+  it("classifies and fills fields with opaque IDs from semantic HTML metadata", async () => {
     document.body.innerHTML = `
       <form>
         <label>Legal given name <input id="q_101" autocomplete="given-name"></label>
@@ -35,7 +35,7 @@ describe("ordinary online HTML form compatibility", () => {
 
     const fields = scanDocument(document);
     const plan = planAutofill(mayaProfile, fields);
-    const results = fillDocument(document, plan.fills);
+    const results = await fillDocument(document, plan.fills);
 
     expect(results).toHaveLength(12);
     expect(results.every((result) => result.status === "filled")).toBe(true);

@@ -5,10 +5,18 @@ export const mayaProfile = candidateProfileSchema.parse({
   displayName: "Maya Chen",
   identity: {
     firstName: "Maya",
+    preferredName: "May",
     lastName: "Chen",
     email: "maya.chen@example.com",
     phone: "+1 604 555 0142",
     location: "Vancouver, BC",
+    address: {
+      streetAddress: "1234 Demo Street",
+      city: "Vancouver",
+      stateOrProvince: "British Columbia",
+      postalCode: "V6B 1A1",
+      country: "Canada",
+    },
   },
   links: {
     portfolio: "https://github.com/mayachen-demo",
