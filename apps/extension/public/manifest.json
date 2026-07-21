@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ApplyProof",
+  "name": "ApplyFlow",
   "version": "0.1.0",
   "description": "Grounded assistance for truthful job applications.",
   "permissions": ["sidePanel", "activeTab", "scripting", "storage"],
@@ -10,7 +10,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Open ApplyProof"
+    "default_title": "Open ApplyFlow"
   },
   "side_panel": {
     "default_path": "index.html"

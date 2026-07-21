@@ -122,7 +122,7 @@ def test_openrouter_resume_extraction_uses_a_strict_schema() -> None:
     assert result.first_name == "Maya"
     body = client.kwargs["json"]
     assert isinstance(body, dict)
-    assert body["text"]["format"]["name"] == "applyproof_resume_extraction"  # type: ignore[index]
+    assert body["text"]["format"]["name"] == "applyflow_resume_extraction"  # type: ignore[index]
     assert body["text"]["format"]["strict"] is True  # type: ignore[index]
     assert "Do not rephrase" in body["instructions"]  # type: ignore[operator]
     assert "resumeText" not in json.dumps(body)

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mayaProfile } from "@applyproof/sample-data";
+import { mayaProfile } from "@applyflow/sample-data";
 
 import {
   loadMyProfile,
@@ -29,8 +29,8 @@ describe("local My Profile storage", () => {
     await expect(saveMyProfile(mayaProfile)).resolves.toEqual(mayaProfile);
     expect(set).toHaveBeenCalledWith(
       expect.objectContaining({
-        "applyproof.myProfile.v1": mayaProfile,
-        "applyproof.reusableAnswers.v1": expect.arrayContaining([
+        "applyflow.myProfile.v1": mayaProfile,
+        "applyflow.reusableAnswers.v1": expect.arrayContaining([
           expect.objectContaining({
             canonicalKey: "work_authorization.canada.authorized",
             value: "Yes",
@@ -46,13 +46,13 @@ describe("local My Profile storage", () => {
       }),
     );
 
-    get.mockResolvedValue({ "applyproof.myProfile.v1": mayaProfile });
+    get.mockResolvedValue({ "applyflow.myProfile.v1": mayaProfile });
     await expect(loadMyProfile()).resolves.toEqual(mayaProfile);
   });
 
   it("rejects malformed saved data instead of using it for autofill", async () => {
     get.mockResolvedValue({
-      "applyproof.myProfile.v1": { id: "broken-profile" },
+      "applyflow.myProfile.v1": { id: "broken-profile" },
     });
     await expect(loadMyProfile()).rejects.toThrow("could not be read");
   });
@@ -66,7 +66,7 @@ describe("local My Profile storage", () => {
     } as Record<string, unknown>;
     delete legacy.experience;
     get.mockResolvedValue({
-      "applyproof.myProfile.v1": legacy,
+      "applyflow.myProfile.v1": legacy,
     });
 
     await expect(loadMyProfile()).resolves.toMatchObject({
@@ -83,12 +83,12 @@ describe("local My Profile storage", () => {
     });
   });
 
-  it("removes only the versioned ApplyProof data keys", async () => {
+  it("removes only the versioned ApplyFlow data keys", async () => {
     remove.mockResolvedValue(undefined);
     await resetMyProfile();
     expect(remove).toHaveBeenCalledWith([
-      "applyproof.myProfile.v1",
-      "applyproof.reusableAnswers.v1",
+      "applyflow.myProfile.v1",
+      "applyflow.reusableAnswers.v1",
     ]);
   });
 
@@ -101,7 +101,7 @@ describe("local My Profile storage", () => {
       scope: { country: "CA" },
       timeDependent: false,
     };
-    get.mockResolvedValue({ "applyproof.reusableAnswers.v1": [answer] });
+    get.mockResolvedValue({ "applyflow.reusableAnswers.v1": [answer] });
 
     await expect(loadRememberedAnswers()).resolves.toEqual([answer]);
   });

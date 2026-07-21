@@ -1,7 +1,7 @@
 [project]
-name = "applyproof-api"
+name = "applyflow-api"
 version = "0.1.0"
-description = "ApplyProof analysis and generation API"
+description = "ApplyFlow analysis and generation API"
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.116,<1",

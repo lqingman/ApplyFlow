@@ -3,7 +3,7 @@ import type {
   FieldFill,
   NormalizedField,
   RememberedAnswer,
-} from "@applyproof/shared-types";
+} from "@applyflow/shared-types";
 
 export type FieldDecision = {
   field: NormalizedField;

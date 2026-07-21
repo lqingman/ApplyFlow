@@ -3,23 +3,23 @@ import { fillDocument } from "./pageFill";
 import { mountInlineAssistants } from "./inlineAssistant";
 import { attachResumeFile } from "./resumeAttachment";
 import { extractJobContext } from "./jobContext";
-import type { NormalizedField } from "@applyproof/shared-types";
+import type { NormalizedField } from "@applyflow/shared-types";
 
 declare global {
   interface Window {
-    __applyProofScannerReady?: boolean;
-    __applyProofMessageListener?: Parameters<
+    __applyFlowScannerReady?: boolean;
+    __applyFlowMessageListener?: Parameters<
       typeof chrome.runtime.onMessage.addListener
     >[0];
   }
 }
 
-const highlightClass = "applyproof-field-highlight";
+const highlightClass = "applyflow-field-highlight";
 
 function installStyles() {
-  if (document.getElementById("applyproof-scanner-styles")) return;
+  if (document.getElementById("applyflow-scanner-styles")) return;
   const style = document.createElement("style");
-  style.id = "applyproof-scanner-styles";
+  style.id = "applyflow-scanner-styles";
   style.textContent = `
     .${highlightClass} {
       outline: 3px solid #2b8a62 !important;
@@ -63,18 +63,18 @@ function resumeFileFrom(message: unknown) {
   });
 }
 
-if (window.__applyProofMessageListener) {
-  chrome.runtime.onMessage.removeListener(window.__applyProofMessageListener);
+if (window.__applyFlowMessageListener) {
+  chrome.runtime.onMessage.removeListener(window.__applyFlowMessageListener);
 }
 
-const applyProofMessageListener: Parameters<
+const applyFlowMessageListener: Parameters<
   typeof chrome.runtime.onMessage.addListener
 >[0] = (message, _sender, sendResponse) => {
-  if (message?.type === "APPLYPROOF_PING") {
+  if (message?.type === "APPLYFLOW_PING") {
     sendResponse({ ok: true });
     return;
   }
-  if (message?.type === "APPLYPROOF_SCAN") {
+  if (message?.type === "APPLYFLOW_SCAN") {
     sendResponse({
       ok: true,
       fields: scanDocument(document),
@@ -83,25 +83,25 @@ const applyProofMessageListener: Parameters<
     });
     return;
   }
-  if (message?.type === "APPLYPROOF_FOCUS_FIELD") {
+  if (message?.type === "APPLYFLOW_FOCUS_FIELD") {
     sendResponse({ ok: highlightField(String(message.fieldId)) });
     return;
   }
-  if (message?.type === "APPLYPROOF_FILL_FIELDS") {
+  if (message?.type === "APPLYFLOW_FILL_FIELDS") {
     void fillDocument(
       document,
       Array.isArray(message.fills) ? message.fills : [],
     ).then((results) => sendResponse({ ok: true, results }));
     return true;
   }
-  if (message?.type === "APPLYPROOF_ATTACH_RESUME") {
+  if (message?.type === "APPLYFLOW_ATTACH_RESUME") {
     const file = resumeFileFrom(message.file);
     sendResponse(
       file ? attachResumeFile(document, file) : { status: "unsupported" },
     );
     return;
   }
-  if (message?.type === "APPLYPROOF_ENABLE_INLINE_ASSISTANTS") {
+  if (message?.type === "APPLYFLOW_ENABLE_INLINE_ASSISTANTS") {
     const fields = Array.isArray(message.fields)
       ? (message.fields as NormalizedField[])
       : [];
@@ -115,6 +115,6 @@ const applyProofMessageListener: Parameters<
   }
 };
 
-window.__applyProofScannerReady = true;
-window.__applyProofMessageListener = applyProofMessageListener;
-chrome.runtime.onMessage.addListener(applyProofMessageListener);
+window.__applyFlowScannerReady = true;
+window.__applyFlowMessageListener = applyFlowMessageListener;
+chrome.runtime.onMessage.addListener(applyFlowMessageListener);

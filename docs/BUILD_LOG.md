@@ -1,6 +1,6 @@
 # GPT-5.6 and Codex Build Log
 
-This log records how ApplyProof was shaped and built with GPT-5.6 and Codex. It is intentionally concrete: each entry identifies the human decision, the work Codex accelerated, and how the result was verified.
+This log records how ApplyFlow was shaped and built with GPT-5.6 and Codex. It is intentionally concrete: each entry identifies the human decision, the work Codex accelerated, and how the result was verified.
 
 Use this document as source material for the README, Devpost description, and demo-video narration. Do not paste private prompts, hidden reasoning, secrets, or personal candidate data here.
 
@@ -295,11 +295,11 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 ### 2026-07-20 — Fix online-tab access from the side panel
 
-**Goal:** make the least-privilege online-tab workflow actually inject ApplyProof after the user clicks its toolbar action.
+**Goal:** make the least-privilege online-tab workflow actually inject ApplyFlow after the user clicks its toolbar action.
 
 **Human decision:** keep temporary `activeTab` access instead of adding persistent online host permissions or `<all_urls>`.
 
-**Codex contribution:** reproduced the failure on a normal Workable HTTPS application and confirmed that no ApplyProof content script reached the page; traced the failure to Chrome's automatic `openPanelOnActionClick` path not emitting `action.onClicked`; replaced it with an explicit action listener that receives the temporary tab grant and then opens the side panel for that tab; and added a regression test for the background event flow.
+**Codex contribution:** reproduced the failure on a normal Workable HTTPS application and confirmed that no ApplyFlow content script reached the page; traced the failure to Chrome's automatic `openPanelOnActionClick` path not emitting `action.onClicked`; replaced it with an explicit action listener that receives the temporary tab grant and then opens the side panel for that tab; and added a regression test for the background event flow.
 
 **Verification:** the Workable page showed no scanner marker before the fix. Automated verification covers the explicit `action.onClicked` registration, disabled automatic panel behavior, tab-specific `sidePanel.open`, unchanged local-only persistent host permissions, and absence of `<all_urls>`.
 
@@ -321,7 +321,7 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 ### 2026-07-20 — Embedded Greenhouse application routing
 
-**Goal:** make ApplyProof work when an employer careers page embeds its Greenhouse application in a cross-origin iframe, without adding broad or silent online-site access.
+**Goal:** make ApplyFlow work when an employer careers page embeds its Greenhouse application in a cross-origin iframe, without adding broad or silent online-site access.
 
 **Human decision:** support only `job-boards.greenhouse.io` embeds, request access at runtime, preserve the employer page as the preferred job-context source, and keep every unrelated iframe provider outside the supported boundary.
 
@@ -335,7 +335,7 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Goal:** present the completed demo accurately and give judges a low-friction path to understand, install, and test it.
 
-**Human decision:** freeze feature scope, keep Northstar as the supported judging path, describe real ATS work as builder-tested pilots, and position ApplyProof around evidence-grounded applications rather than generic AI autofill.
+**Human decision:** freeze feature scope, keep Northstar as the supported judging path, describe real ATS work as builder-tested pilots, and position ApplyFlow around evidence-grounded applications rather than generic AI autofill.
 
 **Codex contribution:** updated the README from planning language to submission-ready status; narrowed answer-memory claims to the implemented Canadian authorization scope; added an MIT license; drafted the complete Devpost project story, technology tags, installation and judge-testing instructions; and prepared a timed video script that foregrounds the working product, safety boundaries, and concrete GPT-5.6/Codex collaboration.
 
@@ -373,4 +373,4 @@ Capture short clips or screenshots as the work happens:
 4. The human choosing between tradeoffs suggested by Codex.
 5. Codex fixing the issue and re-running verification.
 
-The final video should use these as brief supporting evidence. The working ApplyProof demo remains the main subject.
+The final video should use these as brief supporting evidence. The working ApplyFlow demo remains the main subject.

@@ -3,7 +3,7 @@ import {
   answerDraftResponseSchema,
   type AnswerDraftRequest,
   type AnswerDraftResponse,
-} from "@applyproof/shared-types";
+} from "@applyflow/shared-types";
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
@@ -13,7 +13,7 @@ export async function generateAnswerDraft(
   const parsed = answerDraftRequestSchema.safeParse(request);
   if (!parsed.success) {
     throw new Error(
-      "ApplyProof could not prepare this draft. Your answer was not changed.",
+      "ApplyFlow could not prepare this draft. Your answer was not changed.",
     );
   }
   const response = await fetch(`${apiBaseUrl}/v1/answer-drafts`, {

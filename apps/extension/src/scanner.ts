@@ -1,4 +1,4 @@
-import type { FieldKind, NormalizedField } from "@applyproof/shared-types";
+import type { FieldKind, NormalizedField } from "@applyflow/shared-types";
 
 type ScannableElement =
   HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLElement;
@@ -187,8 +187,8 @@ function isUsable(element: ScannableElement) {
 function identifier(element: Element, index: number) {
   const existing = element.id || element.getAttribute("name");
   if (existing) return existing;
-  const generated = `applyproof-field-${index + 1}`;
-  element.setAttribute("data-applyproof-field-id", generated);
+  const generated = `applyflow-field-${index + 1}`;
+  element.setAttribute("data-applyflow-field-id", generated);
   return generated;
 }
 
@@ -394,12 +394,12 @@ export function findField(document: Document, fieldId: string) {
     document.getElementById(fieldId) ||
     Array.from(
       document.querySelectorAll<HTMLElement>(
-        "[name], [data-applyproof-field-id]",
+        "[name], [data-applyflow-field-id]",
       ),
     ).find(
       (element) =>
         element.getAttribute("name") === fieldId ||
-        element.getAttribute("data-applyproof-field-id") === fieldId,
+        element.getAttribute("data-applyflow-field-id") === fieldId,
     ) ||
     null
   );

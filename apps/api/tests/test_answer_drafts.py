@@ -359,8 +359,8 @@ def test_openrouter_provider_uses_responses_with_structured_outputs() -> None:
     assert client.kwargs["headers"] == {
         "Authorization": "Bearer test-key",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://applyproof.local",
-        "X-Title": "ApplyProof",
+        "HTTP-Referer": "https://applyflow.local",
+        "X-Title": "ApplyFlow",
     }
     body = client.kwargs["json"]
     assert isinstance(body, dict)

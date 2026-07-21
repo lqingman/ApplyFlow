@@ -6,10 +6,10 @@ import {
   type PageScan,
   type NormalizedField,
   type PageJobContext,
-} from "@applyproof/shared-types";
+} from "@applyflow/shared-types";
 
 const greenhouseOrigin = "https://job-boards.greenhouse.io/*";
-const routedFieldPrefix = "applyproof-frame-";
+const routedFieldPrefix = "applyflow-frame-";
 
 type FrameTarget = {
   frameId: number;
@@ -71,7 +71,7 @@ async function requestGreenhouseAccess() {
   if (await chrome.permissions.contains(request)) return;
   if (await chrome.permissions.request(request)) return;
   throw new Error(
-    "ApplyProof needs permission to access the embedded Greenhouse application. Grant Greenhouse access and try again.",
+    "ApplyFlow needs permission to access the embedded Greenhouse application. Grant Greenhouse access and try again.",
   );
 }
 
@@ -84,7 +84,7 @@ async function discoverFrameTargets(tabId: number): Promise<FrameTarget[]> {
     });
   } catch {
     throw new Error(
-      "ApplyProof could not access this application. Open a regular job application page and try again.",
+      "ApplyFlow could not access this application. Open a regular job application page and try again.",
     );
   }
   const hasGreenhouseFrame = inspection.some(
@@ -116,7 +116,7 @@ async function discoverFrameTargets(tabId: number): Promise<FrameTarget[]> {
   }
   if (!targets.some((target) => isGreenhouseUrl(target.url))) {
     throw new Error(
-      "ApplyProof could not reach the embedded Greenhouse application. Reload the page and try again.",
+      "ApplyFlow could not reach the embedded Greenhouse application. Reload the page and try again.",
     );
   }
   return targets;
@@ -137,7 +137,7 @@ async function ensureScanners(tabId: number, targets: FrameTarget[]) {
   for (const target of targets) {
     try {
       const response: unknown = await sendToFrame(tabId, target.frameId, {
-        type: "APPLYPROOF_PING",
+        type: "APPLYFLOW_PING",
       });
       if ((response as { ok?: boolean })?.ok) continue;
     } catch {
@@ -154,7 +154,7 @@ async function ensureScanners(tabId: number, targets: FrameTarget[]) {
     });
   } catch {
     throw new Error(
-      "ApplyProof could not access this application. Reload it, grant requested site access, and try again.",
+      "ApplyFlow could not access this application. Reload it, grant requested site access, and try again.",
     );
   }
 }
@@ -193,7 +193,7 @@ export async function scanActivePage(): Promise<PageScan> {
 
   for (const target of targets) {
     const response: unknown = await sendToFrame(tabId, target.frameId, {
-      type: "APPLYPROOF_SCAN",
+      type: "APPLYFLOW_SCAN",
     });
     const scan = pageScanSchema.parse(response);
     blockedCount += scan.blockedCount;
@@ -226,7 +226,7 @@ export async function focusField(fieldId: string) {
   const route = routeFor(tabId, fieldId);
   await ensureOperationTarget(tabId, route.frameId);
   const response: unknown = await sendToFrame(tabId, route.frameId, {
-    type: "APPLYPROOF_FOCUS_FIELD",
+    type: "APPLYFLOW_FOCUS_FIELD",
     fieldId: route.fieldId,
   });
   if (!(response as { ok?: boolean })?.ok)
@@ -255,7 +255,7 @@ export async function fillActivePage(
   for (const [frameId, entries] of grouped) {
     await ensureOperationTarget(tabId, frameId);
     const response: unknown = await sendToFrame(tabId, frameId, {
-      type: "APPLYPROOF_FILL_FIELDS",
+      type: "APPLYFLOW_FILL_FIELDS",
       fills: entries.map((entry) => entry.fill),
     });
     const parsed = pageFillResultSchema.parse(response).results;
@@ -289,13 +289,13 @@ export async function enableInlineAssistants(
   for (const [frameId, frameFields] of grouped) {
     await ensureOperationTarget(tabId, frameId);
     const response: unknown = await sendToFrame(tabId, frameId, {
-      type: "APPLYPROOF_ENABLE_INLINE_ASSISTANTS",
+      type: "APPLYFLOW_ENABLE_INLINE_ASSISTANTS",
       fields: frameFields,
       job,
       generateBlankFields: true,
     });
     if (!(response as { ok?: boolean })?.ok)
-      throw new Error("ApplyProof could not add writing tools to this page.");
+      throw new Error("ApplyFlow could not add writing tools to this page.");
     mountedCount += (response as { mountedCount?: number }).mountedCount ?? 0;
   }
   return mountedCount;
@@ -316,7 +316,7 @@ export async function attachResumeToActivePage(file: File) {
   const tabId = await activeTab();
   const data = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
   const message = {
-    type: "APPLYPROOF_ATTACH_RESUME",
+    type: "APPLYFLOW_ATTACH_RESUME",
     file: {
       name: file.name,
       type: file.type,
@@ -341,7 +341,7 @@ export async function attachResumeToActivePage(file: File) {
     if (status === "attached" || status === "skipped_existing") return status;
     if (status === "unsupported") fallback = "unsupported";
     else if (status !== "not_found") {
-      throw new Error("ApplyProof could not attach the saved resume.");
+      throw new Error("ApplyFlow could not attach the saved resume.");
     }
   }
   return fallback;

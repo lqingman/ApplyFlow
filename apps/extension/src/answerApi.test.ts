@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { AnswerDraftRequest } from "@applyproof/shared-types";
+import type { AnswerDraftRequest } from "@applyflow/shared-types";
 
 import { generateAnswerDraft } from "./answerApi";
 
@@ -23,7 +23,7 @@ describe("answer drafting client", () => {
     } as AnswerDraftRequest;
 
     await expect(generateAnswerDraft(request)).rejects.toThrow(
-      "ApplyProof could not prepare this draft",
+      "ApplyFlow could not prepare this draft",
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });

@@ -1,4 +1,4 @@
-import { candidateProfileSchema } from "@applyproof/shared-types";
+import { candidateProfileSchema } from "@applyflow/shared-types";
 
 export const mayaProfile = candidateProfileSchema.parse({
   id: "maya-chen-demo",

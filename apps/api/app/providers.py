@@ -234,8 +234,8 @@ class OpenRouterProvider:
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://applyproof.local",
-                "X-Title": "ApplyProof",
+                "HTTP-Referer": "https://applyflow.local",
+                "X-Title": "ApplyFlow",
             },
             json={
                 "model": self.model,
@@ -244,7 +244,7 @@ class OpenRouterProvider:
                 "text": {
                     "format": {
                         "type": "json_schema",
-                        "name": "applyproof_answer_draft",
+                        "name": "applyflow_answer_draft",
                         "strict": True,
                         "schema": ProviderDraft.model_json_schema(),
                     }
@@ -273,8 +273,8 @@ class OpenRouterProvider:
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://applyproof.local",
-                "X-Title": "ApplyProof",
+                "HTTP-Referer": "https://applyflow.local",
+                "X-Title": "ApplyFlow",
             },
             json={
                 "model": self.model,
@@ -283,7 +283,7 @@ class OpenRouterProvider:
                 "text": {
                     "format": {
                         "type": "json_schema",
-                        "name": "applyproof_resume_extraction",
+                        "name": "applyflow_resume_extraction",
                         "strict": True,
                         "schema": ResumeExtraction.model_json_schema(),
                     }
@@ -342,7 +342,7 @@ class GeminiProvider:
                 "response_format": {
                     "type": "json_schema",
                     "json_schema": {
-                        "name": "applyproof_answer_draft",
+                        "name": "applyflow_answer_draft",
                         "strict": True,
                         "schema": ProviderDraft.model_json_schema(),
                     },
@@ -385,7 +385,7 @@ class GeminiProvider:
                 "response_format": {
                     "type": "json_schema",
                     "json_schema": {
-                        "name": "applyproof_resume_extraction",
+                        "name": "applyflow_resume_extraction",
                         "strict": True,
                         "schema": ResumeExtraction.model_json_schema(),
                     },

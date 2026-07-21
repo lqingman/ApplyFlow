@@ -16,6 +16,6 @@ def test_health_endpoint() -> None:
     assert response.status_code == 200
     assert response.json() == {
         "status": "ok",
-        "service": "applyproof-api",
+        "service": "applyflow-api",
         "version": "0.1.0",
     }

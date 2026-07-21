@@ -89,7 +89,7 @@ describe("extension browser bridge", () => {
     );
 
     await expect(scanActivePage()).rejects.toThrow(
-      "ApplyProof could not access this application",
+      "ApplyFlow could not access this application",
     );
   });
 
@@ -153,7 +153,7 @@ describe("extension browser bridge", () => {
     expect(sendMessage).toHaveBeenLastCalledWith(
       45,
       expect.objectContaining({
-        type: "APPLYPROOF_ENABLE_INLINE_ASSISTANTS",
+        type: "APPLYFLOW_ENABLE_INLINE_ASSISTANTS",
         fields,
         job,
         generateBlankFields: true,
@@ -176,7 +176,7 @@ describe("extension browser bridge", () => {
 
     await expect(attachResumeToActivePage(file)).resolves.toBe("attached");
     expect(sendMessage).toHaveBeenLastCalledWith(46, {
-      type: "APPLYPROOF_ATTACH_RESUME",
+      type: "APPLYFLOW_ATTACH_RESUME",
       file: {
         name: "maya.pdf",
         type: "application/pdf",
@@ -210,8 +210,8 @@ describe("extension browser bridge", () => {
         message: { type?: string; fills?: Array<{ fieldId: string }> },
         options?: { frameId?: number },
       ) => {
-        if (message.type === "APPLYPROOF_PING") throw new Error("No listener");
-        if (message.type === "APPLYPROOF_SCAN" && options?.frameId === 7) {
+        if (message.type === "APPLYFLOW_PING") throw new Error("No listener");
+        if (message.type === "APPLYFLOW_SCAN" && options?.frameId === 7) {
           return {
             ok: true,
             fields: [
@@ -227,7 +227,7 @@ describe("extension browser bridge", () => {
             blockedCount: 1,
           };
         }
-        if (message.type === "APPLYPROOF_SCAN") {
+        if (message.type === "APPLYFLOW_SCAN") {
           return {
             ok: true,
             fields: [],
@@ -235,7 +235,7 @@ describe("extension browser bridge", () => {
             job: { role: "Cloud Engineer", company: "Example" },
           };
         }
-        if (message.type === "APPLYPROOF_FILL_FIELDS") {
+        if (message.type === "APPLYFLOW_FILL_FIELDS") {
           return {
             ok: true,
             results: message.fills?.map(({ fieldId }) => ({
@@ -258,7 +258,7 @@ describe("extension browser bridge", () => {
 
     const scan = await scanActivePage();
     expect(scan).toMatchObject({
-      fields: [{ id: "applyproof-frame-7:email", label: "Email" }],
+      fields: [{ id: "applyflow-frame-7:email", label: "Email" }],
       blockedCount: 1,
       job: { role: "Cloud Engineer", company: "Example" },
     });
@@ -273,17 +273,17 @@ describe("extension browser bridge", () => {
     await expect(
       fillActivePage([
         {
-          fieldId: "applyproof-frame-7:email",
+          fieldId: "applyflow-frame-7:email",
           value: "maya.chen@example.com",
         },
       ]),
     ).resolves.toEqual([
-      { fieldId: "applyproof-frame-7:email", status: "filled" },
+      { fieldId: "applyflow-frame-7:email", status: "filled" },
     ]);
     expect(sendMessage).toHaveBeenLastCalledWith(
       47,
       {
-        type: "APPLYPROOF_FILL_FIELDS",
+        type: "APPLYFLOW_FILL_FIELDS",
         fills: [{ fieldId: "email", value: "maya.chen@example.com" }],
       },
       { frameId: 7 },

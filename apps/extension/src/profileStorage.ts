@@ -3,10 +3,10 @@ import {
   type CandidateProfile,
   rememberedAnswersSchema,
   type RememberedAnswer,
-} from "@applyproof/shared-types";
+} from "@applyflow/shared-types";
 
-const PROFILE_STORAGE_KEY = "applyproof.myProfile.v1";
-const ANSWERS_STORAGE_KEY = "applyproof.reusableAnswers.v1";
+const PROFILE_STORAGE_KEY = "applyflow.myProfile.v1";
+const ANSWERS_STORAGE_KEY = "applyflow.reusableAnswers.v1";
 
 const choiceLabels = {
   yes: "Yes",

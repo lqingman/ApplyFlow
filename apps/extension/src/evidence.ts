@@ -4,7 +4,7 @@ import type {
   EvidenceRecord,
   NormalizedField,
   PageJobContext,
-} from "@applyproof/shared-types";
+} from "@applyflow/shared-types";
 
 export const northstarJob = {
   company: "Northstar Labs",

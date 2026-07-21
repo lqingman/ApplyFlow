@@ -53,7 +53,7 @@ describe("inline writing assistant", () => {
     expect(mountInlineAssistants(document, [field])).toBe(1);
     pageField?.dispatchEvent(new MouseEvent("mouseenter"));
     const host = document.querySelector<HTMLElement>(
-      '[data-applyproof-inline-assistant="project"]',
+      '[data-applyflow-inline-assistant="project"]',
     );
     expect(host?.dataset.open).toBe("true");
     const prompt = host?.shadowRoot?.querySelector("textarea");
@@ -70,7 +70,7 @@ describe("inline writing assistant", () => {
     );
     expect(sendMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: "APPLYPROOF_GENERATE_INLINE_DRAFT",
+        type: "APPLYFLOW_GENERATE_INLINE_DRAFT",
         additionalPrompt: "Use the campus map project from my resume",
         field: expect.objectContaining({ id: "project", maxLength: 120 }),
       }),
@@ -90,7 +90,7 @@ describe("inline writing assistant", () => {
     mountInlineAssistants(document, [field]);
 
     const host = document.querySelector<HTMLElement>(
-      '[data-applyproof-inline-assistant="project"]',
+      '[data-applyflow-inline-assistant="project"]',
     );
     expect(host?.parentElement).toBe(document.body);
     expect(host).toHaveStyle({ left: "12px", top: "12px" });
@@ -109,7 +109,7 @@ describe("inline writing assistant", () => {
 
     expect(mountInlineAssistants(document, [captchaField])).toBe(0);
     expect(
-      document.querySelector("[data-applyproof-inline-assistant]"),
+      document.querySelector("[data-applyflow-inline-assistant]"),
     ).not.toBeInTheDocument();
   });
 
@@ -131,7 +131,7 @@ describe("inline writing assistant", () => {
     mountInlineAssistants(document, [field]);
 
     const host = document.querySelector<HTMLElement>(
-      '[data-applyproof-inline-assistant="project"]',
+      '[data-applyflow-inline-assistant="project"]',
     );
     expect(host).toHaveStyle({ left: "252px", top: "228px" });
   });
@@ -166,7 +166,7 @@ describe("inline writing assistant", () => {
     expect(sendMessage).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        type: "APPLYPROOF_GENERATE_INLINE_DRAFT",
+        type: "APPLYFLOW_GENERATE_INLINE_DRAFT",
         field: expect.objectContaining({ id: "project" }),
       }),
     );
@@ -194,7 +194,7 @@ describe("inline writing assistant", () => {
 
     mountInlineAssistants(document, [field]);
     const host = document.querySelector<HTMLElement>(
-      '[data-applyproof-inline-assistant="project"]',
+      '[data-applyflow-inline-assistant="project"]',
     );
     const button = host?.shadowRoot?.querySelector("button");
     button?.click();
@@ -238,7 +238,7 @@ describe("inline writing assistant", () => {
     await new Promise((resolve) => window.setTimeout(resolve, 0));
     expect(sendMessage).not.toHaveBeenCalled();
     const host = document.querySelector<HTMLElement>(
-      '[data-applyproof-inline-assistant="cover_letter"]',
+      '[data-applyflow-inline-assistant="cover_letter"]',
     );
     expect(host?.shadowRoot?.querySelector(".status")).toHaveTextContent(
       "Job description not found",
@@ -273,13 +273,13 @@ describe("inline writing assistant", () => {
     });
     mountInlineAssistants(document, [field]);
     const host = document.querySelector<HTMLElement>(
-      '[data-applyproof-inline-assistant="project"]',
+      '[data-applyflow-inline-assistant="project"]',
     );
     host?.shadowRoot?.querySelector("button")?.click();
 
     await vi.waitFor(() =>
       expect(host?.shadowRoot?.querySelector(".status")).toHaveTextContent(
-        "ApplyProof could not generate this answer",
+        "ApplyFlow could not generate this answer",
       ),
     );
     expect(host?.shadowRoot?.querySelector(".status")).not.toHaveTextContent(
@@ -298,7 +298,7 @@ describe("inline writing assistant", () => {
 
     mountInlineAssistants(document, [field], { generateBlankFields: true });
     expect(
-      document.querySelectorAll('[data-applyproof-inline-assistant="project"]'),
+      document.querySelectorAll('[data-applyflow-inline-assistant="project"]'),
     ).toHaveLength(1);
 
     const tabContent = document.querySelector<HTMLElement>("#tab-content");
@@ -306,7 +306,7 @@ describe("inline writing assistant", () => {
     tabContent.innerHTML = `<section>Job overview</section>`;
     await vi.waitFor(() =>
       expect(
-        document.querySelector('[data-applyproof-inline-assistant="project"]'),
+        document.querySelector('[data-applyflow-inline-assistant="project"]'),
       ).not.toBeInTheDocument(),
     );
 
@@ -316,7 +316,7 @@ describe("inline writing assistant", () => {
     await vi.waitFor(() =>
       expect(
         document.querySelectorAll(
-          '[data-applyproof-inline-assistant="project"]',
+          '[data-applyflow-inline-assistant="project"]',
         ),
       ).toHaveLength(1),
     );

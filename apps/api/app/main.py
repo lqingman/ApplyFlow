@@ -24,7 +24,7 @@ class HealthResponse(BaseModel):
 
 
 app = FastAPI(
-    title="ApplyProof API",
+    title="ApplyFlow API",
     description="Evidence-grounded job application analysis and answer generation.",
     version="0.1.0",
 )
@@ -41,7 +41,7 @@ app.add_middleware(
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])
 def health() -> HealthResponse:
-    return HealthResponse(status="ok", service="applyproof-api", version=app.version)
+    return HealthResponse(status="ok", service="applyflow-api", version=app.version)
 
 
 @app.post(

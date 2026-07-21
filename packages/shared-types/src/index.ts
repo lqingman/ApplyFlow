@@ -354,7 +354,7 @@ export type AnswerDraftResponse = z.infer<typeof answerDraftResponseSchema>;
 
 export const healthResponseSchema = z.object({
   status: z.literal("ok"),
-  service: z.literal("applyproof-api"),
+  service: z.literal("applyflow-api"),
   version: z.string(),
 });
 

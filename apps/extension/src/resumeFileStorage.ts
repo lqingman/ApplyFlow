@@ -13,7 +13,7 @@ type SavedResumeRecord = SavedResumeMetadata & {
   extractedText?: string;
 };
 
-const databaseName = "applyproof-local-files";
+const databaseName = "applyflow-local-files";
 const databaseVersion = 1;
 const storeName = "resume-files";
 const primaryResumeId = "primary";

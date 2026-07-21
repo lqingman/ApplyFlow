@@ -1,4 +1,4 @@
-import type { FieldFill, FillResult } from "@applyproof/shared-types";
+import type { FieldFill, FillResult } from "@applyflow/shared-types";
 
 import {
   addressChoiceMatches,

@@ -1,14 +1,14 @@
-# ApplyProof Demo Video Script
+# ApplyFlow Demo Video Script
 
 Target length: 2:40–2:55. Keep the working product on screen for most of the video. Cut loading, typing, and browser-extension setup time.
 
 ## 0:00–0:18 — Problem and promise
 
-**Visual:** Northstar application beside the ApplyProof side panel. Briefly show a blank application.
+**Visual:** Northstar application beside the ApplyFlow side panel. Briefly show a blank application.
 
 **Narration:**
 
-“Job applications make candidates enter the same information again and again, then switch to a separate AI tool for every written question. ApplyProof brings autofill and AI writing into the application page, so you can complete the repetitive work much faster without losing control of the final answer.”
+“Job applications make candidates enter the same information again and again, then switch to a separate AI tool for every written question. ApplyFlow brings autofill and AI writing into the application page, so you can complete the repetitive work much faster without losing control of the final answer.”
 
 ## 0:18–0:42 — Local profile and evidence
 
@@ -24,7 +24,7 @@ Target length: 2:40–2:55. Keep the working product on screen for most of the v
 
 **Narration:**
 
-“With one click, ApplyProof scans the current application and fills contact details, education, availability, work authorization, and other saved choices together. It can also attach the saved resume. Existing answers are preserved, sensitive fields such as this password are skipped, and the candidate still controls Continue and Submit.”
+“With one click, ApplyFlow scans the current application and fills contact details, education, availability, work authorization, and other saved choices together. It can also attach the saved resume. Existing answers are preserved, sensitive fields such as this password are skipped, and the candidate still controls Continue and Submit.”
 
 ## 1:22–1:58 — AI answers inside the application
 
@@ -32,7 +32,7 @@ Target length: 2:40–2:55. Keep the working product on screen for most of the v
 
 **Narration:**
 
-“ApplyProof also uses AI to draft blank written answers directly inside the application, so I do not need to copy each question into a separate chat. It uses the profile and resume as context, and I can ask it to emphasize a project and regenerate in place. The result stays editable and automatically respects the field's character limit.”
+“ApplyFlow also uses AI to draft blank written answers directly inside the application, so I do not need to copy each question into a separate chat. It uses the profile and resume as context, and I can ask it to emphasize a project and regenerate in place. The result stays editable and automatically respects the field's character limit.”
 
 ## 1:58–2:19 — Technical boundary
 
@@ -40,7 +40,7 @@ Target length: 2:40–2:55. Keep the working product on screen for most of the v
 
 **Narration:**
 
-“Under the hood, ApplyProof uses deterministic autofill for known facts and AI for questions that need writing. The extension sends only the relevant field context, profile, and resume evidence to a FastAPI service, which validates the structured response and length. The local demo is the reliable judging path; Workable, BambooHR, and Greenhouse are builder-tested pilots.”
+“Under the hood, ApplyFlow uses deterministic autofill for known facts and AI for questions that need writing. The extension sends only the relevant field context, profile, and resume evidence to a FastAPI service, which validates the structured response and length. The local demo is the reliable judging path; Workable, BambooHR, and Greenhouse are builder-tested pilots.”
 
 ## 2:19–2:42 — Codex and GPT-5.6
 
@@ -48,15 +48,15 @@ Target length: 2:40–2:55. Keep the working product on screen for most of the v
 
 **Narration:**
 
-“I built ApplyProof collaboratively with Codex using GPT-5.6. Codex helped turn the original plan into a vertical slice, implement the extension and API, and build 129 regression tests. GPT-5.6 was especially valuable for reasoning across browser permissions, accessibility, privacy, provider schemas, and real ATS failures. I made the final scope and safety decisions and manually validated the product.”
+“I built ApplyFlow collaboratively with Codex using GPT-5.6. Codex helped turn the original plan into a vertical slice, implement the extension and API, and build 129 regression tests. GPT-5.6 was especially valuable for reasoning across browser permissions, accessibility, privacy, provider schemas, and real ATS failures. I made the final scope and safety decisions and manually validated the product.”
 
 ## 2:42–2:52 — Closing
 
-**Visual:** Return to the completed application with the Submit button visible but untouched. Show the ApplyProof name and tagline.
+**Visual:** Return to the completed application with the Submit button visible but untouched. Show the ApplyFlow name and tagline.
 
 **Narration:**
 
-“ApplyProof makes job applications faster and less repetitive by bringing profile autofill and AI writing into one workflow. The candidate reviews the result, and the final submission always stays with the person.”
+“ApplyFlow makes job applications faster and less repetitive by bringing profile autofill and AI writing into one workflow. The candidate reviews the result, and the final submission always stays with the person.”
 
 ## Recording checklist
 

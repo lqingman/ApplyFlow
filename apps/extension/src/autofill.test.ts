@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { mayaProfile } from "@applyproof/sample-data";
-import type { NormalizedField } from "@applyproof/shared-types";
+import { mayaProfile } from "@applyflow/sample-data";
+import type { NormalizedField } from "@applyflow/shared-types";
 
 import { planAutofill } from "./autofill";
 

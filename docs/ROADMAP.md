@@ -1,4 +1,4 @@
-# ApplyProof Roadmap
+# ApplyFlow Roadmap
 
 This roadmap turns the product plan into a demo-first build sequence. Every milestone must leave the project in a runnable, explainable state.
 
@@ -141,7 +141,7 @@ No account, personal resume, production deployment, or automatic submission is r
 - [x] Generated text remains editable on the page.
 - [x] AI-workflow questions receive a conservative resume-based draft for review.
 - [x] Optional instructions can select a resume project or emphasis without becoming evidence.
-- [x] Fixture and OpenRouter modes return the same ApplyProof response contract.
+- [x] Fixture and OpenRouter modes return the same ApplyFlow response contract.
 - [x] The extension never receives the OpenRouter API key.
 - [x] Reload the unpacked extension and verify inline generation and regeneration in Chrome.
 
@@ -162,7 +162,7 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Preserve source text and confidence or review metadata for extracted fields so uncertain values are visibly reviewable rather than silently accepted
 - [x] Keep all AI-extracted profile values editable and require review before save
 - [x] Return a clear unsupported-file message when a PDF has no readable text layer instead of attempting OCR
-- [x] Persist one original Word or PDF resume file locally in extension-owned IndexedDB; never upload it to the ApplyProof API or model provider
+- [x] Persist one original Word or PDF resume file locally in extension-owned IndexedDB; never upload it to the ApplyFlow API or model provider
 - [x] Retain locally extracted resume text for grounded writing so unmapped project and detail sections remain usable as selected evidence
 - [x] Add a `My resume file` area to `My Profile` showing the saved filename, type, size, and last-updated time
 - [x] Let the user delete or replace the saved resume file; deleting it must not delete or change extracted profile fields
@@ -220,7 +220,7 @@ These items build on the stable controlled prototype and must be completed befor
 - [x] Replacing a file through `My resume file` leaves every other profile value unchanged.
 - [x] Importing through `Import resume` both replaces the saved original and updates the editable parsed profile.
 - [ ] AI resume import produces schema-valid, editable results for representative single-column and multi-column text-based Word/PDF fixtures without using OCR.
-- [x] The original resume binary remains local during AI parsing; only disclosed extracted content reaches the ApplyProof API and configured model provider.
+- [x] The original resume binary remains local during AI parsing; only disclosed extracted content reaches the ApplyFlow API and configured model provider.
 - [ ] Invalid, missing, duplicated, or low-confidence AI fields are rejected or marked for review before profile save.
 - [x] Deleting the saved original leaves existing parsed profile data intact and prevents resume attachment until another file is saved.
 - [x] Resume attachment remains user-initiated and never submits the application.

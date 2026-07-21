@@ -1,6 +1,6 @@
 # OpenAI Build Week Submission Checklist
 
-This checklist summarizes the requirements relevant to ApplyProof. The official Devpost page and rules remain the source of truth.
+This checklist summarizes the requirements relevant to ApplyFlow. The official Devpost page and rules remain the source of truth.
 
 ## Deadline and eligibility
 
@@ -11,7 +11,7 @@ This checklist summarizes the requirements relevant to ApplyProof. The official 
 ## Project
 
 - [ ] Build the project with Codex and GPT-5.6 during the submission period.
-- [ ] Enter the category that best fits ApplyProof. Current recommendation: **Apps for Your Life** because it is a consumer tool for job applicants.
+- [ ] Enter the category that best fits ApplyFlow. Current recommendation: **Apps for Your Life** because it is a consumer tool for job applicants.
 - [ ] Ensure the project installs and runs consistently as shown and described.
 - [ ] Use only code, assets, data, libraries, and integrations we are authorized to use.
 - [ ] Keep dated commits and this build log as evidence of work completed during the submission period.
@@ -40,11 +40,11 @@ This checklist summarizes the requirements relevant to ApplyProof. The official 
 
 ### Recommended video allocation
 
-- **0:00–0:20 — Problem and promise:** generic autofill is fast, but generated applications can become inaccurate; ApplyProof makes claims inspectable.
+- **0:00–0:20 — Problem and promise:** generic autofill is fast, but generated applications can become inaccurate; ApplyFlow makes claims inspectable.
 - **0:20–1:55 — Working demo:** load Maya data into `My Profile`, run Scan & Autofill, show separate eligibility/sponsorship, voluntary answers, and confirmation filled, review auto-generated answers on the page, add a project instruction, regenerate, and show a character limit being respected.
 - **1:55–2:25 — Codex collaboration:** show short planning and implementation artifacts; explain how GPT-5.6 helped synthesize the roadmap and how Codex accelerated code, tests, and debugging.
 - **2:25–2:50 — Technical design and impact:** deterministic mappings, inline Shadow DOM assistance, strict structured model outputs, live limit enforcement, and why page-native review is different.
-- **2:50–2:58 — Closing:** “ApplyProof helps applicants move faster without losing control of the truth.”
+- **2:50–2:58 — Closing:** “ApplyFlow helps applicants move faster without losing control of the truth.”
 
 Leave a small timing buffer rather than targeting exactly three minutes.
 

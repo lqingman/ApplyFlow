@@ -1,4 +1,4 @@
-import type { PageJobContext } from "@applyproof/shared-types";
+import type { PageJobContext } from "@applyflow/shared-types";
 
 function cleanText(value: string | null | undefined, maxLength: number) {
   const text = (value ?? "").replace(/\s+/g, " ").trim();

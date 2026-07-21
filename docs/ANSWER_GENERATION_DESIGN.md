@@ -1,4 +1,4 @@
-# ApplyProof Inline Answer Generation Design
+# ApplyFlow Inline Answer Generation Design
 
 **Status:** Implemented controlled demo
 
@@ -8,7 +8,7 @@
 
 ## Purpose
 
-ApplyProof completes deterministic application fields from a saved candidate profile and drafts open-ended answers from resume evidence. The primary interaction happens on the application page so the user can review and edit answers in their real context.
+ApplyFlow completes deterministic application fields from a saved candidate profile and drafts open-ended answers from resume evidence. The primary interaction happens on the application page so the user can review and edit answers in their real context.
 
 The extension may fill fields and check mapped checkboxes after the user clicks **Scan & Autofill**. It never clicks Continue, Next, or Submit.
 
@@ -16,7 +16,7 @@ The extension may fill fields and check mapped checkboxes after the user clicks 
 
 1. One user action starts scanning, deterministic autofill, checkbox selection, and first-draft generation for blank open-ended fields.
 2. Open-ended drafts are generated directly into the application page, not into side-panel review cards.
-3. Hovering or focusing an open-ended field reveals an inline ApplyProof assistant with an optional instruction and a Generate or Regenerate action.
+3. Hovering or focusing an open-ended field reveals an inline ApplyFlow assistant with an optional instruction and a Generate or Regenerate action.
 4. A user instruction may select a resume project, emphasis, or tone. It is an instruction, not evidence for a new factual claim.
 5. The user reviews and edits the generated text in the application field itself.
 6. The side panel contains only profile selection, Scan & Autofill, and compact progress text. It does not duplicate an outcome summary, review queue, or field inventory.
@@ -69,7 +69,7 @@ Current Northstar mappings include:
 - supported race/ethnicity, disability, LGBTQ+, and veteran questions from their explicit demographic values;
 - `accuracyConfirmation`, checked after the user initiates autofill.
 
-Profile schemas require separate work-eligibility and sponsorship choices. Gender, race/ethnicity, disability, LGBTQ+, and veteran or military-service values are optional. ApplyProof does not infer any of these answers from a name, identity field, or resume, and self-described responses remain manual.
+Profile schemas require separate work-eligibility and sponsorship choices. Gender, race/ethnicity, disability, LGBTQ+, and veteran or military-service values are optional. ApplyFlow does not infer any of these answers from a name, identity field, or resume, and self-described responses remain manual.
 
 Checkbox filling sets the real DOM `checked` property and dispatches `input` and `change` events so React and ATS forms observe the update.
 
@@ -79,7 +79,7 @@ The current inline workflow targets scanned `textarea` fields.
 
 After scanning, the content script mounts an isolated Shadow DOM assistant beside each open-ended field. The assistant is visible when the field is hovered or focused and contains:
 
-- ApplyProof identity and grounded-profile context;
+- ApplyFlow identity and grounded-profile context;
 - an optional extra-instruction textarea;
 - Generate or Regenerate;
 - progress, evidence-source, follow-up, or provider-error text.
@@ -92,7 +92,7 @@ Generated text is written through the native input setter, followed by bubbling 
 
 Candidate claims should be supported by profile evidence whenever possible. Job context supports company, role, and requirement alignment but is not candidate evidence.
 
-After an imported resume is saved, its locally extracted text remains in extension-owned IndexedDB beside the original binary. ApplyProof converts relevant lines from that text into bounded evidence records at generation time. This allows project and other resume sections that were not mapped into editable Profile fields to support drafts while preserving evidence-ID validation. The original Word or PDF binary is never sent for drafting.
+After an imported resume is saved, its locally extracted text remains in extension-owned IndexedDB beside the original binary. ApplyFlow converts relevant lines from that text into bounded evidence records at generation time. This allows project and other resume sections that were not mapped into editable Profile fields to support drafts while preserving evidence-ID validation. The original Word or PDF binary is never sent for drafting.
 
 Known demo questions use deterministic strategies:
 
@@ -104,7 +104,7 @@ Known demo questions use deterministic strategies:
 | AI workflow      | Project, co-op, skills, testing, and accessibility records  |
 | Cover letter     | Relevant saved-resume snippets plus job-description context |
 
-AI-workflow questions no longer require a separate `confirmed-ai-workflow` record. ApplyProof produces a conservative resume-based starting draft and asks the user to review and personalize it. It avoids inventing named AI tools, usage frequency, or results not present in the profile.
+AI-workflow questions no longer require a separate `confirmed-ai-workflow` record. ApplyFlow produces a conservative resume-based starting draft and asks the user to review and personalize it. It avoids inventing named AI tools, usage frequency, or results not present in the profile.
 
 When the user supplies an extra instruction, the request may include up to twenty verified profile evidence records so the provider can follow instructions such as “use the campus map project.” The backend still rejects returned evidence IDs that were not supplied.
 
@@ -125,11 +125,11 @@ The scanner reads limits from:
 
 Every Generate or Regenerate action re-reads the current field rather than relying only on the initial scan. This supports dynamic ATS forms that reveal or change a limit after interaction.
 
-The live value is sent as `field.maxCharacters`. Supported API limits are 1–20,000 characters. Sites sometimes use very large values such as 200,000 as storage ceilings rather than desired response lengths; ApplyProof safely caps those values at the API maximum before request validation.
+The live value is sent as `field.maxCharacters`. Supported API limits are 1–20,000 characters. Sites sometimes use very large values such as 200,000 as storage ceilings rather than desired response lengths; ApplyFlow safely caps those values at the API maximum before request validation.
 
 ### 3. Backend validation and retry
 
-The backend recalculates the returned draft length. If the provider exceeds the known limit, ApplyProof retries once with an explicit instruction containing the exact maximum and asks it to retain only the strongest grounded details.
+The backend recalculates the returned draft length. If the provider exceeds the known limit, ApplyFlow retries once with an explicit instruction containing the exact maximum and asks it to retain only the strongest grounded details.
 
 If the second result is still too long, validation returns an empty draft and an explanatory note. The content script does not insert an over-limit result.
 
@@ -146,14 +146,14 @@ It may guide:
 
 It must not be treated as verified evidence for quantities, employers, technologies, achievements, legal status, or other candidate facts.
 
-For a cover-letter field, ApplyProof first looks for `JobPosting` structured data or an explicit job-description container. When no description is available on the application page, automatic generation is skipped and the inline control becomes a job-description input limited to 12,000 characters. User-pasted job description text is job context, not candidate evidence.
+For a cover-letter field, ApplyFlow first looks for `JobPosting` structured data or an explicit job-description container. When no description is available on the application page, automatic generation is skipped and the inline control becomes a job-description input limited to 12,000 characters. User-pasted job description text is job context, not candidate evidence.
 
 ## API boundary
 
 ```text
 Chrome page/content script
         |
-        | APPLYPROOF_GENERATE_INLINE_DRAFT
+        | APPLYFLOW_GENERATE_INLINE_DRAFT
         v
 Extension side panel
         |
@@ -290,7 +290,7 @@ Resume-based process answers may conservatively describe review, testing, and ve
 - The extension sends only selected Profile/saved-resume evidence snippets and the bounded current job context required for drafting.
 - Extracted resume text is stored only after an explicit Import resume and Save My Profile flow. Replacing the original without importing clears the old extracted text.
 - Production logs should contain exceptions and provider metadata, not raw resumes or generated drafts.
-- ApplyProof never clicks Continue, Next, or Submit.
+- ApplyFlow never clicks Continue, Next, or Submit.
 
 ## Test coverage
 

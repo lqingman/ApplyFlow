@@ -1,6 +1,6 @@
 # Site compatibility
 
-ApplyProof supports sites only after repeatable compatibility testing. It does not claim universal ATS support, and a form that happens to work is not automatically an advertised integration.
+ApplyFlow supports sites only after repeatable compatibility testing. It does not claim universal ATS support, and a form that happens to work is not automatically an advertised integration.
 
 ## Supported-site matrix
 
@@ -39,20 +39,20 @@ Planned future pilots currently include Workday. Add other ATS platforms as they
 | Native radio and checkbox groups                                | Scanned and filled when a verified mapping and matching option exist                                                                                         |
 | Accessible ARIA textbox, combobox, listbox, radio, and checkbox | Scanned; filling complex site-specific widgets is only partially supported                                                                                   |
 | Opaque generated IDs                                            | Classification also uses labels, names, `autocomplete`, input types, options, and limited question-container text                                            |
-| Client-rendered or multi-step fields                            | A later user-initiated scan discovers the current step; ApplyProof never clicks Next or Continue                                                             |
+| Client-rendered or multi-step fields                            | A later user-initiated scan discovers the current step; ApplyFlow never clicks Next or Continue                                                              |
 | Cover-letter textareas                                          | Uses bounded page JD context and saved-resume evidence; asks for pasted JD when extraction is unavailable                                                    |
 | Existing values                                                 | Preserved; generated open answers change only after explicit regeneration                                                                                    |
 | Resume upload                                                   | Ordinary same-document file inputs are supported after an explicit user action; custom uploaders may require manual upload                                   |
 | Embedded Greenhouse application iframe                          | Scanned only for `job-boards.greenhouse.io` after the user grants the declared optional host permission; fields and actions are routed to their source frame |
 | Other same-origin and cross-origin iframes                      | Not scanned in the current pilot                                                                                                                             |
 | Site-owned shadow DOM                                           | Not scanned in the current pilot                                                                                                                             |
-| Navigation and final submission                                 | Never performed by ApplyProof                                                                                                                                |
+| Navigation and final submission                                 | Never performed by ApplyFlow                                                                                                                                 |
 
 ## Access model
 
-The extension uses Chrome's `activeTab` and `scripting` permissions. Clicking the toolbar action grants temporary access to that tab and explicitly opens its side panel; the automatic side-panel action behavior is disabled because it does not grant `activeTab` access. ApplyProof injects its page helper only after that user gesture and Scan & Autofill. It has no `<all_urls>` permission. Persistent required host access is limited to the two local development origins.
+The extension uses Chrome's `activeTab` and `scripting` permissions. Clicking the toolbar action grants temporary access to that tab and explicitly opens its side panel; the automatic side-panel action behavior is disabled because it does not grant `activeTab` access. ApplyFlow injects its page helper only after that user gesture and Scan & Autofill. It has no `<all_urls>` permission. Persistent required host access is limited to the two local development origins.
 
-When the active page contains an iframe whose resolved host is exactly `job-boards.greenhouse.io`, ApplyProof requests the manifest-declared optional permission `https://job-boards.greenhouse.io/*`. If the user declines, scanning stops with an explanation. If granted, ApplyProof discovers only the top document and permitted Greenhouse frames, injects the page helper into those frame IDs, and routes each scanned field back to its source frame for focus, fill, resume attachment, and inline writing assistance. It does not request or inject into unrelated iframe origins such as reCAPTCHA. Job context from the top careers page is preferred and passed to the Greenhouse frame without collecting full-page HTML.
+When the active page contains an iframe whose resolved host is exactly `job-boards.greenhouse.io`, ApplyFlow requests the manifest-declared optional permission `https://job-boards.greenhouse.io/*`. If the user declines, scanning stops with an explanation. If granted, ApplyFlow discovers only the top document and permitted Greenhouse frames, injects the page helper into those frame IDs, and routes each scanned field back to its source frame for focus, fill, resume attachment, and inline writing assistance. It does not request or inject into unrelated iframe origins such as reCAPTCHA. Job context from the top careers page is preferred and passed to the Greenhouse frame without collecting full-page HTML.
 
 Normalized field metadata may include the field label, ID, name, input type, `autocomplete`, available option labels, and up to 500 characters of text from a recognized question container. The scan may also include company, role, and up to 12,000 characters from `JobPosting` structured data or an explicit job-description container. Denied sensitive fields are excluded, including their values. The scanner does not collect full-page HTML.
 

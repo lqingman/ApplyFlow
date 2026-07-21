@@ -2,7 +2,7 @@ import type {
   AnswerDraftResponse,
   NormalizedField,
   PageJobContext,
-} from "@applyproof/shared-types";
+} from "@applyflow/shared-types";
 
 import { findField, readCharacterLimit } from "./scanner";
 
@@ -13,7 +13,7 @@ type MountOptions = {
   job?: PageJobContext;
 };
 
-const hostAttribute = "data-applyproof-inline-assistant";
+const hostAttribute = "data-applyflow-inline-assistant";
 let cleanups: Cleanup[] = [];
 let pageObserver: MutationObserver | undefined;
 let remountTimer: number | undefined;
@@ -176,7 +176,7 @@ function isOpenQuestion(
 function notifyDraftFilled(fieldId: string, value: string) {
   if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) return;
   void chrome.runtime
-    .sendMessage({ type: "APPLYPROOF_INLINE_DRAFT_FILLED", fieldId, value })
+    .sendMessage({ type: "APPLYFLOW_INLINE_DRAFT_FILLED", fieldId, value })
     .catch(() => undefined);
 }
 
@@ -186,9 +186,9 @@ async function requestDraft(
   options: Pick<MountOptions, "job"> & { manualJobDescription?: string },
 ): Promise<{ response: AnswerDraftResponse; sources: string[] }> {
   if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage)
-    throw new Error("Open the ApplyProof side panel and scan this page again.");
+    throw new Error("Open the ApplyFlow side panel and scan this page again.");
   const result: unknown = await chrome.runtime.sendMessage({
-    type: "APPLYPROOF_GENERATE_INLINE_DRAFT",
+    type: "APPLYFLOW_GENERATE_INLINE_DRAFT",
     field,
     ...(additionalPrompt ? { additionalPrompt } : {}),
     ...(options.manualJobDescription
@@ -204,7 +204,7 @@ async function requestDraft(
   };
   if (!payload.ok || !payload.response)
     throw new Error(
-      payload.error ?? "ApplyProof could not generate this answer.",
+      payload.error ?? "ApplyFlow could not generate this answer.",
     );
   return { response: payload.response, sources: payload.sources ?? [] };
 }
@@ -228,7 +228,7 @@ function mountOne(
   panel.className = "assistant";
   panel.setAttribute(
     "aria-label",
-    `ApplyProof writing assistant for ${field.label}`,
+    `ApplyFlow writing assistant for ${field.label}`,
   );
   panel.innerHTML = `
     <div class="toolbar">
@@ -370,7 +370,7 @@ function mountOne(
     } catch {
       status.classList.add("error");
       status.textContent =
-        "ApplyProof could not generate this answer. Your existing answer was not changed.";
+        "ApplyFlow could not generate this answer. Your existing answer was not changed.";
     } finally {
       button.disabled = false;
       delete button.dataset.loading;

@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 import { generateAnswerDraft } from "./answerApi";
-import { mayaProfile } from "@applyproof/sample-data";
+import { mayaProfile } from "@applyflow/sample-data";
 import {
   attachResumeToActivePage,
   enableInlineAssistants,
@@ -302,7 +302,7 @@ describe("profile-first autofill workflow", () => {
     expect(
       listener(
         {
-          type: "APPLYPROOF_GENERATE_INLINE_DRAFT",
+          type: "APPLYFLOW_GENERATE_INLINE_DRAFT",
           field: {
             id: "project",
             label: "Describe a relevant project.",

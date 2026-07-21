@@ -1,5 +1,5 @@
 {
-  "name": "@applyproof/extension",
+  "name": "@applyflow/extension",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,8 +10,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@applyproof/sample-data": "*",
-    "@applyproof/shared-types": "*",
+    "@applyflow/sample-data": "*",
+    "@applyflow/shared-types": "*",
     "mammoth": "^1.12.0",
     "pdfjs-dist": "^6.1.200",
     "react": "^19.1.0",

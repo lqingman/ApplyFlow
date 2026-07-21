@@ -362,7 +362,7 @@ export function App() {
                 <p className="eyebrow">Scanning safety fixture</p>
                 <h2 id="security-heading">Applicant portal password</h2>
                 <p>
-                  This field exists to verify that ApplyProof excludes blocked
+                  This field exists to verify that ApplyFlow excludes blocked
                   data types.
                 </p>
               </div>
@@ -386,7 +386,7 @@ export function App() {
             </label>
 
             <div className="submit-row">
-              <p>ApplyProof never clicks this button for you.</p>
+              <p>ApplyFlow never clicks this button for you.</p>
               <button type="submit">Submit application</button>
             </div>
           </form>

@@ -10,7 +10,7 @@ import {
   type CandidateProfile,
   type EvidenceRecord,
   type ResumeExtraction,
-} from "@applyproof/shared-types";
+} from "@applyflow/shared-types";
 
 import type { ParsedResume } from "./resumeTextParser";
 import type { SavedResumeMetadata } from "./resumeFileStorage";
@@ -634,10 +634,10 @@ export function ProfileEditor({
               required
               value={draft.stateOrProvince}
               autoComplete="address-level1"
-              list="applyproof-canadian-regions"
+              list="applyflow-canadian-regions"
               onChange={(event) => set("stateOrProvince", event.target.value)}
             />
-            <datalist id="applyproof-canadian-regions">
+            <datalist id="applyflow-canadian-regions">
               {canadianRegionNames.map((region) => (
                 <option key={region} value={region} />
               ))}
@@ -659,10 +659,10 @@ export function ProfileEditor({
               required
               value={draft.country}
               autoComplete="country-name"
-              list="applyproof-countries"
+              list="applyflow-countries"
               onChange={(event) => set("country", event.target.value)}
             />
-            <datalist id="applyproof-countries">
+            <datalist id="applyflow-countries">
               <option value="Canada" />
               <option value="United States" />
               <option value="United Kingdom" />
@@ -910,8 +910,8 @@ export function ProfileEditor({
       <fieldset>
         <legend>Work authorization</legend>
         <p className="field-help">
-          These are two separate questions on most applications. ApplyProof
-          saves your explicit answers and never infers them from your resume.
+          These are two separate questions on most applications. ApplyFlow saves
+          your explicit answers and never infers them from your resume.
         </p>
         <label>
           Are you legally authorized to work in Canada?
@@ -955,7 +955,7 @@ export function ProfileEditor({
         <legend>Voluntary self-identification</legend>
         <p className="field-help">
           These optional questions vary by employer. Save only what you want to
-          reuse; ApplyProof never derives these answers from your resume or
+          reuse; ApplyFlow never derives these answers from your resume or
           identity.
         </p>
         <label>

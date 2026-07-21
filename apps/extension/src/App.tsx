@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { mayaProfile } from "@applyproof/sample-data";
+import { mayaProfile } from "@applyflow/sample-data";
 import type {
   CandidateProfile,
   FillResult,
   NormalizedField,
   PageJobContext,
   RememberedAnswer,
-} from "@applyproof/shared-types";
+} from "@applyflow/shared-types";
 
 import { planAutofill, type FieldDecision } from "./autofill";
 import {
@@ -38,7 +38,7 @@ type WorkflowStatus = "idle" | "working" | "complete" | "error";
 function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
-    : "ApplyProof could not complete the workflow. Try again.";
+    : "ApplyFlow could not complete the workflow. Try again.";
 }
 
 function applyFillResults(decisions: FieldDecision[], results: FillResult[]) {
@@ -53,7 +53,7 @@ function applyFillResults(decisions: FieldDecision[], results: FillResult[]) {
       reason:
         result?.status === "skipped_existing"
           ? "Existing value was preserved. Review it before replacing."
-          : "ApplyProof could not safely fill this field. Please complete it manually.",
+          : "ApplyFlow could not safely fill this field. Please complete it manually.",
     };
   });
 }
@@ -236,7 +236,7 @@ export function App() {
         manualJobDescription?: string;
         job?: PageJobContext;
       };
-      if (update.type === "APPLYPROOF_GENERATE_INLINE_DRAFT" && update.field) {
+      if (update.type === "APPLYFLOW_GENERATE_INLINE_DRAFT" && update.field) {
         const field = update.field;
         void loadSavedResumeText()
           .then((resumeText) =>
@@ -262,12 +262,12 @@ export function App() {
             sendResponse({
               ok: false,
               error:
-                "ApplyProof could not prepare this draft. Your answer was not changed.",
+                "ApplyFlow could not prepare this draft. Your answer was not changed.",
             }),
           );
         return true;
       }
-      if (update.type !== "APPLYPROOF_INLINE_DRAFT_FILLED") return;
+      if (update.type !== "APPLYFLOW_INLINE_DRAFT_FILLED") return;
       setMessage(
         "The generated answer is now in the application. Review it before submitting.",
       );
@@ -284,7 +284,7 @@ export function App() {
         </span>
         <div>
           <p className="eyebrow">Evidence-first autofill</p>
-          <h1>ApplyProof</h1>
+          <h1>ApplyFlow</h1>
         </div>
       </header>
 

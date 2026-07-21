@@ -1,5 +1,5 @@
 {
-  "name": "@applyproof/sample-data",
+  "name": "@applyflow/sample-data",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@applyproof/shared-types": "*"
+    "@applyflow/shared-types": "*"
   },
   "devDependencies": {
     "vitest": "^3.2.4"

@@ -1,4 +1,4 @@
-import type { ResumeExtraction } from "@applyproof/shared-types";
+import type { ResumeExtraction } from "@applyflow/shared-types";
 
 export type ParsedEducation = ResumeExtraction["education"][number];
 export type ParsedExperience = ResumeExtraction["experience"][number];

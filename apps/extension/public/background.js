@@ -4,12 +4,12 @@
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: false })
   .catch((error) => {
-    console.error("Unable to configure ApplyProof side panel", error);
+    console.error("Unable to configure ApplyFlow side panel", error);
   });
 
 chrome.action.onClicked.addListener((tab) => {
   if (!tab.id) return;
   chrome.sidePanel.open({ tabId: tab.id }).catch((error) => {
-    console.error("Unable to open ApplyProof side panel", error);
+    console.error("Unable to open ApplyFlow side panel", error);
   });
 });

@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { mayaProfile } from "@applyproof/sample-data";
+import { mayaProfile } from "@applyflow/sample-data";
 
 import { planAutofill } from "../../extension/src/autofill";
 import { fillDocument } from "../../extension/src/pageFill";

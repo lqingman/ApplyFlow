@@ -2,7 +2,7 @@ import {
   resumeExtractionRequestSchema,
   resumeExtractionSchema,
   type ResumeExtraction,
-} from "@applyproof/shared-types";
+} from "@applyflow/shared-types";
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 

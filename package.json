@@ -1,5 +1,5 @@
 {
-  "name": "applyproof",
+  "name": "applyflow",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,8 +10,8 @@
     "packages/shared-types"
   ],
   "scripts": {
-    "dev:extension": "npm run dev --workspace @applyproof/extension",
-    "dev:web": "npm run dev --workspace @applyproof/web-demo",
+    "dev:extension": "npm run dev --workspace @applyflow/extension",
+    "dev:web": "npm run dev --workspace @applyflow/web-demo",
     "dev:api": ".venv/bin/python -m uvicorn app.main:app --reload --app-dir apps/api --env-file .env",
     "build": "npm run build --workspaces --if-present",
     "format": "prettier --write .",

@@ -1,4 +1,4 @@
-import { mayaProfile } from "@applyproof/sample-data";
+import { mayaProfile } from "@applyflow/sample-data";
 import { describe, expect, it } from "vitest";
 
 import {

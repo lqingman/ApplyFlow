@@ -1,8 +1,8 @@
-# ApplyProof
+# ApplyFlow
 
-ApplyProof is a Chrome extension that helps people complete job applications with answers grounded in their actual resume and candidate profile.
+ApplyFlow is a Chrome extension that helps people complete job applications with answers grounded in their actual resume and candidate profile.
 
-Traditional autofill handles contact details. Generic AI can write polished answers, but may exaggerate or invent experience. ApplyProof combines deterministic profile autofill with resume-grounded drafts that are generated and reviewed directly on the application page.
+Traditional autofill handles contact details. Generic AI can write polished answers, but may exaggerate or invent experience. ApplyFlow combines deterministic profile autofill with resume-grounded drafts that are generated and reviewed directly on the application page.
 
 > **Hackathon status:** The submission demo is complete and runnable locally. It includes an editable local profile, resume import and storage, safe autofill, evidence-grounded inline answers, cover-letter drafting, resume attachment, and builder-tested pilots on Workable, BambooHR, and Greenhouse.
 
@@ -10,7 +10,7 @@ The supported judging path is the controlled Northstar Labs local demo. Real-sit
 
 ## The idea
 
-ApplyProof helps an applicant:
+ApplyFlow helps an applicant:
 
 1. Load a resume or demo profile.
 2. Open a job application.
@@ -19,7 +19,7 @@ ApplyProof helps an applicant:
 5. Draft blank open-ended answers from relevant resume evidence directly into the page.
 6. Review and edit the answer in the application field; add an optional instruction before regenerating.
 
-ApplyProof never submits an application automatically.
+ApplyFlow never submits an application automatically.
 
 ## Product principles
 
@@ -47,7 +47,7 @@ The demo uses:
 ### Demo flow
 
 1. Open the Northstar Labs mock application.
-2. Open the ApplyProof side panel and load Maya data into `My Profile`.
+2. Open the ApplyFlow side panel and load Maya data into `My Profile`.
 3. Run Scan & Autofill to detect the page and insert verified profile fields in one action.
 4. See saved authorization, gender, and confirmation choices filled with the other profile fields.
 5. See blank open-ended answers generate directly on the application page.
@@ -89,7 +89,7 @@ The demo is successful when a judge can complete this flow locally without an ac
 ## Architecture
 
 ```text
-ApplyProof/
+ApplyFlow/
 ├── apps/
 │   ├── extension/       # Manifest V3 extension and side-panel UI
 │   ├── web-demo/        # Northstar Labs mock job application
@@ -124,21 +124,21 @@ Deterministic values and mapped checkboxes are inserted after the user initiates
 
 The complete open-ended-question workflow, API contract, evidence rules, fixture mode, OpenRouter mode, memory policy, and failure behavior are defined in [the grounded answer generation design](docs/ANSWER_GENERATION_DESIGN.md).
 
-New users can start `My Profile` directly with **From resume** or **From scratch**. Import supports Word `.docx` and text-based `.pdf` files up to 10 MB. The original document is stored only in extension-owned IndexedDB so it can later be attached to an ordinary resume upload field; the original binary is never sent to the ApplyProof API or model provider. During **Import resume**, the extension extracts document text locally and sends that text plus a deterministic baseline to the configured server-side AI provider. When the user saves the imported profile, the extracted text is retained beside the original file in the same local IndexedDB record. This preserves projects and other resume sections that may not map into editable Profile fields. For grounded answers and cover letters, ApplyProof selects only relevant local text snippets as evidence and sends those snippets—not the original binary—to the API and configured provider. Replacing a file through **My resume file** clears extracted text associated with the old file; importing the replacement rebuilds it. Schema-validated identity, city/region, portfolio and LinkedIn links, multiple education and work-experience records, source-review metadata, and evidence remain editable before saving. Work-experience descriptions retain the resume's wording instead of being summarized or rephrased. If AI extraction is unavailable, ApplyProof falls back to the local deterministic result. Legacy `.doc`, encrypted PDFs, and scanned image-only PDFs without a text layer are not supported; OCR is intentionally out of scope.
+New users can start `My Profile` directly with **From resume** or **From scratch**. Import supports Word `.docx` and text-based `.pdf` files up to 10 MB. The original document is stored only in extension-owned IndexedDB so it can later be attached to an ordinary resume upload field; the original binary is never sent to the ApplyFlow API or model provider. During **Import resume**, the extension extracts document text locally and sends that text plus a deterministic baseline to the configured server-side AI provider. When the user saves the imported profile, the extracted text is retained beside the original file in the same local IndexedDB record. This preserves projects and other resume sections that may not map into editable Profile fields. For grounded answers and cover letters, ApplyFlow selects only relevant local text snippets as evidence and sends those snippets—not the original binary—to the API and configured provider. Replacing a file through **My resume file** clears extracted text associated with the old file; importing the replacement rebuilds it. Schema-validated identity, city/region, portfolio and LinkedIn links, multiple education and work-experience records, source-review metadata, and evidence remain editable before saving. Work-experience descriptions retain the resume's wording instead of being summarized or rephrased. If AI extraction is unavailable, ApplyFlow falls back to the local deterministic result. Legacy `.doc`, encrypted PDFs, and scanned image-only PDFs without a text layer are not supported; OCR is intentionally out of scope.
 
-Cover-letter textareas use the same evidence boundary. ApplyProof first looks for bounded `JobPosting` structured data or an explicit job-description container. If it cannot find a job description, it does not auto-generate the cover letter and asks the user to paste the description into the inline assistant. The pasted description provides job context only; candidate claims must still come from Profile evidence or selected saved-resume snippets.
+Cover-letter textareas use the same evidence boundary. ApplyFlow first looks for bounded `JobPosting` structured data or an explicit job-description container. If it cannot find a job description, it does not auto-generate the cover letter and asks the user to paste the description into the inline assistant. The pasted description provides job context only; candidate claims must still come from Profile evidence or selected saved-resume snippets.
 
 ## Product workflow
 
 1. The user creates or imports one editable `My Profile` containing stable facts and evidence.
-2. ApplyProof scans an application only after the user initiates the action.
+2. ApplyFlow scans an application only after the user initiates the action.
 3. Confirmed profile facts, authorization, demographics, applicable remembered answers, and mapped confirmations are filled deterministically.
 4. Blank open-ended questions receive a resume-based draft; existing page values are preserved.
 5. Explicit Canadian work-authorization and sponsorship choices are stored under separate canonical, country-scoped meanings rather than a site's exact wording.
 6. Later semantically equivalent Canadian questions may reuse the matching choice when classification confidence is high.
 7. Continue, Next, and Submit always remain user actions.
 
-For example, “Are you legally authorized to work in Canada?” and “Will you require sponsorship?” are stored separately as `work_authorization.canada.authorized` and `work_authorization.canada.sponsorship`, with their source and confirmation time. Later equivalent Canadian questions may reuse the matching answer. That does not authorize ApplyProof to answer a different country's question, infer immigration status, accept legal terms, or submit the application.
+For example, “Are you legally authorized to work in Canada?” and “Will you require sponsorship?” are stored separately as `work_authorization.canada.authorized` and `work_authorization.canada.sponsorship`, with their source and confirmation time. Later equivalent Canadian questions may reuse the matching answer. That does not authorize ApplyFlow to answer a different country's question, infer immigration status, accept legal terms, or submit the application.
 
 ## Website support
 
@@ -150,7 +150,7 @@ See the [site compatibility matrix](docs/SITE_COMPATIBILITY.md) for the tested b
 
 ## Safety boundaries
 
-ApplyProof must not:
+ApplyFlow must not:
 
 - click a final Submit button;
 - accept legal terms;
@@ -175,7 +175,7 @@ See [the detailed roadmap](docs/ROADMAP.md) for acceptance criteria and sequenci
 
 ## How GPT-5.6 and Codex were used
 
-ApplyProof was planned and built collaboratively with Codex using GPT-5.6. GPT-5.6 helped reason across product scope, browser security, accessibility, schema design, test failures, and third-party ATS behavior, while the human builder retained product ownership and made the final tradeoffs.
+ApplyFlow was planned and built collaboratively with Codex using GPT-5.6. GPT-5.6 helped reason across product scope, browser security, accessibility, schema design, test failures, and third-party ATS behavior, while the human builder retained product ownership and made the final tradeoffs.
 
 ### Where Codex accelerated the workflow
 
@@ -189,7 +189,7 @@ ApplyProof was planned and built collaboratively with Codex using GPT-5.6. GPT-5
 ### Key decisions made by the human builder
 
 - Build one controlled, repeatable demo before expanding to real ATS pilots.
-- Position ApplyProof around truthfulness and visible evidence, not generic form filling.
+- Position ApplyFlow around truthfulness and visible evidence, not generic form filling.
 - Keep applicants in control by making generated answers editable and leaving navigation and submission manual.
 - Use deterministic logic for known facts and reserve model generation for evidence-backed writing.
 - Treat Workable, BambooHR, and Greenhouse as builder-tested pilots instead of claiming universal compatibility.
@@ -249,12 +249,12 @@ npm run dev:api
 - API health check: `http://127.0.0.1:8000/health`
 - API documentation: `http://127.0.0.1:8000/docs`
 
-For Chrome, build the extension with `npm run build --workspace @applyproof/extension`, open
+For Chrome, build the extension with `npm run build --workspace @applyflow/extension`, open
 `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select
-`apps/extension/dist`. Click the ApplyProof toolbar action to open its side panel.
+`apps/extension/dist`. Click the ApplyFlow toolbar action to open its side panel.
 
 With the Northstar Labs application active, choose **Load Maya demo data** if `My Profile` is empty,
-then click **Scan & Autofill**. ApplyProof fills saved profile values, work authorization, gender, and the accuracy
+then click **Scan & Autofill**. ApplyFlow fills saved profile values, work authorization, gender, and the accuracy
 confirmation; preserves existing answers; blocks the password fixture; and starts generating blank
 open-ended fields directly on the page. Hover or focus an open-ended field to add an optional
 instruction and regenerate it. The side panel remains compact and does not duplicate a summary,
@@ -263,7 +263,7 @@ reload button on `chrome://extensions` and refresh the application page before r
 
 For an embedded Greenhouse pilot such as an employer careers page containing a
 `job-boards.greenhouse.io` application, keep the employer page active and click **Scan & Autofill**.
-Chrome asks once for access to the embedded Greenhouse origin. Granting it lets ApplyProof scan and
+Chrome asks once for access to the embedded Greenhouse origin. Granting it lets ApplyFlow scan and
 route fields, resume attachment, and inline writing controls inside that frame while retaining job
 context from the employer page. Declining leaves the frame untouched and stops the workflow with an
 explanation. Other iframe providers remain unsupported.
