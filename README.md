@@ -235,13 +235,12 @@ python3 -m venv .venv
 cp .env.example .env
 ```
 
-### Run the local surfaces
+### Run the local demo
 
-Use a separate terminal for each process:
+Use a separate terminal for each long-running process:
 
 ```bash
 npm run dev:web
-npm run dev:extension
 npm run dev:api
 ```
 
@@ -249,9 +248,16 @@ npm run dev:api
 - API health check: `http://127.0.0.1:8000/health`
 - API documentation: `http://127.0.0.1:8000/docs`
 
-For Chrome, build the extension with `npm run build --workspace @applyflow/extension`, open
-`chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select
-`apps/extension/dist`. Click the ApplyFlow toolbar action to open its side panel.
+Build the Chrome extension separately:
+
+```bash
+npm run build --workspace @applyflow/extension
+```
+
+Then open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select
+`apps/extension/dist`. Click the ApplyFlow toolbar action to open its side panel. The optional
+`npm run dev:extension` command starts the Vite development server for extension UI development;
+it is not required for the local demo workflow above.
 
 With the Northstar Labs application active, choose **Load Maya demo data** if `My Profile` is empty,
 then click **Scan & Autofill**. ApplyFlow fills saved profile values, work authorization, gender, and the accuracy
