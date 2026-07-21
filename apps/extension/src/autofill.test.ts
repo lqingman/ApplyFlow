@@ -255,4 +255,24 @@ describe("safe autofill planning", () => {
       { fieldId: "customQuestionAnswers.yes_no_360", value: "No" },
     ]);
   });
+
+  it("maps relocation consent to commute and recognizes legally entitled wording", () => {
+    const { fills } = planAutofill(mayaProfile, [
+      field("question_8437472006", {
+        label: "Are you able to commute to our office in Edmonton, AB?",
+        required: true,
+      }),
+      field("question_8437473006", {
+        label: "Are you legally entitled to work in Canada?",
+        kind: "select",
+        required: true,
+        options: ["Yes", "No"],
+      }),
+    ]);
+
+    expect(fills).toEqual([
+      { fieldId: "question_8437472006", value: "Yes" },
+      { fieldId: "question_8437473006", value: "Yes" },
+    ]);
+  });
 });

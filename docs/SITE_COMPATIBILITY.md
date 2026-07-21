@@ -4,16 +4,32 @@ ApplyProof supports sites only after repeatable compatibility testing. It does n
 
 ## Supported-site matrix
 
-| Environment                    | Status                           | Evidence                                                                                                                                                   |
-| ------------------------------ | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Northstar Labs local demo      | Supported                        | Complete scan, deterministic fill, resume attachment, inline drafting, existing-value protection, and no-submit tests                                      |
-| Ordinary semantic HTML fixture | Compatibility baseline only      | Regression tests cover opaque IDs, labels, names, input types, `autocomplete`, options, limited surrounding question text, and client-rendered later steps |
-| Greenhouse                     | Not yet supported                | No end-to-end site pilot completed                                                                                                                         |
-| Lever                          | Not yet supported                | No end-to-end site pilot completed                                                                                                                         |
-| Workday                        | Not yet supported                | No end-to-end site pilot completed                                                                                                                         |
-| Other application or ATS sites | Not supported unless listed here | Compatibility has not been established                                                                                                                     |
+| Environment                    | Status                           | Last manual test | Evidence and current boundary                                                                                                                                                                                                                                                               |
+| ------------------------------ | -------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Northstar Labs local demo      | Supported                        | 2026-07-20       | Complete scan, deterministic fill, resume attachment, inline drafting, existing-value protection, and no-submit regression coverage                                                                                                                                                         |
+| Ordinary semantic HTML fixture | Compatibility baseline only      | 2026-07-20       | Regression tests cover opaque IDs, labels, names, input types, `autocomplete`, options, limited surrounding question text, and client-rendered later steps                                                                                                                                  |
+| Workable                       | Builder-tested pilot             | 2026-07-20       | The builder completed a real-site manual application test. The result establishes hands-on compatibility evidence, but a named Workable regression fixture and a documented repeatable capability checklist are still pending                                                               |
+| BambooHR                       | Builder-tested pilot             | 2026-07-20       | The builder manually tested split address fields, custom country/state menus, masked availability dates, resume handling, Canadian authorization and sponsorship, and reCAPTCHA exclusion. Regression tests cover Fabric selects, date formatting, nested radio groups, and bot fields      |
+| Greenhouse                     | Builder-tested pilot             | 2026-07-20       | The builder manually tested profile fields, resume handling, same-page company/JD extraction, grounded motivation drafting, commute mapping, Canadian work authorization, custom ARIA comboboxes, and supported voluntary answers. Targeted regression fixtures cover these custom controls |
+| Workday                        | Planned pilot                    | Not yet tested   | The builder intends to test Workday next. Multi-step navigation, site-owned widgets, repeated sections, and iframe boundaries must be documented during the pilot                                                                                                                           |
+| Lever                          | Not yet tested                   | Not yet tested   | No end-to-end site pilot completed                                                                                                                                                                                                                                                          |
+| Other application or ATS sites | Not supported unless listed here | Not yet tested   | Compatibility has not been established                                                                                                                                                                                                                                                      |
 
 The ordinary HTML fixture is engineering evidence for common browser primitives, not a claim that a named third-party site works.
+
+`Builder-tested pilot` records a successful hands-on test by the project builder. It is intentionally separate from `Supported`: a named ATS moves to Supported only after the repeatable evidence in the pilot exit criteria is complete.
+
+## Pilot log maintenance
+
+For each newly tested ATS, update the matrix with:
+
+1. the ATS and public application surface;
+2. the manual test date;
+3. which capabilities were exercised, such as profile fields, custom selects, resume upload, open-answer drafting, multi-step behavior, and no-submit behavior;
+4. any manual fallback or known failure; and
+5. the regression fixture or test added for site-specific behavior.
+
+Planned future pilots currently include Workday. Add other ATS platforms as they are tested rather than treating ordinary semantic compatibility as proof of site-level support.
 
 ## Capability matrix
 

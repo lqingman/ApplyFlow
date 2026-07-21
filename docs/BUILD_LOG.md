@@ -279,6 +279,20 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** shared normalized-field contract; extension scanner and autofill classifier; compatibility, scanner, and manifest tests; `docs/SITE_COMPATIBILITY.md`; `README.md`; and `docs/ROADMAP.md`.
 
+### 2026-07-20 — Workable, BambooHR, and Greenhouse manual ATS pilots
+
+**Goal:** replace generic online-form assumptions with evidence from real application workflows and keep a durable record as additional ATS platforms are tested.
+
+**Human decision:** record Workable, BambooHR, and Greenhouse as builder-tested pilots without prematurely labeling every form on those platforms as fully supported. Maintain a living compatibility matrix and test Workday and other ATS platforms incrementally.
+
+**Codex contribution:** diagnosed and fixed site-specific behavior found during the BambooHR and Greenhouse pilots, including split-address normalization, asynchronous country/state menus, masked dates, nested work-authorization radio groups, reCAPTCHA exclusion, Greenhouse same-page company/JD extraction, relocation-to-commute mapping, and delayed React ARIA combobox selection. Added local country and Canadian province aliases so ATS option abbreviations and full names can match without an external address service.
+
+**Why GPT-5.6 helped:** the work required interpreting multiple third-party DOM and accessibility patterns, separating safe semantic equivalence from unsupported inference, preserving user-controlled legal answers, and converting manual browser findings into reusable compatibility logic and focused regression fixtures.
+
+**Verification:** the builder manually tested real Workable, BambooHR, and Greenhouse application pages. Automated extension tests, TypeScript checks, linting, and production builds pass after the resulting fixes. The compatibility matrix records the tested capabilities, remaining evidence boundary, and Workday as the next planned pilot.
+
+**Artifacts:** address normalization, autofill, page filling, scanning, inline assistant, Greenhouse job-context extraction and their regression tests; `docs/SITE_COMPATIBILITY.md`; and this build log.
+
 ### 2026-07-20 — Fix online-tab access from the side panel
 
 **Goal:** make the least-privilege online-tab workflow actually inject ApplyProof after the user clicks its toolbar action.

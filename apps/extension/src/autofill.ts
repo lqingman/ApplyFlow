@@ -169,6 +169,11 @@ function semanticProfileValue(
     return primaryEducation?.graduationDate;
   if (matches(/\b(?:available|availability|start work|earliest start)\b/i))
     return dateValueForField(profile.availability.startDate, field);
+  if (
+    profile.availability.relocation === "yes" &&
+    matches(/\b(?:able|willing).{0,40}\bcommut(?:e|ing)\b|\bcommut(?:e|ing)\b/i)
+  )
+    return "Yes";
   if (matches(/\brelocat(?:e|ion|ing)\b/i))
     return profile.availability.relocation;
   return undefined;
@@ -213,7 +218,7 @@ function profileValue(
   if (
     id === "work-authorization" ||
     (/\bcanad(?:a|ian)\b/i.test(fingerprint) &&
-      /\b(?:authori[sz](?:ed|ation)|legally eligible|eligible to work)\b/i.test(
+      /\b(?:authori[sz](?:ed|ation)|legally (?:eligible|entitled)|(?:eligible|entitled) to work)\b/i.test(
         fingerprint,
       ) &&
       !/sponsor/i.test(fingerprint))
@@ -275,7 +280,7 @@ function rememberedValue(field: NormalizedField, answers: RememberedAnswer[]) {
   const fingerprint = semanticFingerprint(field);
   const isCanadianAuthorization =
     /\b(?:canada|canadian)\b/i.test(fingerprint) &&
-    /\b(?:authori[sz](?:ed|ation)|legally eligible|work permit|sponsorship)\b/i.test(
+    /\b(?:authori[sz](?:ed|ation)|legally (?:eligible|entitled)|(?:eligible|entitled) to work|work permit|sponsorship)\b/i.test(
       fingerprint,
     );
   if (!isCanadianAuthorization) return undefined;
@@ -316,7 +321,7 @@ export function planAutofill(
     const fingerprint = semanticFingerprint(field);
     return (
       /\bcanad(?:a|ian)\b/i.test(fingerprint) &&
-      /\b(?:authori[sz](?:ed|ation)|legally eligible|work permit|sponsorship)\b/i.test(
+      /\b(?:authori[sz](?:ed|ation)|legally (?:eligible|entitled)|(?:eligible|entitled) to work|work permit|sponsorship)\b/i.test(
         fingerprint,
       )
     );

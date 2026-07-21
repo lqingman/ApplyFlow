@@ -131,4 +131,31 @@ describe("safe page filling", () => {
     ).resolves.toEqual([{ fieldId: "province", status: "filled" }]);
     expect(document.querySelector("#province")).toHaveValue("59");
   });
+
+  it("selects an option from a delayed React ARIA combobox", async () => {
+    document.body.innerHTML = `
+      <label id="authorization-label" for="authorization">Are you legally entitled to work in Canada?</label>
+      <input id="authorization" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-labelledby="authorization-label" value="">
+    `;
+    const combobox =
+      document.querySelector<HTMLInputElement>("#authorization")!;
+    combobox.addEventListener("click", () => {
+      combobox.setAttribute("aria-expanded", "true");
+      window.setTimeout(() => {
+        const option = document.createElement("div");
+        option.setAttribute("role", "option");
+        option.textContent = "Yes";
+        option.addEventListener("click", () => {
+          combobox.value = "Yes";
+          combobox.setAttribute("aria-expanded", "false");
+        });
+        document.body.append(option);
+      }, 40);
+    });
+
+    await expect(
+      fillDocument(document, [{ fieldId: "authorization", value: "Yes" }]),
+    ).resolves.toEqual([{ fieldId: "authorization", status: "filled" }]);
+    expect(combobox).toHaveValue("Yes");
+  });
 });

@@ -126,6 +126,33 @@ async function fillFabricSelect(
   return { fieldId: fill.fieldId, status: "filled" };
 }
 
+function isAriaCombobox(element: HTMLInputElement) {
+  return (
+    element.getAttribute("role") === "combobox" &&
+    element.getAttribute("aria-autocomplete") === "list"
+  );
+}
+
+async function fillAriaCombobox(
+  document: Document,
+  element: HTMLInputElement,
+  fill: FieldFill,
+): Promise<FillResult> {
+  if (optionMatches(element.value, fill.value))
+    return { fieldId: fill.fieldId, status: "skipped_existing" };
+
+  element.click();
+  const target = await findRenderedOption(document, fill.value, "generic");
+  if (!target) return { fieldId: fill.fieldId, status: "unsupported_option" };
+  target.click();
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    if (optionMatches(element.value, fill.value))
+      return { fieldId: fill.fieldId, status: "filled" };
+    await waitForNextRender(document);
+  }
+  return { fieldId: fill.fieldId, status: "unsupported_option" };
+}
+
 async function fillOne(
   document: Document,
   fill: FieldFill,
@@ -177,6 +204,9 @@ async function fillOne(
     element instanceof HTMLTextAreaElement ||
     element instanceof HTMLSelectElement
   ) {
+    if (element instanceof HTMLInputElement && isAriaCombobox(element)) {
+      return fillAriaCombobox(document, element, fill);
+    }
     if (element instanceof HTMLSelectElement && isFabricSelect(element)) {
       return fillFabricSelect(document, element, fill);
     }
