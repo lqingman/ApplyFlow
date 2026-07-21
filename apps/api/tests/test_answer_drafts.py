@@ -173,6 +173,32 @@ def test_three_fixture_answers_are_grounded_and_fit_their_limits() -> None:
         assert result.character_count <= 700
 
 
+def test_fixture_uses_the_requested_job_context() -> None:
+    body = request_body("motivation")
+    body["job"] = {
+        "company": "Acme Labs",
+        "role": "Product Engineer",
+        "requirements": ["React", "TypeScript", "accessibility"],
+    }
+    body["evidence"] = [
+        {
+            "id": "interest-accessible-products",
+            "category": "profile",
+            "text": "Interested in building accessible, user-focused software products.",
+            "source": "Demo profile · Interests",
+        },
+        request_body()["evidence"][0],
+    ]
+
+    response = post_draft(body)
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert "Product Engineer" in payload["draft"]
+    assert "Acme Labs" in payload["draft"]
+    assert "Northstar Labs" not in payload["draft"]
+
+
 def test_duplicate_evidence_is_rejected() -> None:
     body = request_body()
     body["evidence"] = [body["evidence"][0], body["evidence"][0]]  # type: ignore[index]

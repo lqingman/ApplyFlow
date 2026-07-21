@@ -60,8 +60,11 @@ function firstText(document: Document, selectors: string[], maxLength: number) {
 
 function companyFromPageTitle(document: Document) {
   const title = cleanText(document.title, 400);
-  const match = title?.match(/^Job Application for .+? at (.+)$/i);
-  return cleanText(match?.[1], 200);
+  const greenhouseMatch = title?.match(/^Job Application for .+? at (.+)$/i);
+  if (greenhouseMatch) return cleanText(greenhouseMatch[1], 200);
+
+  const separatedTitleMatch = title?.match(/(?:—|\||\s-\s)\s*([^—|]+)$/);
+  return cleanText(separatedTitleMatch?.[1], 200);
 }
 
 export function extractJobContext(

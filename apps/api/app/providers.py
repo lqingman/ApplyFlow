@@ -136,7 +136,7 @@ class FixtureProvider:
             return ProviderDraft(
                 field_id=field_id,
                 draft=(
-                    "I am interested in the Junior Software Engineer role at Northstar Labs "
+                    f"I am interested in the {request.job.role} role at {request.job.company} "
                     "because it connects my interest in accessible, user-focused products with "
                     "my experience building an accessible application in React and TypeScript."
                 ),
@@ -150,8 +150,8 @@ class FixtureProvider:
                 draft=(
                     "I built an accessible campus navigation app using React, TypeScript, and "
                     "FastAPI. The work gave me relevant experience creating a user-focused "
-                    "interface with the same core technologies used in the Junior Software "
-                    "Engineer role at Northstar Labs."
+                    f"interface with the same core technologies used in the {request.job.role} "
+                    f"role at {request.job.company}."
                 ),
                 evidence_ids=["project-campus-map"],
                 notes=["No measurable project outcome is recorded, so none is claimed."],
@@ -168,8 +168,8 @@ class FixtureProvider:
                     "I bring a computer science foundation, hands-on experience shipping tested "
                     "product improvements during a software engineering co-op, and practical "
                     "skills in TypeScript, React, Python, FastAPI, Git, and automated testing. "
-                    "Those strengths align well with the Junior Software Engineer role at "
-                    "Northstar Labs."
+                    f"Those strengths align well with the {request.job.role} role at "
+                    f"{request.job.company}."
                 ),
                 evidence_ids=["education-ubc", "experience-coop", "skills-stack"],
                 notes=["No leadership, tenure, or numerical impact is claimed."],

@@ -48,7 +48,7 @@ Target length: 2:40–2:55. Keep the working product on screen for most of the v
 
 **Narration:**
 
-“I built ApplyFlow collaboratively with Codex using GPT-5.6. Codex helped turn the original plan into a vertical slice, implement the extension and API, and build 129 regression tests. GPT-5.6 was especially valuable for reasoning across browser permissions, accessibility, privacy, provider schemas, and real ATS failures. I made the final scope and safety decisions and manually validated the product.”
+“I built ApplyFlow collaboratively with Codex using GPT-5.6. Codex helped turn the original plan into a vertical slice, implement the extension and API, and build 134 regression tests. GPT-5.6 was especially valuable for reasoning across browser permissions, accessibility, privacy, provider schemas, and real ATS failures. I made the final scope and safety decisions and manually validated the product.”
 
 ## 2:42–2:52 — Closing
 

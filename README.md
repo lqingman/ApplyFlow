@@ -90,7 +90,7 @@ Codex accelerated:
 
 GPT-5.6 helped reason across Chrome permissions, accessibility semantics, custom controls, iframe communication, provider schemas, semantic field matching, and the interaction between page-level assistants and side-panel state.
 
-The human builder chose the product direction, prioritized the application workflows, tested real sites, reviewed tradeoffs, and made the final implementation decisions. The repository currently includes **129 passing tests** across the extension, demo, shared packages, and API.
+The human builder chose the product direction, prioritized the application workflows, tested real sites, reviewed tradeoffs, and made the final implementation decisions. The repository currently includes **134 passing tests** across the extension, demo, shared packages, and API.
 
 The detailed collaboration history is recorded in the [build log](docs/BUILD_LOG.md).
 

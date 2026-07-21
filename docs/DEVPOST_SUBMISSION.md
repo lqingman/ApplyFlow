@@ -39,7 +39,7 @@ The project is a monorepo containing a React and TypeScript Chrome extension, a 
 
 The extension scans bounded field metadata instead of sending full-page HTML. Deterministic mappings handle profile facts and explicit choices. Open-ended answers pass through evidence selection, strict structured output, evidence-ID validation, claim checks, and character-limit enforcement before they are inserted through native page events.
 
-We built ApplyFlow collaboratively with Codex using GPT-5.6. Codex accelerated implementation across the extension, API, schemas, documentation, and 129-test regression suite. GPT-5.6 was especially useful when connecting browser permissions, accessibility semantics, iframe routing, provider schemas, and patterns discovered during real ATS testing. The human builder chose the product direction, shaped the adaptive workflow, reviewed tradeoffs, manually tested real sites, and made the final product decisions.
+We built ApplyFlow collaboratively with Codex using GPT-5.6. Codex accelerated implementation across the extension, API, schemas, documentation, and 134-test regression suite. GPT-5.6 was especially useful when connecting browser permissions, accessibility semantics, iframe routing, provider schemas, and patterns discovered during real ATS testing. The human builder chose the product direction, shaped the adaptive workflow, reviewed tradeoffs, manually tested real sites, and made the final product decisions.
 
 ## Challenges we ran into
 
@@ -55,7 +55,7 @@ The hardest engineering challenge was turning different ATS interfaces into one 
 - Local resume import, storage, evidence selection, and explicit attachment.
 - Existing-answer awareness, focused page context, and applicant-owned final review.
 - Builder-tested pilots on Workable, BambooHR, and direct and embedded Greenhouse forms.
-- 129 passing tests plus formatting, linting, strict TypeScript/Python checks, and production builds.
+- 134 passing tests plus formatting, linting, strict TypeScript/Python checks, and production builds.
 
 ## What we learned
 

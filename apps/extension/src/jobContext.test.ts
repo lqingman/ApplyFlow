@@ -69,4 +69,14 @@ describe("job context extraction", () => {
     });
     expect(JSON.stringify(context)).not.toContain("private answer");
   });
+
+  it("extracts the company from the local demo title format", () => {
+    document.title = "Junior Software Engineer — Northstar Labs";
+    document.body.innerHTML = `<main><h1>Junior Software Engineer</h1></main>`;
+
+    expect(extractJobContext(document)).toEqual({
+      company: "Northstar Labs",
+      role: "Junior Software Engineer",
+    });
+  });
 });

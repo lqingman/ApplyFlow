@@ -9,7 +9,8 @@ export function App() {
     <div className="site-shell">
       <header className="site-header">
         <a className="logo" href="#top" aria-label="Northstar Labs home">
-          <span aria-hidden="true">✦</span> Northstar Labs
+          <span aria-hidden="true">✦</span>{" "}
+          <span data-ui="company-name">Northstar Labs</span>
         </a>
         <span className="demo-badge">Local demo application</span>
       </header>
