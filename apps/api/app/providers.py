@@ -20,6 +20,8 @@ GROUNDING_INSTRUCTIONS = (
     "leadership, quantities, outcomes, technologies, legal conclusions, or personality "
     "traits. For a cover letter, use the supplied job description to explain fit and use "
     "only supplied resume evidence for candidate experience, projects, skills, and outcomes. "
+    "When evidence supplies a Candidate full name, sign the cover letter with that exact name. "
+    "Never output a name placeholder such as [Your Name]; omit the name instead if it is absent. "
     "Do not draft a cover letter when the job description is missing. For an open-ended "
     "process question, you may turn supplied resume evidence "
     "into a conservative first-person workflow draft for the user to review, but do not "
@@ -94,7 +96,15 @@ class FixtureProvider:
                     notes=["A job description is required for a grounded cover letter."],
                     follow_up_question="Paste the job description to generate this cover letter.",
                 )
-            if not request.evidence:
+            identity = next(
+                (record for record in request.evidence if record.id == "profile-identity"),
+                None,
+            )
+            evidence = next(
+                (record for record in request.evidence if record.id != "profile-identity"),
+                None,
+            )
+            if evidence is None:
                 return ProviderDraft(
                     field_id=field_id,
                     draft="",
@@ -102,16 +112,22 @@ class FixtureProvider:
                     notes=["Resume evidence is required for a grounded cover letter."],
                     follow_up_question="Import a resume before generating this cover letter.",
                 )
-            evidence = request.evidence[0]
+            candidate_name = (
+                identity.text.removeprefix("Candidate full name:").strip() if identity else ""
+            )
+            signature = f"Sincerely,\n{candidate_name}" if candidate_name else "Sincerely"
             return ProviderDraft(
                 field_id=field_id,
                 draft=(
                     f"Dear Hiring Team,\n\nI am interested in the {request.job.role} "
                     f"opportunity at {request.job.company}. {evidence.text}\n\nI would "
                     "welcome the opportunity to discuss how this experience aligns with "
-                    "the role.\n\nSincerely"
+                    f"the role.\n\n{signature}"
                 ),
-                evidence_ids=[evidence.id],
+                evidence_ids=[
+                    evidence.id,
+                    *([identity.id] if identity is not None else []),
+                ],
                 notes=["This fixture cover letter uses supplied job and resume context."],
                 follow_up_question=None,
             )

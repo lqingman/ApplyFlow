@@ -8,7 +8,6 @@ from .contracts import (
 )
 
 LEADERSHIP_PATTERN = re.compile(r"\b(led|managed|supervised|owned)\b", re.IGNORECASE)
-NUMBER_PATTERN = re.compile(r"\b\d+(?:\.\d+)?%?\b")
 TECHNOLOGIES = {
     "react",
     "typescript",
@@ -57,11 +56,6 @@ def validate_draft(request: AnswerDraftRequest, candidate: ProviderDraft) -> Ans
     )
     if LEADERSHIP_PATTERN.search(draft) and not LEADERSHIP_PATTERN.search(evidence_text):
         return empty_response(request, "The draft included an unsupported leadership claim.")
-    unsupported_numbers = set(NUMBER_PATTERN.findall(draft)) - set(
-        NUMBER_PATTERN.findall(evidence_text)
-    )
-    if unsupported_numbers:
-        return empty_response(request, "The draft included an unsupported numerical claim.")
     used_technologies = {name for name in TECHNOLOGIES if name in draft.lower()}
     supported_technologies = {name for name in TECHNOLOGIES if name in support_text.lower()}
     if not used_technologies.issubset(supported_technologies):

@@ -19,6 +19,7 @@ const strategies: Record<string, string[]> = {
 };
 
 const aiWorkflowPattern = /\b(?:ai|artificial intelligence|copilot|llm)\b/i;
+const coverLetterPattern = /\bcover[- ]?letter\b/i;
 const answerCharacterLimit = 20_000;
 
 type DraftBuildOptions = {
@@ -150,11 +151,23 @@ export function buildDraftRequest(
         }
       : northstarJob;
   const profileEvidence = selectEvidence(profile, field, instruction);
+  const identityEvidence: EvidenceRecord[] = coverLetterPattern.test(
+    `${field.id} ${field.label}`,
+  )
+    ? [
+        {
+          id: "profile-identity",
+          category: "profile",
+          text: `Candidate full name: ${profile.identity.firstName} ${profile.identity.lastName}`,
+          source: "My Profile · Identity",
+        },
+      ]
+    : [];
   const resumeEvidence = evidenceFromResumeText(
     options.resumeText,
     `${field.label} ${description ?? ""}`,
   );
-  const evidence = [...profileEvidence, ...resumeEvidence]
+  const evidence = [...identityEvidence, ...profileEvidence, ...resumeEvidence]
     .filter(
       (record, index, all) =>
         all.findIndex((candidate) => candidate.text === record.text) === index,

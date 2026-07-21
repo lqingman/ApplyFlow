@@ -80,6 +80,45 @@ describe("inline writing assistant", () => {
     expect(host?.shadowRoot?.querySelector(".heading")).not.toBeInTheDocument();
   });
 
+  it("portals assistants outside flex field wrappers without taking layout space", () => {
+    document.body.innerHTML = `
+      <div style="display: flex">
+        <textarea id="project"></textarea>
+      </div>
+    `;
+
+    mountInlineAssistants(document, [field]);
+
+    const host = document.querySelector<HTMLElement>(
+      '[data-applyproof-inline-assistant="project"]',
+    );
+    expect(host?.parentElement).toBe(document.body);
+    expect(host).toHaveStyle({ left: "12px", top: "12px" });
+  });
+
+  it("positions the portal outside and below the application textarea", () => {
+    document.body.innerHTML = `<textarea id="project"></textarea>`;
+    const pageField = document.querySelector<HTMLTextAreaElement>("#project");
+    vi.spyOn(pageField!, "getBoundingClientRect").mockReturnValue({
+      x: 100,
+      y: 100,
+      top: 100,
+      right: 600,
+      bottom: 220,
+      left: 100,
+      width: 500,
+      height: 120,
+      toJSON: () => ({}),
+    });
+
+    mountInlineAssistants(document, [field]);
+
+    const host = document.querySelector<HTMLElement>(
+      '[data-applyproof-inline-assistant="project"]',
+    );
+    expect(host).toHaveStyle({ left: "252px", top: "228px" });
+  });
+
   it("automatically generates blank open questions after the first scan", async () => {
     document.body.innerHTML = `<textarea id="project"></textarea>`;
     const sendMessage = vi
@@ -229,5 +268,44 @@ describe("inline writing assistant", () => {
     expect(host?.shadowRoot?.querySelector(".status")).not.toHaveTextContent(
       "too_big",
     );
+  });
+
+  it("restores assistants after a SPA tab recreates the application form", async () => {
+    document.body.innerHTML = `
+      <main id="tab-content">
+        <textarea id="project">My retained answer</textarea>
+      </main>
+    `;
+    const sendMessage = vi.fn();
+    vi.stubGlobal("chrome", { runtime: { sendMessage } });
+
+    mountInlineAssistants(document, [field], { generateBlankFields: true });
+    expect(
+      document.querySelectorAll('[data-applyproof-inline-assistant="project"]'),
+    ).toHaveLength(1);
+
+    const tabContent = document.querySelector<HTMLElement>("#tab-content");
+    if (!tabContent) throw new Error("Tab content missing");
+    tabContent.innerHTML = `<section>Job overview</section>`;
+    await vi.waitFor(() =>
+      expect(
+        document.querySelector('[data-applyproof-inline-assistant="project"]'),
+      ).not.toBeInTheDocument(),
+    );
+
+    tabContent.innerHTML = `
+      <textarea id="project">My retained answer</textarea>
+    `;
+    await vi.waitFor(() =>
+      expect(
+        document.querySelectorAll(
+          '[data-applyproof-inline-assistant="project"]',
+        ),
+      ).toHaveLength(1),
+    );
+    expect(document.querySelector("#project")).toHaveValue(
+      "My retained answer",
+    );
+    expect(sendMessage).not.toHaveBeenCalled();
   });
 });

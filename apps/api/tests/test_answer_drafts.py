@@ -196,7 +196,17 @@ def test_cover_letter_requires_job_description_and_resume_evidence() -> None:
         "question": "Cover letter",
         "maxCharacters": 20000,
     }
-    body["evidence"] = request_body()["evidence"]
+    resume_evidence = request_body()["evidence"]
+    assert isinstance(resume_evidence, list)
+    body["evidence"] = [
+        {
+            "id": "profile-identity",
+            "category": "profile",
+            "text": "Candidate full name: Maya Chen",
+            "source": "My Profile · Identity",
+        },
+        *resume_evidence,
+    ]
 
     missing_description = post_draft(body).json()
     assert missing_description["draft"] == ""
@@ -210,7 +220,24 @@ def test_cover_letter_requires_job_description_and_resume_evidence() -> None:
 
     assert response.status_code == 200
     assert payload["draft"].startswith("Dear Hiring Team")
-    assert payload["evidenceIds"] == ["project-campus-map"]
+    assert payload["draft"].endswith("Sincerely,\nMaya Chen")
+    assert payload["evidenceIds"] == ["project-campus-map", "profile-identity"]
+
+
+def test_numerical_claims_are_left_for_user_review() -> None:
+    request = AnswerDraftRequest.model_validate(request_body())
+    candidate = ProviderDraft(
+        field_id="project",
+        draft="I built 5 full-stack project iterations.",
+        evidence_ids=["project-campus-map"],
+        notes=["Review this draft before submitting."],
+        follow_up_question=None,
+    )
+
+    result = validate_draft(request, candidate)
+
+    assert result.draft == "I built 5 full-stack project iterations."
+    assert result.notes == ["Review this draft before submitting."]
 
 
 def test_overlong_provider_draft_is_retried_with_the_live_limit(

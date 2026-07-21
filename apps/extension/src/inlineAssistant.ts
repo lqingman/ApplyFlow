@@ -15,6 +15,8 @@ type MountOptions = {
 
 const hostAttribute = "data-applyproof-inline-assistant";
 let cleanups: Cleanup[] = [];
+let pageObserver: MutationObserver | undefined;
+let remountTimer: number | undefined;
 const coverLetterPattern = /\bcover[- ]?letter\b/i;
 
 function isCoverLetterField(field: Pick<NormalizedField, "id" | "label">) {
@@ -22,13 +24,19 @@ function isCoverLetterField(field: Pick<NormalizedField, "id" | "label">) {
 }
 
 const assistantStyles = `
-  :host { display: block; height: 0; position: relative; z-index: 2147483646; }
+  :host {
+    display: block;
+    position: fixed;
+    left: 12px;
+    top: 12px;
+    width: min(340px, calc(100vw - 24px));
+    z-index: 2147483646;
+    pointer-events: none;
+  }
   * { box-sizing: border-box; }
   .assistant {
-    position: absolute;
-    right: 0;
-    top: 6px;
-    width: min(340px, calc(100vw - 24px));
+    position: relative;
+    width: 100%;
     color: #20362b;
     font: 13px/1.2 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     opacity: 0;
@@ -234,7 +242,38 @@ function mountOne(
     <p class="status" role="status"></p>
   `;
   shadow.append(style, panel);
-  element.insertAdjacentElement("afterend", host);
+  document.body.append(host);
+
+  const updatePosition = () => {
+    if (!element.isConnected) {
+      host.hidden = true;
+      return;
+    }
+    host.hidden = false;
+    const view = document.defaultView;
+    const viewportWidth = view?.innerWidth ?? 364;
+    const viewportHeight = view?.innerHeight ?? 640;
+    const assistantWidth = Math.min(340, Math.max(1, viewportWidth - 24));
+    const rect = element.getBoundingClientRect();
+    const assistantHeight = host.getBoundingClientRect().height || 58;
+    const left = Math.min(
+      Math.max(12, rect.right - assistantWidth - 8),
+      Math.max(12, viewportWidth - assistantWidth - 12),
+    );
+    const below = rect.bottom + 8;
+    const above = rect.top - assistantHeight - 8;
+    const top =
+      rect.width === 0 && rect.height === 0
+        ? 12
+        : below + assistantHeight <= viewportHeight - 12
+          ? below
+          : Math.max(12, above);
+    host.style.left = `${left}px`;
+    host.style.top = `${top}px`;
+  };
+  updatePosition();
+  document.defaultView?.addEventListener("scroll", updatePosition, true);
+  document.defaultView?.addEventListener("resize", updatePosition);
 
   const prompt = panel.querySelector("textarea");
   const button = panel.querySelector("button");
@@ -347,13 +386,63 @@ function mountOne(
     element.removeEventListener("focus", open);
     element.removeEventListener("mouseleave", closeLater);
     element.removeEventListener("blur", closeLater);
+    document.defaultView?.removeEventListener("scroll", updatePosition, true);
+    document.defaultView?.removeEventListener("resize", updatePosition);
     host.remove();
   });
 }
 
 export function disposeInlineAssistants() {
+  pageObserver?.disconnect();
+  pageObserver = undefined;
+  if (remountTimer !== undefined) window.clearTimeout(remountTimer);
+  remountTimer = undefined;
   cleanups.forEach((cleanup) => cleanup());
   cleanups = [];
+}
+
+function observePageReplacements(
+  document: Document,
+  fields: NormalizedField[],
+  options: MountOptions,
+) {
+  const Observer = document.defaultView?.MutationObserver;
+  if (!Observer || !document.documentElement) return;
+  pageObserver = new Observer(() => {
+    const mountedHosts = Array.from(
+      document.querySelectorAll(`[${hostAttribute}]`),
+    );
+    const mountedFieldIds = new Set(
+      mountedHosts.map((host) => host.getAttribute(hostAttribute)),
+    );
+    const availableFieldIds = new Set<string>();
+    fields.forEach((field) => {
+      const element = findField(document, field.id);
+      if (element !== null && isOpenQuestion(field, element))
+        availableFieldIds.add(field.id);
+    });
+    const missingAssistant = [...availableFieldIds].some(
+      (fieldId) => !mountedFieldIds.has(fieldId),
+    );
+    const staleAssistant = mountedHosts.some(
+      (host) => !availableFieldIds.has(host.getAttribute(hostAttribute) ?? ""),
+    );
+    if ((!missingAssistant && !staleAssistant) || remountTimer !== undefined)
+      return;
+    remountTimer = window.setTimeout(() => {
+      remountTimer = undefined;
+      mountInlineAssistants(document, fields, {
+        ...options,
+        // A SPA tab switch must restore the controls without generating a
+        // second answer or replacing form state retained by the site.
+        generateBlankFields: false,
+      });
+    }, 50);
+  });
+  pageObserver.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
 }
 
 export function mountInlineAssistants(
@@ -363,5 +452,7 @@ export function mountInlineAssistants(
 ) {
   disposeInlineAssistants();
   fields.forEach((field) => mountOne(document, field, options));
-  return document.querySelectorAll(`[${hostAttribute}]`).length;
+  const mountedCount = document.querySelectorAll(`[${hostAttribute}]`).length;
+  observePageReplacements(document, fields, options);
+  return mountedCount;
 }

@@ -80,6 +80,12 @@ describe("answer evidence selection", () => {
     });
 
     expect(request.field.maxCharacters).toBe(20_000);
+    expect(request.evidence).toContainEqual({
+      id: "profile-identity",
+      category: "profile",
+      text: "Candidate full name: Maya Chen",
+      source: "My Profile · Identity",
+    });
   });
 
   it("uses page job context and relevant locally extracted resume projects", () => {
