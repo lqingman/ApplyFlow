@@ -132,21 +132,66 @@ describe("safe page filling", () => {
     expect(document.querySelector("#province")).toHaveValue("59");
   });
 
+  it("matches canonical veteran answers to Greenhouse disclosure wording", async () => {
+    document.body.innerHTML = `
+      <select id="not-veteran">
+        <option value="">Select</option>
+        <option value="not-protected">I am not a protected veteran</option>
+      </select>
+      <select id="protected-veteran">
+        <option value="">Select</option>
+        <option value="protected">I identify as one or more of the classifications of a protected veteran</option>
+      </select>
+      <select id="decline-veteran">
+        <option value="">Select</option>
+        <option value="decline">I don't wish to answer</option>
+      </select>
+    `;
+
+    await expect(
+      fillDocument(document, [
+        { fieldId: "not-veteran", value: "Not a veteran" },
+        { fieldId: "protected-veteran", value: "Veteran" },
+        { fieldId: "decline-veteran", value: "Prefer not to say" },
+      ]),
+    ).resolves.toEqual([
+      { fieldId: "not-veteran", status: "filled" },
+      { fieldId: "protected-veteran", status: "filled" },
+      { fieldId: "decline-veteran", status: "filled" },
+    ]);
+    expect(document.querySelector("#not-veteran")).toHaveValue("not-protected");
+    expect(document.querySelector("#protected-veteran")).toHaveValue(
+      "protected",
+    );
+    expect(document.querySelector("#decline-veteran")).toHaveValue("decline");
+  });
+
   it("selects an option from a delayed React ARIA combobox", async () => {
     document.body.innerHTML = `
       <label id="authorization-label" for="authorization">Are you legally entitled to work in Canada?</label>
-      <input id="authorization" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-labelledby="authorization-label" value="">
+      <div class="select__control">
+        <div class="select__value-container">
+          <input id="authorization" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-labelledby="authorization-label" value="">
+        </div>
+        <button type="button" aria-label="Toggle flyout">Open</button>
+      </div>
     `;
     const combobox =
       document.querySelector<HTMLInputElement>("#authorization")!;
-    combobox.addEventListener("click", () => {
+    const toggle = document.querySelector<HTMLButtonElement>(
+      'button[aria-label="Toggle flyout"]',
+    )!;
+    toggle.addEventListener("mousedown", () => {
       combobox.setAttribute("aria-expanded", "true");
       window.setTimeout(() => {
         const option = document.createElement("div");
         option.setAttribute("role", "option");
         option.textContent = "Yes";
-        option.addEventListener("click", () => {
-          combobox.value = "Yes";
+        option.addEventListener("mousedown", () => {
+          const selected = document.createElement("div");
+          selected.className = "select__single-value";
+          selected.textContent = "Yes";
+          document.querySelector(".select__value-container")!.prepend(selected);
           combobox.setAttribute("aria-expanded", "false");
         });
         document.body.append(option);
@@ -156,6 +201,9 @@ describe("safe page filling", () => {
     await expect(
       fillDocument(document, [{ fieldId: "authorization", value: "Yes" }]),
     ).resolves.toEqual([{ fieldId: "authorization", status: "filled" }]);
-    expect(combobox).toHaveValue("Yes");
+    expect(combobox).toHaveValue("");
+    expect(document.querySelector(".select__single-value")).toHaveTextContent(
+      "Yes",
+    );
   });
 });

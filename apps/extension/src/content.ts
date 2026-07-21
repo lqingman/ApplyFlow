@@ -8,6 +8,9 @@ import type { NormalizedField } from "@applyproof/shared-types";
 declare global {
   interface Window {
     __applyProofScannerReady?: boolean;
+    __applyProofMessageListener?: Parameters<
+      typeof chrome.runtime.onMessage.addListener
+    >[0];
   }
 }
 
@@ -60,51 +63,58 @@ function resumeFileFrom(message: unknown) {
   });
 }
 
-if (!window.__applyProofScannerReady) {
-  window.__applyProofScannerReady = true;
-  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message?.type === "APPLYPROOF_PING") {
-      sendResponse({ ok: true });
-      return;
-    }
-    if (message?.type === "APPLYPROOF_SCAN") {
-      sendResponse({
-        ok: true,
-        fields: scanDocument(document),
-        blockedCount: countBlockedFields(document),
-        job: extractJobContext(document),
-      });
-      return;
-    }
-    if (message?.type === "APPLYPROOF_FOCUS_FIELD") {
-      sendResponse({ ok: highlightField(String(message.fieldId)) });
-      return;
-    }
-    if (message?.type === "APPLYPROOF_FILL_FIELDS") {
-      void fillDocument(
-        document,
-        Array.isArray(message.fills) ? message.fills : [],
-      ).then((results) => sendResponse({ ok: true, results }));
-      return true;
-    }
-    if (message?.type === "APPLYPROOF_ATTACH_RESUME") {
-      const file = resumeFileFrom(message.file);
-      sendResponse(
-        file ? attachResumeFile(document, file) : { status: "unsupported" },
-      );
-      return;
-    }
-    if (message?.type === "APPLYPROOF_ENABLE_INLINE_ASSISTANTS") {
-      const fields = Array.isArray(message.fields)
-        ? (message.fields as NormalizedField[])
-        : [];
-      sendResponse({
-        ok: true,
-        mountedCount: mountInlineAssistants(document, fields, {
-          generateBlankFields: message.generateBlankFields === true,
-          job: message.job,
-        }),
-      });
-    }
-  });
+if (window.__applyProofMessageListener) {
+  chrome.runtime.onMessage.removeListener(window.__applyProofMessageListener);
 }
+
+const applyProofMessageListener: Parameters<
+  typeof chrome.runtime.onMessage.addListener
+>[0] = (message, _sender, sendResponse) => {
+  if (message?.type === "APPLYPROOF_PING") {
+    sendResponse({ ok: true });
+    return;
+  }
+  if (message?.type === "APPLYPROOF_SCAN") {
+    sendResponse({
+      ok: true,
+      fields: scanDocument(document),
+      blockedCount: countBlockedFields(document),
+      job: extractJobContext(document),
+    });
+    return;
+  }
+  if (message?.type === "APPLYPROOF_FOCUS_FIELD") {
+    sendResponse({ ok: highlightField(String(message.fieldId)) });
+    return;
+  }
+  if (message?.type === "APPLYPROOF_FILL_FIELDS") {
+    void fillDocument(
+      document,
+      Array.isArray(message.fills) ? message.fills : [],
+    ).then((results) => sendResponse({ ok: true, results }));
+    return true;
+  }
+  if (message?.type === "APPLYPROOF_ATTACH_RESUME") {
+    const file = resumeFileFrom(message.file);
+    sendResponse(
+      file ? attachResumeFile(document, file) : { status: "unsupported" },
+    );
+    return;
+  }
+  if (message?.type === "APPLYPROOF_ENABLE_INLINE_ASSISTANTS") {
+    const fields = Array.isArray(message.fields)
+      ? (message.fields as NormalizedField[])
+      : [];
+    sendResponse({
+      ok: true,
+      mountedCount: mountInlineAssistants(document, fields, {
+        generateBlankFields: message.generateBlankFields === true,
+        job: message.job,
+      }),
+    });
+  }
+};
+
+window.__applyProofScannerReady = true;
+window.__applyProofMessageListener = applyProofMessageListener;
+chrome.runtime.onMessage.addListener(applyProofMessageListener);

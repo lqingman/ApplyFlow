@@ -23,6 +23,13 @@ function optionMatches(
   if (value === "no") return /^no\b/.test(candidate);
   if (value === "prefer not to say")
     return /prefer not|decline|do not wish|don't wish/.test(candidate);
+  if (value === "not a veteran")
+    return /\bnot\b.*\b(?:protected\s+)?veteran\b/.test(candidate);
+  if (value === "veteran")
+    return (
+      /\bveteran\b/.test(candidate) &&
+      !/\bnot\b|prefer not|decline|do not wish|don't wish/.test(candidate)
+    );
   if (value === "woman") return /^(?:woman|female)$/.test(candidate);
   if (value === "man") return /^(?:man|male)$/.test(candidate);
   return false;
@@ -58,6 +65,17 @@ async function findRenderedOption(
     await waitForNextRender(document);
   }
   return undefined;
+}
+
+function activateWithMouse(document: Document, element: HTMLElement) {
+  const MouseEventConstructor = document.defaultView?.MouseEvent ?? MouseEvent;
+  element.dispatchEvent(
+    new MouseEventConstructor("mousedown", { bubbles: true, cancelable: true }),
+  );
+  element.dispatchEvent(
+    new MouseEventConstructor("mouseup", { bubbles: true, cancelable: true }),
+  );
+  element.click();
 }
 
 function setNativeValue(
@@ -133,20 +151,35 @@ function isAriaCombobox(element: HTMLInputElement) {
   );
 }
 
+function ariaComboboxSelection(element: HTMLInputElement) {
+  return (
+    element
+      .closest<HTMLElement>(".select__control")
+      ?.querySelector<HTMLElement>(".select__single-value")?.textContent ??
+    element.value
+  );
+}
+
 async function fillAriaCombobox(
   document: Document,
   element: HTMLInputElement,
   fill: FieldFill,
 ): Promise<FillResult> {
-  if (optionMatches(element.value, fill.value))
+  if (optionMatches(ariaComboboxSelection(element), fill.value))
     return { fieldId: fill.fieldId, status: "skipped_existing" };
 
-  element.click();
+  const control = element.closest<HTMLElement>(".select__control");
+  const toggle = control?.querySelector<HTMLButtonElement>(
+    'button[aria-label="Toggle flyout"]',
+  );
+  if (element.getAttribute("aria-expanded") !== "true") {
+    activateWithMouse(document, toggle ?? control ?? element);
+  }
   const target = await findRenderedOption(document, fill.value, "generic");
   if (!target) return { fieldId: fill.fieldId, status: "unsupported_option" };
-  target.click();
+  activateWithMouse(document, target);
   for (let attempt = 0; attempt < 12; attempt += 1) {
-    if (optionMatches(element.value, fill.value))
+    if (optionMatches(ariaComboboxSelection(element), fill.value))
       return { fieldId: fill.fieldId, status: "filled" };
     await waitForNextRender(document);
   }
