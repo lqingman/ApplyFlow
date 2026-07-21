@@ -1,4 +1,5 @@
 import logging
+import math
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,9 +13,10 @@ from .contracts import (
     empty_response,
 )
 from .providers import configured_provider, resume_based_ai_fallback
-from .validation import validate_draft
+from .validation import browser_character_count, validate_draft
 
 logger = logging.getLogger(__name__)
+OVER_LIMIT_RETRY_RATIOS = (0.9, 0.8)
 
 
 class HealthResponse(BaseModel):
@@ -55,14 +57,24 @@ def answer_draft(request: AnswerDraftRequest) -> AnswerDraftResponse:
         provider = configured_provider()
         candidate = provider.generate(request)
         limit = request.field.max_characters
-        if limit is not None and len(candidate.draft.strip()) > limit:
+        for ratio in OVER_LIMIT_RETRY_RATIOS:
+            if limit is None or browser_character_count(candidate.draft.strip()) <= limit:
+                break
+            retry_limit = max(1, math.floor(limit * ratio))
             instruction = (
-                f"The previous draft exceeded the field limit. Return no more than {limit} "
-                "characters, including spaces. Keep the strongest resume-grounded details."
+                f"The previous draft exceeded the field limit. Rewrite it to no more than "
+                f"{retry_limit} characters, including spaces, so it stays safely below the "
+                f"field's hard maximum of {limit}. Keep only the strongest resume-grounded "
+                "details."
             )
             if request.additional_prompt:
                 instruction = f"{request.additional_prompt}\n\n{instruction}"
-            retry_request = request.model_copy(update={"additional_prompt": instruction})
+            retry_field = request.field.model_copy(
+                update={"max_characters": retry_limit}
+            )
+            retry_request = request.model_copy(
+                update={"field": retry_field, "additional_prompt": instruction}
+            )
             candidate = provider.generate(retry_request)
         if not candidate.draft.strip():
             candidate = resume_based_ai_fallback(request) or candidate

@@ -129,9 +129,9 @@ The live value is sent as `field.maxCharacters`. Supported API limits are 1–20
 
 ### 3. Backend validation and retry
 
-The backend recalculates the returned draft length. If the provider exceeds the known limit, ApplyFlow retries once with an explicit instruction containing the exact maximum and asks it to retain only the strongest grounded details.
+The backend recalculates the returned draft length using the browser's UTF-16 counting behavior. If the provider exceeds the known limit, ApplyFlow retries with progressively safer generation targets at 90% and then 80% of the live limit, asking it to retain only the strongest grounded details.
 
-If the second result is still too long, validation returns an empty draft and an explanatory note. The content script does not insert an over-limit result.
+If the final result is still too long, validation returns an empty draft and an explanatory note. The content script also rechecks the refreshed live limit immediately before insertion and never writes an over-limit result.
 
 ## Additional prompt behavior
 
@@ -276,8 +276,9 @@ Resume-based process answers may conservatively describe review, testing, and ve
 | Missing provider key                      | Log the server configuration error and show drafting unavailable                          |
 | Provider timeout, quota, or network error | Preserve page text and show drafting unavailable                                          |
 | Invalid structured output                 | Reject it and preserve page text                                                          |
-| First result exceeds a known limit        | Retry once with the exact live limit                                                      |
-| Second result exceeds the limit           | Return no draft and show the limit note                                                   |
+| First result exceeds a known limit        | Retry with a target at 90% of the live limit                                              |
+| First retry still exceeds the limit       | Retry with a target at 80% of the live limit                                              |
+| Final result still exceeds the limit      | Return no draft and show the limit note                                                   |
 | Evidence is insufficient                  | Return a conservative resume-based draft when possible; otherwise show a focused question |
 | Existing deterministic value              | Preserve it during Scan & Autofill                                                        |
 | Existing open-ended value                 | Do not auto-generate; allow explicit Regenerate                                           |
@@ -305,7 +306,7 @@ Automated tests cover:
 - safe handling of site limits above 20,000 without exposing schema errors;
 - native, custom-attribute, ARIA, and helper-text character limits;
 - live-limit refresh immediately before generation;
-- one backend retry for an over-limit provider result;
+- progressively tighter backend retries for an over-limit provider result;
 - strict provider schemas and evidence-ID validation;
 - fixture, OpenRouter, and Gemini request shapes;
 - production extension builds.
@@ -318,7 +319,7 @@ Automated tests cover:
 - Hover or focus reveals an inline Regenerate control and optional instruction.
 - Generated drafts are editable in the real application field.
 - AI-workflow questions receive a resume-based draft rather than requiring a profile follow-up flow.
-- Known character limits are sent to the provider and enforced with one retry.
+- Known character limits are sent to the provider and enforced with progressively tighter retries.
 - Work authorization, gender, and accuracy confirmation fill from the current profile/workflow rules.
 - The side panel does not duplicate field summaries or review queues.
 - Continue, Next, and Submit remain user actions.

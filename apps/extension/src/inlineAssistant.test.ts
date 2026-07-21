@@ -209,6 +209,40 @@ describe("inline writing assistant", () => {
     );
   });
 
+  it("never inserts a response above the refreshed live character limit", async () => {
+    document.body.innerHTML = `<textarea id="project" maxlength="10">My answer</textarea>`;
+    vi.stubGlobal("chrome", {
+      runtime: {
+        sendMessage: vi.fn().mockResolvedValue({
+          ok: true,
+          response: {
+            fieldId: "project",
+            draft: "This response is too long",
+            evidenceIds: ["project-campus-map"],
+            notes: [],
+            followUpQuestion: null,
+            characterCount: 25,
+            fitsLimit: true,
+          },
+          sources: ["Demo resume · Projects"],
+        }),
+      },
+    });
+
+    mountInlineAssistants(document, [field]);
+    const host = document.querySelector<HTMLElement>(
+      '[data-applyflow-inline-assistant="project"]',
+    );
+    host?.shadowRoot?.querySelector("button")?.click();
+
+    await vi.waitFor(() =>
+      expect(host?.shadowRoot?.querySelector(".status")).toHaveTextContent(
+        "still over this field's live character limit",
+      ),
+    );
+    expect(document.querySelector("#project")).toHaveValue("My answer");
+  });
+
   it("requires a pasted job description before generating a cover letter", async () => {
     document.body.innerHTML = `
       <label for="cover_letter">Cover letter</label>

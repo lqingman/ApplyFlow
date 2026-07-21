@@ -23,6 +23,11 @@ TECHNOLOGIES = {
 COMPANY_PATTERN = re.compile(r"\b(?:at|with|for)\s+([A-Z][\w&.-]*(?:\s+[A-Z][\w&.-]*)*\s+Labs)\b")
 
 
+def browser_character_count(value: str) -> int:
+    """Match the UTF-16 code-unit count used by HTML maxlength and JavaScript."""
+    return len(value.encode("utf-16-le")) // 2
+
+
 def validate_draft(request: AnswerDraftRequest, candidate: ProviderDraft) -> AnswerDraftResponse:
     if candidate.field_id != request.field.id:
         return empty_response(request, "The generated draft did not match this application field.")
@@ -61,7 +66,7 @@ def validate_draft(request: AnswerDraftRequest, candidate: ProviderDraft) -> Ans
     if not used_technologies.issubset(supported_technologies):
         return empty_response(request, "The draft included a technology absent from the evidence.")
 
-    count = len(draft)
+    count = browser_character_count(draft)
     fits_characters = request.field.max_characters is None or count <= request.field.max_characters
     if not fits_characters:
         return empty_response(request, "The generated draft exceeded this field's character limit.")

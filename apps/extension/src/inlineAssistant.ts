@@ -361,6 +361,12 @@ function mountOne(
           "There is not enough verified profile evidence for this answer.";
         return;
       }
+      if (liveLimit && response.draft.length > liveLimit) {
+        status.classList.add("error");
+        status.textContent =
+          "The generated answer was still over this field's live character limit, so it was not inserted. Try regenerating it.";
+        return;
+      }
       writeValue(element, response.draft);
       refreshLabel();
       status.textContent = sources.length

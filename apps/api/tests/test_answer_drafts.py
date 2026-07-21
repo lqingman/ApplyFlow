@@ -240,7 +240,7 @@ def test_numerical_claims_are_left_for_user_review() -> None:
     assert result.notes == ["Review this draft before submitting."]
 
 
-def test_overlong_provider_draft_is_retried_with_the_live_limit(
+def test_overlong_provider_draft_is_retried_with_a_reduced_limit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class OverlongThenFittingProvider:
@@ -270,7 +270,57 @@ def test_overlong_provider_draft_is_retried_with_the_live_limit(
     assert len(provider.requests) == 2
     retry_prompt = provider.requests[1].additional_prompt
     assert retry_prompt is not None
-    assert "no more than 50 characters" in retry_prompt
+    assert provider.requests[1].field.max_characters == 45
+    assert "no more than 45 characters" in retry_prompt
+    assert "hard maximum of 50" in retry_prompt
+
+
+def test_provider_draft_gets_a_second_tighter_retry_when_needed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class PersistentlyOverlongProvider:
+        def __init__(self) -> None:
+            self.requests: list[AnswerDraftRequest] = []
+
+        def generate(self, request: AnswerDraftRequest) -> ProviderDraft:
+            self.requests.append(request)
+            drafts = ["x" * 51, "x" * 52, "A fitting final draft."]
+            return ProviderDraft(
+                field_id=request.field.id,
+                draft=drafts[len(self.requests) - 1],
+                evidence_ids=["project-campus-map"],
+                notes=[],
+                follow_up_question=None,
+            )
+
+    provider = PersistentlyOverlongProvider()
+    monkeypatch.setattr(main_module, "configured_provider", lambda: provider)
+    body = request_body()
+    body["field"]["maxCharacters"] = 50  # type: ignore[index]
+
+    response = post_draft(body)
+
+    assert response.status_code == 200
+    assert response.json()["draft"] == "A fitting final draft."
+    assert [item.field.max_characters for item in provider.requests] == [50, 45, 40]
+
+
+def test_character_limit_uses_the_browser_utf16_count() -> None:
+    body = request_body()
+    body["field"]["maxCharacters"] = 3  # type: ignore[index]
+    request = AnswerDraftRequest.model_validate(body)
+    candidate = ProviderDraft(
+        field_id="project",
+        draft="a🤖b",
+        evidence_ids=["project-campus-map"],
+        notes=[],
+        follow_up_question=None,
+    )
+
+    result = validate_draft(request, candidate)
+
+    assert result.draft == ""
+    assert result.notes == ["The generated draft exceeded this field's character limit."]
 
 
 def test_validation_rejects_unavailable_evidence_and_claims() -> None:

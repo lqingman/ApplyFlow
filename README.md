@@ -278,7 +278,7 @@ Start the API in keyless fixture mode for deterministic demo answers. The AI-wor
 resume project, skill, testing, and accessibility evidence to produce a conservative starting draft
 for user review; it does not require a separate confirmation flow. Character constraints are read
 from native attributes, custom attributes, ARIA/helper text, and the live field before each request.
-If a provider still exceeds a known limit, the API retries once with the exact maximum.
+If a provider exceeds a known limit, the API automatically retries with progressively smaller generation targets (90%, then 80% of the live limit). The page rechecks the current limit before insertion and never writes an over-limit draft.
 
 For live OpenRouter generation, set `ANSWER_GENERATION_MODE=openrouter` and provide
 `OPENROUTER_API_KEY` only in the API server environment. The default model is
