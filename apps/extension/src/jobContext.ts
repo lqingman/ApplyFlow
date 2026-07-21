@@ -58,6 +58,12 @@ function firstText(document: Document, selectors: string[], maxLength: number) {
   return undefined;
 }
 
+function companyFromPageTitle(document: Document) {
+  const title = cleanText(document.title, 400);
+  const match = title?.match(/^Job Application for .+? at (.+)$/i);
+  return cleanText(match?.[1], 200);
+}
+
 export function extractJobContext(
   document: Document,
 ): PageJobContext | undefined {
@@ -83,7 +89,8 @@ export function extractJobContext(
     cleanText(
       document.querySelector("header img[alt]")?.getAttribute("alt"),
       200,
-    );
+    ) ??
+    companyFromPageTitle(document);
   const role =
     (typeof posting?.title === "string"
       ? cleanText(posting.title, 200)
@@ -108,6 +115,7 @@ export function extractJobContext(
         '[data-testid="job-description"]',
         '[id*="job-description"]',
         '[class*="job-description"]',
+        ".job__description",
       ],
       12000,
     );

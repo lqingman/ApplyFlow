@@ -1,11 +1,24 @@
 import type { FieldFill, FillResult } from "@applyproof/shared-types";
 
+import {
+  addressChoiceMatches,
+  type AddressChoiceKind,
+} from "./addressNormalization";
 import { findField } from "./scanner";
 
-function optionMatches(option: string, requested: string) {
+function optionMatches(
+  option: string,
+  requested: string,
+  addressKind: AddressChoiceKind = "generic",
+) {
   const candidate = option.trim().toLowerCase();
   const value = requested.trim().toLowerCase();
   if (candidate === value) return true;
+  if (
+    addressKind !== "generic" &&
+    addressChoiceMatches(option, requested, addressKind)
+  )
+    return true;
   if (value === "yes") return /^yes\b/.test(candidate);
   if (value === "no") return /^no\b/.test(candidate);
   if (value === "prefer not to say")
@@ -13,6 +26,38 @@ function optionMatches(option: string, requested: string) {
   if (value === "woman") return /^(?:woman|female)$/.test(candidate);
   if (value === "man") return /^(?:man|male)$/.test(candidate);
   return false;
+}
+
+function addressChoiceKind(element: Element): AddressChoiceKind {
+  const fingerprint = `${element.id} ${element.getAttribute("name") ?? ""}`;
+  if (/country/i.test(fingerprint)) return "country";
+  if (/state|province|region/i.test(fingerprint)) return "region";
+  return "generic";
+}
+
+function waitForNextRender(document: Document, milliseconds = 25) {
+  return new Promise<void>((resolve) =>
+    (document.defaultView ?? window).setTimeout(resolve, milliseconds),
+  );
+}
+
+async function findRenderedOption(
+  document: Document,
+  requested: string,
+  addressKind: AddressChoiceKind,
+) {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const target = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '[role="menuitem"], [role="option"]',
+      ),
+    ).find((option) =>
+      optionMatches(option.textContent ?? "", requested, addressKind),
+    );
+    if (target) return target;
+    await waitForNextRender(document);
+  }
+  return undefined;
 }
 
 function setNativeValue(
@@ -50,26 +95,34 @@ async function fillFabricSelect(
     'button[aria-haspopup="true"]',
   );
   if (!toggle) return { fieldId: fill.fieldId, status: "unsupported_option" };
+  const choiceKind = addressChoiceKind(element);
   const selectedLabel =
     toggle.querySelector<HTMLElement>(".fab-SelectToggle__content")
       ?.textContent ?? "";
-  if (optionMatches(selectedLabel, fill.value)) {
+  if (optionMatches(selectedLabel, fill.value, choiceKind)) {
     return { fieldId: fill.fieldId, status: "skipped_existing" };
   }
 
-  toggle.click();
-  await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
-  const target = Array.from(
-    document.querySelectorAll<HTMLElement>(
-      '[role="menuitem"], [role="option"]',
-    ),
-  ).find((option) => optionMatches(option.textContent ?? "", fill.value));
+  if (toggle.getAttribute("aria-expanded") !== "true") toggle.click();
+  const target = await findRenderedOption(document, fill.value, choiceKind);
   if (!target) {
     if (toggle.getAttribute("aria-expanded") === "true") toggle.click();
     return { fieldId: fill.fieldId, status: "unsupported_option" };
   }
   target.click();
-  await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+  let selected = false;
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const currentLabel =
+      toggle.querySelector<HTMLElement>(".fab-SelectToggle__content")
+        ?.textContent ?? "";
+    if (optionMatches(currentLabel, fill.value, choiceKind)) {
+      selected = true;
+      break;
+    }
+    await waitForNextRender(document);
+  }
+  if (!selected) return { fieldId: fill.fieldId, status: "unsupported_option" };
+  if (choiceKind === "country") await waitForNextRender(document, 50);
   return { fieldId: fill.fieldId, status: "filled" };
 }
 
@@ -98,18 +151,24 @@ async function fillOne(
         ),
     );
     if (!target) return { fieldId: fill.fieldId, status: "unsupported_option" };
-    target.checked = true;
-    target.dispatchEvent(new Event("input", { bubbles: true }));
-    target.dispatchEvent(new Event("change", { bubbles: true }));
+    target.click();
+    if (!target.checked) {
+      target.checked = true;
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      target.dispatchEvent(new Event("change", { bubbles: true }));
+    }
     return { fieldId: fill.fieldId, status: "filled" };
   }
 
   if (element instanceof HTMLInputElement && element.type === "checkbox") {
     if (element.checked)
       return { fieldId: fill.fieldId, status: "skipped_existing" };
-    element.checked = true;
-    element.dispatchEvent(new Event("input", { bubbles: true }));
-    element.dispatchEvent(new Event("change", { bubbles: true }));
+    element.click();
+    if (!element.checked) {
+      element.checked = true;
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    }
     return { fieldId: fill.fieldId, status: "filled" };
   }
 
@@ -124,10 +183,11 @@ async function fillOne(
     if (element.value.trim())
       return { fieldId: fill.fieldId, status: "skipped_existing" };
     if (element instanceof HTMLSelectElement) {
+      const choiceKind = addressChoiceKind(element);
       const option = Array.from(element.options).find(
         (item) =>
-          optionMatches(item.value, fill.value) ||
-          optionMatches(item.text, fill.value),
+          optionMatches(item.value, fill.value, choiceKind) ||
+          optionMatches(item.text, fill.value, choiceKind),
       );
       if (!option)
         return { fieldId: fill.fieldId, status: "unsupported_option" };

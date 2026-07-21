@@ -4,6 +4,7 @@ import { extractJobContext } from "./jobContext";
 
 describe("job context extraction", () => {
   beforeEach(() => {
+    document.title = "";
     document.head.innerHTML = "";
     document.body.innerHTML = "";
   });
@@ -44,5 +45,28 @@ describe("job context extraction", () => {
       description: "Work with React and automated testing.",
     });
     expect(JSON.stringify(context)).not.toContain("private-value");
+  });
+
+  it("extracts Greenhouse company and same-page job description", () => {
+    document.title = "Job Application for Software Engineer at Fleetworthy";
+    document.body.innerHTML = `
+      <main class="job-post">
+        <div class="job__title"><h1>Software Engineer</h1></div>
+        <div class="job__description">
+          <p>Build backend microservices using Python and TypeScript.</p>
+          <p>Develop REST and GraphQL APIs and automated tests.</p>
+        </div>
+        <section><h2>Apply for this job</h2><textarea>private answer</textarea></section>
+      </main>
+    `;
+
+    const context = extractJobContext(document);
+    expect(context).toEqual({
+      company: "Fleetworthy",
+      role: "Software Engineer",
+      description:
+        "Build backend microservices using Python and TypeScript. Develop REST and GraphQL APIs and automated tests.",
+    });
+    expect(JSON.stringify(context)).not.toContain("private answer");
   });
 });

@@ -14,6 +14,11 @@ import {
 
 import type { ParsedResume } from "./resumeTextParser";
 import type { SavedResumeMetadata } from "./resumeFileStorage";
+import {
+  canadianRegionNames,
+  canonicalCountryName,
+  canonicalRegionName,
+} from "./profileAddressNormalization";
 
 type ProfileEditorProps = {
   profile: CandidateProfile | null;
@@ -183,7 +188,9 @@ function profileFromDraft(
   draft: ProfileDraft,
   existing: CandidateProfile | null,
 ) {
-  const location = [draft.city.trim(), draft.stateOrProvince.trim()]
+  const stateOrProvince = canonicalRegionName(draft.stateOrProvince);
+  const country = canonicalCountryName(draft.country);
+  const location = [draft.city.trim(), stateOrProvince]
     .filter(Boolean)
     .join(", ");
   return candidateProfileSchema.parse({
@@ -203,11 +210,11 @@ function profileFromDraft(
           ? { streetAddress: draft.streetAddress.trim() }
           : {}),
         city: draft.city.trim(),
-        stateOrProvince: draft.stateOrProvince.trim(),
+        stateOrProvince,
         ...(draft.postalCode.trim()
           ? { postalCode: draft.postalCode.trim() }
           : {}),
-        country: draft.country.trim(),
+        country,
       },
     },
     links: {
@@ -627,8 +634,14 @@ export function ProfileEditor({
               required
               value={draft.stateOrProvince}
               autoComplete="address-level1"
+              list="applyproof-canadian-regions"
               onChange={(event) => set("stateOrProvince", event.target.value)}
             />
+            <datalist id="applyproof-canadian-regions">
+              {canadianRegionNames.map((region) => (
+                <option key={region} value={region} />
+              ))}
+            </datalist>
           </label>
         </div>
         <div className="field-grid two-columns">
@@ -646,8 +659,14 @@ export function ProfileEditor({
               required
               value={draft.country}
               autoComplete="country-name"
+              list="applyproof-countries"
               onChange={(event) => set("country", event.target.value)}
             />
+            <datalist id="applyproof-countries">
+              <option value="Canada" />
+              <option value="United States" />
+              <option value="United Kingdom" />
+            </datalist>
           </label>
         </div>
         <label>

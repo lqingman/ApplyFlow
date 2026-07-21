@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fillDocument } from "./pageFill";
 
@@ -25,6 +25,11 @@ describe("safe page filling", () => {
   });
 
   it("fills blank controls and radio groups", async () => {
+    const relocation = document.querySelector<HTMLInputElement>(
+      'input[name="relocation"][value="yes"]',
+    );
+    const relocationClick = vi.fn();
+    relocation?.addEventListener("click", relocationClick);
     expect(
       await fillDocument(document, [
         { fieldId: "email", value: "maya.chen@example.com" },
@@ -42,6 +47,7 @@ describe("safe page filling", () => {
     expect(
       document.querySelector<HTMLInputElement>('input[value="yes"]')?.checked,
     ).toBe(true);
+    expect(relocationClick).toHaveBeenCalledOnce();
     expect(
       document.querySelector<HTMLInputElement>(
         'input[name="accuracyConfirmation"]',
@@ -90,15 +96,17 @@ describe("safe page filling", () => {
     const toggle = document.querySelector("button")!;
     toggle.addEventListener("click", () => {
       toggle.setAttribute("aria-expanded", "true");
-      const option = document.createElement("div");
-      option.setAttribute("role", "menuitem");
-      option.textContent = "Canada";
-      option.addEventListener("click", () => {
-        document.querySelector(".fab-SelectToggle__content")!.textContent =
-          "Canada";
-        toggle.setAttribute("aria-expanded", "false");
-      });
-      document.body.append(option);
+      window.setTimeout(() => {
+        const option = document.createElement("div");
+        option.setAttribute("role", "menuitem");
+        option.textContent = "Canada";
+        option.addEventListener("click", () => {
+          document.querySelector(".fab-SelectToggle__content")!.textContent =
+            "Canada";
+          toggle.setAttribute("aria-expanded", "false");
+        });
+        document.body.append(option);
+      }, 40);
     });
 
     await expect(
@@ -107,5 +115,20 @@ describe("safe page filling", () => {
     expect(
       document.querySelector(".fab-SelectToggle__content"),
     ).toHaveTextContent("Canada");
+  });
+
+  it("matches Canadian province abbreviations to full ATS option names", async () => {
+    document.body.innerHTML = `
+      <label>Province<select id="province" name="state.value">
+        <option value="">Choose</option>
+        <option value="59">British Columbia</option>
+        <option value="60">Ontario</option>
+      </select></label>
+    `;
+
+    await expect(
+      fillDocument(document, [{ fieldId: "province", value: "BC" }]),
+    ).resolves.toEqual([{ fieldId: "province", status: "filled" }]);
+    expect(document.querySelector("#province")).toHaveValue("59");
   });
 });

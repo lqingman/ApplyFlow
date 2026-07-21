@@ -71,6 +71,25 @@ function questionText(element: Element, label: string) {
   return text.slice(0, 500);
 }
 
+function radioGroupLabel(element: Element, document: Document) {
+  let container = element.parentElement;
+  while (container) {
+    if (container.matches("fieldset, [role='group'], [role='radiogroup']")) {
+      const legend = normalizeText(
+        container.querySelector(":scope > legend")?.textContent,
+      );
+      const aria =
+        ariaLabelledBy(container, document) ||
+        normalizeText(container.getAttribute("aria-label"));
+      const candidate = legend || aria;
+      if (candidate && !/^(?:yes|no|select one)$/i.test(candidate))
+        return candidate;
+    }
+    container = container.parentElement;
+  }
+  return "";
+}
+
 export function extractFieldLabel(element: Element, document: Document) {
   if (
     element instanceof HTMLInputElement ||
@@ -306,10 +325,7 @@ export function scanDocument(document: Document): NormalizedField[] {
           'input[type="radio"][name]',
         ),
       ).filter((radio) => radio.name === element.name);
-      const legend = normalizeText(
-        element.closest("fieldset")?.querySelector("legend")?.textContent,
-      );
-      label = legend || label;
+      label = radioGroupLabel(element, document) || label;
       const metadata = fieldMetadata(element, label);
       fields.push({
         id: element.name,

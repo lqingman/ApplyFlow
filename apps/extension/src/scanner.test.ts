@@ -103,6 +103,26 @@ describe("page scanner", () => {
     ]);
   });
 
+  it("reads a question from an outer nested radiogroup", () => {
+    document.body.innerHTML = `
+      <div role="radiogroup" aria-label="Are you legally authorized to work in Canada?">
+        <div role="radiogroup">
+          <label><input type="radio" name="customQuestionAnswers.yes_no_359" value="Yes">Yes</label>
+          <label><input type="radio" name="customQuestionAnswers.yes_no_359" value="No">No</label>
+        </div>
+      </div>
+    `;
+
+    expect(scanDocument(document)).toMatchObject([
+      {
+        id: "customQuestionAnswers.yes_no_359",
+        label: "Are you legally authorized to work in Canada?",
+        kind: "radio",
+        options: ["Yes", "No"],
+      },
+    ]);
+  });
+
   it("reads live character limits from native, custom, and helper constraints", () => {
     document.body.innerHTML = `
       <textarea id="native" maxlength="300"></textarea>
