@@ -4,13 +4,13 @@ ApplyProof is a Chrome extension that helps people complete job applications wit
 
 Traditional autofill handles contact details. Generic AI can write polished answers, but may exaggerate or invent experience. ApplyProof combines deterministic profile autofill with resume-grounded drafts that are generated and reviewed directly on the application page.
 
-> **Project status:** Phase 5 is in progress. The extension now persists one editable `My Profile` locally, can seed it with Maya demo data, uses it for Scan & Autofill and inline grounded answers, and includes a scoped pilot for direct and embedded Greenhouse applications.
+> **Hackathon status:** The submission demo is complete and runnable locally. It includes an editable local profile, resume import and storage, safe autofill, evidence-grounded inline answers, cover-letter drafting, resume attachment, and builder-tested pilots on Workable, BambooHR, and Greenhouse.
 
-The current build is a controlled local demo. The confirmed product direction is one editable applicant profile, page-native review, and gradual validation on real application sites after the local workflow is stable.
+The supported judging path is the controlled Northstar Labs local demo. Real-site integrations remain compatibility pilots rather than a claim of universal ATS support.
 
 ## The idea
 
-ApplyProof should help an applicant:
+ApplyProof helps an applicant:
 
 1. Load a resume or demo profile.
 2. Open a job application.
@@ -30,8 +30,8 @@ ApplyProof never submits an application automatically.
 - **No surprise overwrites.** Existing non-empty fields are preserved unless the user confirms a replacement.
 - **No automatic submission.** The user inspects and submits the final application.
 - **Minimum page access.** Only normalized form metadata and relevant job context should leave the page.
-- **One applicant-owned profile.** The product should edit and reuse one `My Profile`; Maya remains seed data for the demo rather than a long-term profile choice.
-- **Remember meaning, not wording.** A reviewed answer may be reused only when a later question maps confidently to the same scoped concept.
+- **One applicant-owned profile.** The product edits and reuses one `My Profile`; Maya remains seed data for the demo rather than a long-term profile choice.
+- **Remember meaning, not wording.** The current scoped memory keeps Canadian work authorization and sponsorship separate and reuses them only when the later question maps confidently to the same concept and country.
 
 ## Hackathon demo
 
@@ -44,7 +44,7 @@ The demo uses:
 - **Role:** Junior Software Engineer
 - **Environment:** a local mock application and unpacked Chrome extension
 
-### Target demo flow
+### Demo flow
 
 1. Open the Northstar Labs mock application.
 2. Open the ApplyProof side panel and load Maya data into `My Profile`.
@@ -74,20 +74,19 @@ The demo is successful when a judge can complete this flow locally without an ac
 - Live character-limit discovery, validation, and automatic over-limit retry
 - Sensitive-field blocking
 
-### Deferred until the demo works
+### Deliberately outside the submission scope
 
-- Validated online forms and selected ATS integrations
 - Broad third-party ATS compatibility
 - Authentication or multi-user persistence
 - Automatic job discovery or submission
 - LinkedIn scraping
 - Application tracking
-- Cover-letter generation
 - Payments
 - Chrome Web Store publishing
 - A vector database
+- General-purpose memory for arbitrary application questions
 
-## Planned architecture
+## Architecture
 
 ```text
 ApplyProof/
@@ -101,19 +100,21 @@ ApplyProof/
 ├── docs/
 │   ├── ANSWER_GENERATION_DESIGN.md
 │   ├── BUILD_LOG.md
+│   ├── DEMO_VIDEO_SCRIPT.md
+│   ├── DEVPOST_SUBMISSION.md
 │   ├── ROADMAP.md
 │   └── SUBMISSION_CHECKLIST.md
 └── README.md
 ```
 
-Planned stack:
+Stack:
 
 - **Extension and demo:** React, TypeScript, Vite, Zod, Vitest
 - **Backend:** Python 3.12, FastAPI, Pydantic, pytest
 - **Browser platform:** Chrome Manifest V3 and Side Panel API
 - **Model integration:** server-side fixture, OpenRouter Responses API, or Gemini OpenAI-compatible provider with Structured Outputs
 
-The demo should remain useful without a model key where practical. Deterministic fields, safety behavior, and scanning should still work, while sample generated answers may be supplied as fixtures for presentation reliability.
+The demo remains useful without a model key. Fixture mode supplies deterministic grounded drafts for presentation reliability, while OpenRouter and Gemini modes exercise the same validated response contract with server-side credentials.
 
 ## Page-native workflow
 
@@ -127,15 +128,15 @@ New users can start `My Profile` directly with **From resume** or **From scratch
 
 Cover-letter textareas use the same evidence boundary. ApplyProof first looks for bounded `JobPosting` structured data or an explicit job-description container. If it cannot find a job description, it does not auto-generate the cover letter and asks the user to paste the description into the inline assistant. The pasted description provides job context only; candidate claims must still come from Profile evidence or selected saved-resume snippets.
 
-## Planned product workflow before final demo polish
+## Product workflow
 
 1. The user creates or imports one editable `My Profile` containing stable facts and evidence.
 2. ApplyProof scans an application only after the user initiates the action.
 3. Confirmed profile facts, authorization, demographics, applicable remembered answers, and mapped confirmations are filled deterministically.
 4. Blank open-ended questions receive a resume-based draft; existing page values are preserved.
-5. When the user confirms a reusable answer, ApplyProof stores it under a canonical, scoped meaning rather than the site's exact wording.
-6. Later semantically equivalent questions may reuse that answer when classification confidence is high.
-7. Time-dependent preferences can be reviewed again. Continue, Next, and Submit always remain user actions.
+5. Explicit Canadian work-authorization and sponsorship choices are stored under separate canonical, country-scoped meanings rather than a site's exact wording.
+6. Later semantically equivalent Canadian questions may reuse the matching choice when classification confidence is high.
+7. Continue, Next, and Submit always remain user actions.
 
 For example, “Are you legally authorized to work in Canada?” and “Will you require sponsorship?” are stored separately as `work_authorization.canada.authorized` and `work_authorization.canada.sponsorship`, with their source and confirmation time. Later equivalent Canadian questions may reuse the matching answer. That does not authorize ApplyProof to answer a different country's question, infer immigration status, accept legal terms, or submit the application.
 
@@ -143,7 +144,7 @@ For example, “Are you legally authorized to work in Canada?” and “Will you
 
 The fully supported environment today is the local Northstar Labs application. Workable, BambooHR, and Greenhouse remain builder-tested pilots rather than generally supported integrations. The extension uses user-initiated active-tab access and has persistent required host permissions only for the local demo origins. Embedded Greenhouse forms request the narrowly declared `job-boards.greenhouse.io` optional permission only when such a frame is detected. Other online forms may happen to work, but they are not advertised as supported without compatibility evidence.
 
-Online support will be introduced as a compatibility pilot: validate ordinary HTML forms first, then selected ATS platforms one at a time. Each advertised site must pass repeatable tests covering semantic field classification, custom controls, dynamic and multi-step forms, iframe boundaries, existing-value protection, inline drafting, live limits, and the guarantee that ApplyProof never submits automatically. Universal ATS support remains out of scope.
+Online support is being validated one platform at a time. Workable, BambooHR, and Greenhouse have builder-tested pilots, with regression coverage for the site-specific behavior fixed during those tests. A platform moves from pilot to supported only after it passes the repeatable criteria in the compatibility matrix. Universal ATS support remains out of scope.
 
 See the [site compatibility matrix](docs/SITE_COMPATIBILITY.md) for the tested baseline, unsupported platforms, access model, known limitations, and pilot exit criteria.
 
@@ -161,37 +162,38 @@ ApplyProof must not:
 
 ## Roadmap
 
-Development follows a demo-first sequence:
+Development followed a demo-first sequence:
 
 1. **Foundation:** runnable extension shell, API health endpoint, and mock application.
 2. **Scan:** detect and normalize fields on the mock page.
 3. **Safe autofill:** load Maya's profile and fill verified fields without overwriting values.
 4. **Grounded answers:** generate evidence-backed open-ended answers on the page for review and regeneration.
-5. **Product workflow expansion:** replace demo profile selection with one editable profile, add scoped answer memory, and validate online sites incrementally.
-6. **Submission and demo polish:** improve UI, resilience, documentation, judge setup, and the three-minute presentation after the product workflow is complete.
+5. **Product workflow expansion:** replaced demo profile selection with one editable profile, added scoped work-authorization memory, resume import and attachment, cover letters, and incremental online pilots.
+6. **Submission and demo polish:** package the stable judging path, documentation, and three-minute presentation.
 
 See [the detailed roadmap](docs/ROADMAP.md) for acceptance criteria and sequencing.
 
 ## How GPT-5.6 and Codex were used
 
-ApplyProof is being planned and built collaboratively with Codex. We use GPT-5.6 for the work that benefits from broad reasoning and semantic understanding, while keeping product ownership and final decisions with the human builder.
+ApplyProof was planned and built collaboratively with Codex using GPT-5.6. GPT-5.6 helped reason across product scope, browser security, accessibility, schema design, test failures, and third-party ATS behavior, while the human builder retained product ownership and made the final tradeoffs.
 
 ### Where Codex accelerated the workflow
 
-- Read the original long-form product plan and converted it into a narrower, judge-ready vertical slice.
-- Inspected the new repository before proposing implementation work.
-- Created the initial README and phased roadmap from the planning conversation.
-- Made safety requirements—no automatic submission, no unsupported material claims, explicit profile choices, and page-native review—acceptance criteria rather than informal intentions.
-- Identified features that should be deterministic and kept broad ATS support and vector search outside the submission scope.
-
-As implementation progresses, this section will be updated with concrete examples of code generation, debugging, test creation, browser verification, and design iteration.
+- Converted a broad product plan into a judge-ready vertical slice spanning a Chrome extension, local application, shared TypeScript contracts, and a FastAPI service.
+- Implemented and iterated on profile storage, deterministic field mapping, page-native writing controls, strict provider schemas, evidence validation, resume parsing, and cross-frame Greenhouse routing.
+- Wrote regression tests alongside the implementation. The final repository has 129 passing tests across extension, demo, shared packages, and API.
+- Used browser inspection and failing tests to diagnose real issues including Chrome `activeTab` behavior, Workable's oversized character limit, BambooHR custom address controls, Greenhouse ARIA combobox timing, and embedded Greenhouse iframe routing.
+- Kept safety requirements—no automatic submission, no unsupported material claims, explicit sensitive choices, existing-value protection, and bounded page access—as executable acceptance criteria.
+- Maintained the roadmap, compatibility matrix, build log, and submission checklist as the implementation evolved.
 
 ### Key decisions made by the human builder
 
-- Build the controlled prototype first, complete the intended product workflow, then polish the final submission demo.
+- Build one controlled, repeatable demo before expanding to real ATS pilots.
 - Position ApplyProof around truthfulness and visible evidence, not generic form filling.
 - Keep applicants in control by making generated answers editable and leaving navigation and submission manual.
-- Optimize the hackathon build for one coherent end-to-end experience.
+- Use deterministic logic for known facts and reserve model generation for evidence-backed writing.
+- Treat Workable, BambooHR, and Greenhouse as builder-tested pilots instead of claiming universal compatibility.
+- Stop adding scope once the coherent end-to-end judging path was complete.
 
 ### How we preserve evidence of the collaboration
 
@@ -302,4 +304,4 @@ Before submitting, use the [hackathon submission checklist](docs/SUBMISSION_CHEC
 
 ## License
 
-License to be decided before public distribution.
+This project is available under the [MIT License](LICENSE).

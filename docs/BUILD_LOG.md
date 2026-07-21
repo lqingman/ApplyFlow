@@ -331,6 +331,18 @@ The scanner now recognizes native `maxlength`, common custom data attributes, `a
 
 **Artifacts:** extension browser bridge and regression tests; least-privilege manifest and manifest test; `README.md`; compatibility matrix; roadmap; and this build log.
 
+### 2026-07-20 — Submission copy and judge handoff
+
+**Goal:** present the completed demo accurately and give judges a low-friction path to understand, install, and test it.
+
+**Human decision:** freeze feature scope, keep Northstar as the supported judging path, describe real ATS work as builder-tested pilots, and position ApplyProof around evidence-grounded applications rather than generic AI autofill.
+
+**Codex contribution:** updated the README from planning language to submission-ready status; narrowed answer-memory claims to the implemented Canadian authorization scope; added an MIT license; drafted the complete Devpost project story, technology tags, installation and judge-testing instructions; and prepared a timed video script that foregrounds the working product, safety boundaries, and concrete GPT-5.6/Codex collaboration.
+
+**Verification:** Markdown formatting and repository format checks pass, and the prepared copy matches the implemented feature boundary and 129-test verification recorded in the preceding milestone.
+
+**Artifacts:** `README.md`, `LICENSE`, `docs/DEVPOST_SUBMISSION.md`, `docs/DEMO_VIDEO_SCRIPT.md`, and this build log.
+
 ## Entry template
 
 Copy this section for the next milestone:
